@@ -1,0 +1,1540 @@
+
+=======================================
+     NovaBot WhatsApp - Premium        
+     Inicializando...                  
+=======================================
+
+[05/06/2026, 00:59:51] [INFO] [COMANDOS] 61 comandos registrados
+[05/06/2026, 00:59:51] [INFO] [BACKUP] Backup automatico ativado
+[05/06/2026, 00:59:51] [INFO] [BOT] Conectando ao WhatsApp...
+[05/06/2026, 00:59:52] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 00:59:53] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 00:59:54] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 0m 2s
+  RAM: 46.5MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BcQN9NEX+nYFbHZt3kwjfd+EJ+JIU/iQG6WvMJ75abwW': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 c4 0d f4 d1 17 fa 76 05 6c 76 6d de 4c 23 7d df 84 27 e2 48 53 f8 90 1b a5 af 30 9e f9 69 bc 16>,
+      privKey: <Buffer 30 f0 a4 20 4f 4b dd 0d 3e 7a ee 52 9d 0d 4e 5e 7d 7a e5 5f 19 a9 dc 3e ac 8a d5 32 a3 33 fa 61>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer ed 32 b7 99 fe ac 6c 45 a8 50 8f 72 9a 2d 1c db 7d a2 d5 6b a5 0e 81 5e 2b ba 03 6a 0d b8 63 ba>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 c5 05 6d 23 38 ed a3 4a 77 24 46 b8 5a 9e f1 16 1d 51 d1 fb c9 f8 3f d8 32 fc e5 eb b3 c1 96 43>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780631495704,
+    created: 1780631495704,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 c5 05 6d 23 38 ed a3 4a 77 24 46 b8 5a 9e f1 16 1d 51 d1 fb c9 f8 3f d8 32 fc e5 eb b3 c1 96 43>,
+    preKeyId: 11732857
+  }
+}
+[05/06/2026, 01:00:26] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:00:31] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:00:33] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:00:33] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 0m 41s
+  RAM: 37.2MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BVpefn6qe+/6kQXup3FhtN6GbVzsZCBFg1MehU4x5DBD': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 5a 5e 7e 7e aa 7b ef fa 91 05 ee a7 71 61 b4 de 86 6d 5c ec 64 20 45 83 53 1e 85 4e 31 e4 30 43>,
+      privKey: <Buffer 48 9b 2a 34 b8 6e 29 90 1a 70 67 70 86 5c e1 ae 61 9c a3 a2 0d 49 a3 74 1b b6 04 f7 83 7b 51 69>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer e0 a9 1a 53 d2 32 fa 10 cd 9f ef da 1e 07 d5 c2 6b 79 cd 84 f9 26 b2 ad 5e 20 02 09 14 5a 8b fb>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 1e 59 24 42 d4 17 1e 7a dc ed cc ae 65 c4 89 b6 bc ab 43 de ce 03 f4 1f a0 30 f1 23 62 c2 e9 06>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780631994525,
+    created: 1780631994525,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 1e 59 24 42 d4 17 1e 7a dc ed cc ae 65 c4 89 b6 bc ab 43 de ce 03 f4 1f a0 30 f1 23 62 c2 e9 06>,
+    preKeyId: 11732407
+  }
+}
+[05/06/2026, 01:01:25] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:01:30] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:01:31] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:01:31] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 1m 39s
+  RAM: 38.7MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    BQzbWyIFpacOqAzx18JC1IWEUOMHvTLKdqz4atxYqVkk: { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 0c db 5b 22 05 a5 a7 0e a8 0c f1 d7 c2 42 d4 85 84 50 e3 07 bd 32 ca 76 ac f8 6a dc 58 a9 59 24>,
+      privKey: <Buffer 48 7d 6c b0 d1 b0 18 bc ec 8b ba 42 83 96 38 fd 74 10 83 7d 1b dc bd eb a9 16 69 a7 ef 97 dc 56>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 23 da 9e 1a 11 5b 56 f0 b2 2d a9 01 a7 b5 0e 1f 21 50 a3 d7 78 f4 a4 58 b0 bc d8 2f 0b 84 33 f6>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 a7 61 d7 47 ca 18 7a 9a 2f 34 96 07 60 83 4e a0 78 a9 c1 cf 26 e2 eb df 35 32 e2 60 9c f1 24 57>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632087361,
+    created: 1780632087361,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 a7 61 d7 47 ca 18 7a 9a 2f 34 96 07 60 83 4e a0 78 a9 c1 cf 26 e2 eb df 35 32 e2 60 9c f1 24 57>,
+    preKeyId: 11732702
+  }
+}
+[05/06/2026, 01:01:37] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:01:42] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:01:44] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:01:44] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 1m 52s
+  RAM: 39.7MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BVQnxtSmWgJ++6O+XO0/kGzI2beH0kAIoGEHoeKCVAA3': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 54 27 c6 d4 a6 5a 02 7e fb a3 be 5c ed 3f 90 6c c8 d9 b7 87 d2 40 08 a0 61 07 a1 e2 82 54 00 37>,
+      privKey: <Buffer 38 2f 36 63 96 cf b0 2b e1 8a 28 75 65 f0 84 f1 be ad 79 d4 9a c3 30 d3 29 70 25 2c 3c bd a1 47>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 77 ec 5b 91 14 53 0e ba 40 6b 91 b7 3b 9c 6e 74 f7 02 73 68 63 11 56 59 91 2e db c5 24 fd 32 f3>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 d0 37 42 de de bd b9 54 40 7e a3 a6 df 2b 5f fa 82 85 11 f5 97 1e 05 88 98 1b c6 a1 f8 c1 84 4f>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632098054,
+    created: 1780632098054,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 d0 37 42 de de bd b9 54 40 7e a3 a6 df 2b 5f fa 82 85 11 f5 97 1e 05 88 98 1b c6 a1 f8 c1 84 4f>,
+    preKeyId: 11732426
+  }
+}
+[05/06/2026, 01:01:49] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:01:54] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:01:56] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:01:56] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 2m 5s
+  RAM: 40.8MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    BeAOUKzY4CiIjAzvuwZOOTKVIthlIevOTj0rr4Le48k0: { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 e0 0e 50 ac d8 e0 28 88 8c 0c ef bb 06 4e 39 32 95 22 d8 65 21 eb ce 4e 3d 2b af 82 de e3 c9 34>,
+      privKey: <Buffer 70 11 78 60 40 8c 32 85 7b fb 32 35 da 3a c2 6e 7a 30 22 8e c5 41 17 2c ea dc a8 c3 bd d9 4d 6a>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 6e cd ef f7 6a e9 e1 fc c4 d0 d4 94 b7 12 e3 83 f5 dd 18 ed 75 ea 6d 81 42 1f 19 35 4b 1d ee 94>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 d7 62 38 1f 1a 38 4b a4 15 76 c9 5d 6b f3 5a 5b 5c 20 44 08 2f f1 c4 8d 11 2e 43 e1 58 22 e3 28>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632110488,
+    created: 1780632110488,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 d7 62 38 1f 1a 38 4b a4 15 76 c9 5d 6b f3 5a 5b 5c 20 44 08 2f f1 c4 8d 11 2e 43 e1 58 22 e3 28>,
+    preKeyId: 11732812
+  }
+}
+[05/06/2026, 01:02:01] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:02:06] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:02:09] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:02:09] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 2m 17s
+  RAM: 41.4MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    BfH86BNGiJY9BW9LgJgfcbrOo33We2vFmCnPO90BDlMl: { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 f1 fc e8 13 46 88 96 3d 05 6f 4b 80 98 1f 71 ba ce a3 7d d6 7b 6b c5 98 29 cf 3b dd 01 0e 53 25>,
+      privKey: <Buffer 58 27 41 bf 91 31 81 ac 39 a3 e7 d2 9c f5 cb a9 03 62 af ea cd 95 da 50 d5 ce e0 b6 50 96 22 54>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer dd 61 71 47 b4 40 8c d7 ab a6 18 52 c4 15 0a cd e9 d7 49 bb 57 da 49 e4 82 d4 71 c7 9d 1f 26 74>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 e8 88 69 2c e0 35 17 65 35 06 46 c4 c4 89 cb 16 cd cc 5b 63 a8 40 75 76 54 ed 89 71 26 86 f2 34>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632122426,
+    created: 1780632122426,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 e8 88 69 2c e0 35 17 65 35 06 46 c4 c4 89 cb 16 cd cc 5b 63 a8 40 75 76 54 ed 89 71 26 86 f2 34>,
+    preKeyId: 11732925
+  }
+}
+[05/06/2026, 01:02:13] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:02:19] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:02:20] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:02:20] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 2m 28s
+  RAM: 42.7MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BYlVZASrFpJyImPFVl0ts0nXUDmY4wgrXM218O3L+9ZH': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 89 55 64 04 ab 16 92 72 22 63 c5 56 5d 2d b3 49 d7 50 39 98 e3 08 2b 5c cd b5 f0 ed cb fb d6 47>,
+      privKey: <Buffer d8 66 21 8c e9 f7 5e 40 39 69 67 a9 73 fd 63 75 43 e5 2d b6 a4 24 b6 f0 41 7f 61 ce e4 57 54 50>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer e6 aa 86 38 5c 3f f6 81 50 bf 97 55 8c c6 48 9f 59 e4 e1 28 2a a9 a8 a0 e2 c7 4e 3b 96 9c f0 c6>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 2d ba 48 b5 1e 91 93 eb ab fe cc 12 b8 8f a8 4b ee 59 0e 09 81 28 92 b2 49 d3 ea a7 23 d8 3e 48>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632134564,
+    created: 1780632134564,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 2d ba 48 b5 1e 91 93 eb ab fe cc 12 b8 8f a8 4b ee 59 0e 09 81 28 92 b2 49 d3 ea a7 23 d8 3e 48>,
+    preKeyId: 11732362
+  }
+}
+[05/06/2026, 01:02:25] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:02:31] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:02:32] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:02:32] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 2m 40s
+  RAM: 38.5MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BTB22vJIgA0wOSi7jIOjTKVy1mjE9K6/LZP5HSbXk1Q+': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 30 76 da f2 48 80 0d 30 39 28 bb 8c 83 a3 4c a5 72 d6 68 c4 f4 ae bf 2d 93 f9 1d 26 d7 93 54 3e>,
+      privKey: <Buffer b0 1e 8a bc f6 b5 1e ce 76 eb 25 1e da 32 74 48 ff bb 60 51 4a ac f2 19 42 ff 69 89 45 e1 8f 6f>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer ca eb 06 5c 56 b4 ca 65 9a b4 ef 58 f6 e6 53 43 bc ca 63 99 90 47 b1 77 11 75 0f 19 1a 33 7f f4>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 4c 09 8b cd 2e 9b 6c 32 fa 20 01 ef 57 ac d2 4b e6 62 85 2b 42 05 2c a3 b5 ba b4 66 28 50 62 3f>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632148279,
+    created: 1780632148279,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 4c 09 8b cd 2e 9b 6c 32 fa 20 01 ef 57 ac d2 4b e6 62 85 2b 42 05 2c a3 b5 ba b4 66 28 50 62 3f>,
+    preKeyId: 11732292
+  }
+}
+[05/06/2026, 01:02:38] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:02:43] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:02:45] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:02:45] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 2m 53s
+  RAM: 40.2MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BWxOeTjmxkTNhrUXVJ+ajwQgS4/n5/2RGUXUQ5vH7ScB': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 6c 4e 79 38 e6 c6 44 cd 86 b5 17 54 9f 9a 8f 04 20 4b 8f e7 e7 fd 91 19 45 d4 43 9b c7 ed 27 01>,
+      privKey: <Buffer b0 e9 49 4a db 3f 71 59 2e a5 f7 86 5a cb ab 69 56 17 0d 7d d6 ab 2d 67 33 ca 68 f2 f6 99 e0 41>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 94 01 59 73 e0 bf db fd ed 8d 38 e9 0b c2 49 61 de 1a e3 f2 a2 64 62 65 9c 6b 7a 22 5c f9 fc e0>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 f4 02 e4 28 e4 d7 d3 37 23 d9 21 46 51 60 78 f7 54 ef 7e 24 23 70 b3 14 4e a0 6a ba 77 83 6d 30>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632160789,
+    created: 1780632160789,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 f4 02 e4 28 e4 d7 d3 37 23 d9 21 46 51 60 78 f7 54 ef 7e 24 23 70 b3 14 4e a0 6a ba 77 83 6d 30>,
+    preKeyId: 11732286
+  }
+}
+[05/06/2026, 01:02:50] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:02:55] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:02:57] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:02:57] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 3m 6s
+  RAM: 40.8MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BT7lki3CUvEc5LzSc6FyON+SeEaHvNtiKS9tPmgvopQa': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 3e e5 92 2d c2 52 f1 1c e4 bc d2 73 a1 72 38 df 92 78 46 87 bc db 62 29 2f 6d 3e 68 2f a2 94 1a>,
+      privKey: <Buffer 28 34 71 82 5c 5e 98 af 9a 00 3b b1 d4 3c 39 f1 88 4f 55 e7 7d e1 09 71 cf 61 37 3a 9a 7a cb 40>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer f7 e5 8b a1 ce 1e f8 88 dc a6 7a 1a 2e 64 51 6e 5f 92 91 46 9f 65 f5 d1 d6 00 2d c4 b5 89 4b 30>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 10 a3 26 40 93 02 1c 9d 98 cf 80 55 84 51 42 b6 f9 12 cb 51 ea b4 8a 79 53 9d f5 08 22 10 e7 2d>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632172685,
+    created: 1780632172685,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 10 a3 26 40 93 02 1c 9d 98 cf 80 55 84 51 42 b6 f9 12 cb 51 ea b4 8a 79 53 9d f5 08 22 10 e7 2d>,
+    preKeyId: 11732713
+  }
+}
+[05/06/2026, 01:06:19] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:06:24] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:06:26] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:06:27] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 6m 35s
+  RAM: 42.2MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BY2uCckwnjoE61yh9o+vwina3wlgK4JvcAToepO1AsVP': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 8d ae 09 c9 30 9e 3a 04 eb 5c a1 f6 8f af c2 29 da df 09 60 2b 82 6f 70 04 e8 7a 93 b5 02 c5 4f>,
+      privKey: <Buffer 38 2e 0b e9 6f 43 11 e3 1b e0 a0 ab 7f d5 59 9e 1d d2 15 8c 06 85 38 d0 de ea d4 c2 c2 6d 86 61>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 09 ab 10 32 b3 14 9f e8 64 ba 1b 28 3a 0f 42 36 32 56 01 23 85 42 80 f5 3d d6 cd a2 62 71 2f e9>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 c2 a5 2f 4d f8 26 2e c1 2c 02 79 52 81 40 aa 05 53 a9 82 43 23 5f 67 b5 ba 2e 35 d8 ca 52 6a 4a>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632178718,
+    created: 1780632178718,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 c2 a5 2f 4d f8 26 2e c1 2c 02 79 52 81 40 aa 05 53 a9 82 43 23 5f 67 b5 ba 2e 35 d8 ca 52 6a 4a>,
+    preKeyId: 11732427
+  }
+}
+[05/06/2026, 01:07:03] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:07:08] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:07:09] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:07:09] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 7m 18s
+  RAM: 42.6MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'Bcz4Qc2xykINa3vCcvT/Ej8Iru8yEFXlFAljSfk+Xmdw': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 cc f8 41 cd b1 ca 42 0d 6b 7b c2 72 f4 ff 12 3f 08 ae ef 32 10 55 e5 14 09 63 49 f9 3e 5e 67 70>,
+      privKey: <Buffer e0 69 58 9b 9e 90 0e 64 5d b3 0b 84 21 9c 6b a6 99 6f 0d c0 3a f8 6e 8d 47 6b 8b 8f 55 36 c5 5b>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 79 d4 eb f6 63 20 d1 8a 7d db 0e 78 e0 42 d6 53 58 67 b1 8f 6c 66 7e a2 6f 69 3e f9 a8 bb 0f 79>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 51 88 a2 1d bd 81 d7 b9 c8 4f 26 85 9e a0 fb 1e f2 1b 25 c8 8f ab 76 4a cd 44 e8 6b 30 38 67 09>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632426037,
+    created: 1780632426037,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 51 88 a2 1d bd 81 d7 b9 c8 4f 26 85 9e a0 fb 1e f2 1b 25 c8 8f ab 76 4a cd 44 e8 6b 30 38 67 09>,
+    preKeyId: 11732837
+  }
+}
+[05/06/2026, 01:07:15] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:07:20] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:07:21] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:07:21] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 7m 30s
+  RAM: 43.2MB
+  Comandos: 8
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    BdCtxcxV2nLxHNWxvNtl4paZ3DlDWlHKIQ7YMC1UKfIi: { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 d0 ad c5 cc 55 da 72 f1 1c d5 b1 bc db 65 e2 96 99 dc 39 43 5a 51 ca 21 0e d8 30 2d 54 29 f2 22>,
+      privKey: <Buffer 80 0f cd 8a 00 f6 9a 46 0f 7c f8 2a a2 b8 d8 17 34 91 7b c8 d9 d9 65 84 9e 5d 10 89 35 47 3e 53>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 56 4e 89 e2 03 fe db 66 36 14 fb 05 25 c1 01 20 28 6e ee e8 28 cc 24 56 73 c6 2f 2d 32 07 c3 7d>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 4d f7 cc a1 10 e3 18 38 2c d2 37 56 a1 a0 01 64 a8 26 a1 c2 54 33 8f bb 0f 38 b7 7d ef 44 e1 6e>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632436626,
+    created: 1780632436626,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 4d f7 cc a1 10 e3 18 38 2c d2 37 56 a1 a0 01 64 a8 26 a1 c2 54 33 8f bb 0f 38 b7 7d ef 44 e1 6e>,
+    preKeyId: 11732767
+  }
+}
+[COMANDO] 221104983511154 usou: !play barão
+[05/06/2026, 01:07:27] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:07:32] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:07:33] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:07:33] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 7m 41s
+  RAM: 77.4MB
+  Comandos: 9
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BTxAs6XlAVLaHev38dDS7co/aSLr6dU/VTcovpVcuzcH': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 3c 40 b3 a5 e5 01 52 da 1d eb f7 f1 d0 d2 ed ca 3f 69 22 eb e9 d5 3f 55 37 28 be 95 5c bb 37 07>,
+      privKey: <Buffer 48 fe 31 23 f1 67 dd 84 ab b7 e8 8f 80 f9 75 a0 ff c9 11 2b 2c a1 4d c2 7b ad 29 65 0d ce 50 4c>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 4c 9b 6c 9a 14 c1 82 b3 c5 bd b7 b2 fc 09 6f df 1e cf 18 fd 0b f7 3a f6 97 18 a7 f5 9f dd d2 f2>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 8a 26 18 06 7a f1 b9 d3 73 62 6f 8f f1 b0 0b 0b c5 bf c7 89 16 f2 d2 96 f8 9b 50 79 c9 c6 36 2f>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632448134,
+    created: 1780632448134,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 8a 26 18 06 7a f1 b9 d3 73 62 6f 8f f1 b0 0b 0b c5 bf c7 89 16 f2 d2 96 f8 9b 50 79 c9 c6 36 2f>,
+    preKeyId: 11732450
+  }
+}
+[05/06/2026, 01:07:38] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:07:43] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:07:45] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:07:45] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 7m 53s
+  RAM: 76.1MB
+  Comandos: 9
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    BVXDno8oU2jMGpTsd8MHUc7r6k4XTqqW9aT9oKCtAXhX: { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 55 c3 9e 8f 28 53 68 cc 1a 94 ec 77 c3 07 51 ce eb ea 4e 17 4e aa 96 f5 a4 fd a0 a0 ad 01 78 57>,
+      privKey: <Buffer 00 c9 9b 0b a2 10 38 a2 1d d3 78 70 7a e8 2b 4f 51 3d 02 06 6f 15 99 0b f5 25 c1 2d e6 f9 d9 4c>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer e9 a7 01 bb c9 c8 ac c6 ec 87 14 fa 22 5d 8e 1c e0 91 d6 ec 83 01 c0 ce e3 0f 3b e8 37 82 1a af>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 4b 16 e6 21 c0 45 8a 4a 13 8d e7 bd d7 8d 3f be 2f b6 c7 3d 29 fb 6b 8f b6 dd a7 75 8c ba 67 64>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632459582,
+    created: 1780632459582,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 4b 16 e6 21 c0 45 8a 4a 13 8d e7 bd d7 8d 3f be 2f b6 c7 3d 29 fb 6b 8f b6 dd a7 75 8c ba 67 64>,
+    preKeyId: 11732396
+  }
+}
+[05/06/2026, 01:07:46] [ERROR] [COMANDO] Erro em "play": Connection Closed
+[05/06/2026, 01:07:50] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:07:55] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:07:57] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:07:57] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 8m 6s
+  RAM: 38.6MB
+  Comandos: 9
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BfyTSkmwEDD3w/i6MomaAFJZEO1BybB1d4v2p1ILOKgI': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 fc 93 4a 49 b0 10 30 f7 c3 f8 ba 32 89 9a 00 52 59 10 ed 41 c9 b0 75 77 8b f6 a7 52 0b 38 a8 08>,
+      privKey: <Buffer f0 8b fc ea e9 bf f1 6e 0a ef 30 e6 15 76 ed f7 a7 48 a1 72 78 bb 7d 84 f9 ee 24 05 d9 5c 98 52>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer f7 7e b5 89 52 3d 20 dd 69 dc 19 99 bc 58 ca b0 39 57 fc e1 ae 09 e1 6a 77 f0 c0 8f dd 1d df c8>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 99 19 e4 e1 5c 94 03 5f 3a 8d f9 90 27 3a 54 de 69 f3 23 aa 95 a6 13 04 01 ba 75 31 8b 92 1a 6c>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632471926,
+    created: 1780632471926,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 99 19 e4 e1 5c 94 03 5f 3a 8d f9 90 27 3a 54 de 69 f3 23 aa 95 a6 13 04 01 ba 75 31 8b 92 1a 6c>,
+    preKeyId: 11732706
+  }
+}
+[05/06/2026, 01:08:14] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:08:19] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:08:21] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:08:21] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 8m 29s
+  RAM: 39.7MB
+  Comandos: 9
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BWoC4XgcBqoOs9bxxG5Y2sRt62GyCWoNxD0BbT9Y/xBw': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 6a 02 e1 78 1c 06 aa 0e b3 d6 f1 c4 6e 58 da c4 6d eb 61 b2 09 6a 0d c4 3d 01 6d 3f 58 ff 10 70>,
+      privKey: <Buffer 80 aa 23 3b 25 d4 62 d9 1f fa ac 88 7d 58 e3 da 8d 1e 0d aa 10 03 78 56 b7 8f 19 62 a5 57 90 7e>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 37 0c b8 7e 9d 02 e7 fc 4c 32 00 f9 1a 70 d4 68 03 ee 7f 1e 01 5a 67 78 e0 33 ea 2a a4 07 e1 2f>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 f5 66 5c eb 66 29 36 64 d5 73 0f 4f c2 46 f2 c5 21 16 f6 89 f8 01 5e f6 4f 8c 13 92 af 2b 10 27>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632496018,
+    created: 1780632496018,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 f5 66 5c eb 66 29 36 64 d5 73 0f 4f c2 46 f2 c5 21 16 f6 89 f8 01 5e f6 4f 8c 13 92 af 2b 10 27>,
+    preKeyId: 11732402
+  }
+}
+[05/06/2026, 01:08:59] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:09:05] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:09:06] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:09:06] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 9m 14s
+  RAM: 40.9MB
+  Comandos: 9
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BRRWAM7UDz23yYfuHy42g/28G+z5bLeP3CEcNFS/GgQt': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 14 56 00 ce d4 0f 3d b7 c9 87 ee 1f 2e 36 83 fd bc 1b ec f9 6c b7 8f dc 21 1c 34 54 bf 1a 04 2d>,
+      privKey: <Buffer 18 f3 52 88 e2 6f cd 51 81 3f 7a 45 3a 91 f7 00 9b 79 cb ee 68 ee 91 12 ab 7d c8 70 2b 4a dd 4a>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 25 dc 00 26 f2 d2 c5 53 e9 37 ea 21 ad 1c 89 7f d1 bd 13 1a fe 46 a3 18 71 13 23 85 7c fb bc c9>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 4c f8 26 cc 3c 09 ab 8a ea d7 d9 7e 9b e9 2f 19 61 2d 19 4e 7e e8 02 fd 5a 27 59 84 e0 34 29 6c>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632540627,
+    created: 1780632540627,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 4c f8 26 cc 3c 09 ab 8a ea d7 d9 7e 9b e9 2f 19 61 2d 19 4e 7e e8 02 fd 5a 27 59 84 e0 34 29 6c>,
+    preKeyId: 11732755
+  }
+}
+[05/06/2026, 01:10:09] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:10:14] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:10:15] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:10:15] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 10m 24s
+  RAM: 41.7MB
+  Comandos: 9
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'Bcz95EV2tU/1AddxaVnj+r4/jjb5tdYZx9XE+7/uPg8Q': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 cc fd e4 45 76 b5 4f f5 01 d7 71 69 59 e3 fa be 3f 8e 36 f9 b5 d6 19 c7 d5 c4 fb bf ee 3e 0f 10>,
+      privKey: <Buffer 48 f6 b7 15 d7 af 65 49 82 90 38 2e d0 79 4e 9d 7b 63 d5 0f ed 11 e7 f5 bc 80 c6 11 66 77 33 69>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 6e d5 b1 e0 13 20 66 f8 f9 cb 63 61 43 4d 52 28 92 f6 e2 9e fc c8 73 9a a1 95 48 c6 4b 25 3c 57>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 e2 82 9d d0 85 00 3a 1e d5 f8 50 07 67 cf 0b d0 38 55 88 aa 1f b5 4c b1 b2 16 cb cc 7b fe 01 48>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632547113,
+    created: 1780632547113,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 e2 82 9d d0 85 00 3a 1e d5 f8 50 07 67 cf 0b d0 38 55 88 aa 1f b5 4c b1 b2 16 cb cc 7b fe 01 48>,
+    preKeyId: 11732278
+  }
+}
+[05/06/2026, 01:11:53] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:11:58] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:11:59] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:11:59] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 12m 8s
+  RAM: 42.8MB
+  Comandos: 9
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    BZnm2ixepBwzK9GLv9jKLecrkVVycAwp36TYSwPCjz5C: { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 99 e6 da 2c 5e a4 1c 33 2b d1 8b bf d8 ca 2d e7 2b 91 55 72 70 0c 29 df a4 d8 4b 03 c2 8f 3e 42>,
+      privKey: <Buffer 90 9f 6e e4 73 5c 7c 52 1e be 4b f7 8f 9d f7 fe 79 63 a6 b1 7b 4e b7 bb 88 d0 cb cd 12 13 0c 53>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer a4 fe 1f 60 9c 28 93 dd 23 0d 68 87 ad 5d 30 3d 4d d5 5d 87 ad 18 9c 71 41 82 15 ee 85 bf 26 85>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 ff d0 c2 df 4e e6 09 b2 41 44 55 a3 81 5f 15 7d 33 0f 56 f0 e0 e6 e9 27 e2 82 60 63 e0 93 0a 00>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632714281,
+    created: 1780632714281,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 ff d0 c2 df 4e e6 09 b2 41 44 55 a3 81 5f 15 7d 33 0f 56 f0 e0 e6 e9 27 e2 82 60 63 e0 93 0a 00>,
+    preKeyId: 11732931
+  }
+}
+[05/06/2026, 01:12:36] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:12:41] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:12:42] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:12:42] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 12m 51s
+  RAM: 44.2MB
+  Comandos: 9
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BT4/6fmplcn8M0PArs0aRkOyTBZFvfQNWiDEJESypmIb': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 3e 3f e9 f9 a9 95 c9 fc 33 43 c0 ae cd 1a 46 43 b2 4c 16 45 bd f4 0d 5a 20 c4 24 44 b2 a6 62 1b>,
+      privKey: <Buffer 68 b6 cf 60 a4 97 7a 71 26 41 1d 00 d5 f7 61 ae d6 bd 07 8d e0 53 cd 33 39 72 0c 96 24 5a 46 6b>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 53 23 7d 4b c7 f3 02 58 92 eb 16 99 96 f0 39 cf 38 0e a9 ba 83 e9 1b 1d bf 9f d8 5b 38 e4 6c 2f>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 32 4d d4 97 9d 75 9c c6 77 7f ed 91 41 6b 79 07 db 9f f9 25 b9 af 60 26 8b aa 7c b6 00 7e 15 08>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632757394,
+    created: 1780632757394,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 32 4d d4 97 9d 75 9c c6 77 7f ed 91 41 6b 79 07 db 9f f9 25 b9 af 60 26 8b aa 7c b6 00 7e 15 08>,
+    preKeyId: 11732814
+  }
+}
+Removing old closed session: SessionEntry {
+  _chains: {
+    'BdTya/glJMCmXoPmSJ7vJxsDDVP/r5OrzJIseFIJWwYN': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 d4 f2 6b f8 25 24 c0 a6 5e 83 e6 48 9e ef 27 1b 03 0d 53 ff af 93 ab cc 92 2c 78 52 09 5b 06 0d>,
+      privKey: <Buffer 78 22 1a e3 b1 17 86 e6 64 1a e4 90 74 1e 70 0c 2d 5d 30 76 7a 14 7c 90 83 9a b4 6e 2e b0 16 5e>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 49 0e 1e 7d 20 1d 83 ef 0c 4c 3a 4e cb fd aa 93 7f 88 58 04 02 26 6c f0 7b d0 c5 6f ff b4 b6 b3>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 41 15 5d d3 3f 04 2e 27 a7 ba 4b 66 f3 a9 20 87 c9 12 8f 0d 24 2a 59 10 0f f3 74 01 22 5b e7 59>,
+    baseKeyType: 1,
+    closed: 1780631121102,
+    used: 1780631054850,
+    created: 1780631054850,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 41 15 5d d3 3f 04 2e 27 a7 ba 4b 66 f3 a9 20 87 c9 12 8f 0d 24 2a 59 10 0f f3 74 01 22 5b e7 59>,
+    preKeyId: 11732701
+  }
+}
+[COMANDO] 221104983511154 usou: !help 
+[05/06/2026, 01:12:51] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:12:56] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:12:58] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:12:58] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 13m 6s
+  RAM: 40.0MB
+  Comandos: 10
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BXM4509lb77shd/8fcjm728jAQyAGxNVZGRydbqRvAV4': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 73 38 e7 4f 65 6f be ec 85 df fc 7d c8 e6 ef 6f 23 01 0c 80 1b 13 55 64 64 72 75 ba 91 bc 05 78>,
+      privKey: <Buffer d8 c4 2b be 1b cc e8 8b ae 24 62 6d 14 5d 1a 78 c9 74 95 39 cf d0 5b 68 eb 63 eb 14 d5 7c c8 66>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 58 08 26 f1 c3 0a fd 64 9e 72 22 ec a2 09 76 9c d9 0c 62 73 a6 3d 5b 95 2d 01 69 a7 7f 67 bc 61>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 65 36 64 0f fa a1 4a c8 df 87 b7 0a bb 8b ce 44 2d 1b 17 8a f2 71 76 8d e9 c3 d7 a0 18 6f 3c 1f>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632772920,
+    created: 1780632772920,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 65 36 64 0f fa a1 4a c8 df 87 b7 0a bb 8b ce 44 2d 1b 17 8a f2 71 76 8d e9 c3 d7 a0 18 6f 3c 1f>,
+    preKeyId: 11732369
+  }
+}
+Removing old closed session: SessionEntry {
+  _chains: {
+    'BcQN9NEX+nYFbHZt3kwjfd+EJ+JIU/iQG6WvMJ75abwW': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 c4 0d f4 d1 17 fa 76 05 6c 76 6d de 4c 23 7d df 84 27 e2 48 53 f8 90 1b a5 af 30 9e f9 69 bc 16>,
+      privKey: <Buffer 30 f0 a4 20 4f 4b dd 0d 3e 7a ee 52 9d 0d 4e 5e 7d 7a e5 5f 19 a9 dc 3e ac 8a d5 32 a3 33 fa 61>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer ed 32 b7 99 fe ac 6c 45 a8 50 8f 72 9a 2d 1c db 7d a2 d5 6b a5 0e 81 5e 2b ba 03 6a 0d b8 63 ba>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 c5 05 6d 23 38 ed a3 4a 77 24 46 b8 5a 9e f1 16 1d 51 d1 fb c9 f8 3f d8 32 fc e5 eb b3 c1 96 43>,
+    baseKeyType: 1,
+    closed: 1780631994532,
+    used: 1780631495704,
+    created: 1780631495704,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 c5 05 6d 23 38 ed a3 4a 77 24 46 b8 5a 9e f1 16 1d 51 d1 fb c9 f8 3f d8 32 fc e5 eb b3 c1 96 43>,
+    preKeyId: 11732857
+  }
+}
+[05/06/2026, 01:13:06] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:13:11] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:13:13] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:13:13] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 13m 21s
+  RAM: 41.3MB
+  Comandos: 10
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BdlhjzwngqsicHJZXxPcKE2nBHN2PllUH/KWftaSefVh': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 d9 61 8f 3c 27 82 ab 22 70 72 59 5f 13 dc 28 4d a7 04 73 76 3e 59 54 1f f2 96 7e d6 92 79 f5 61>,
+      privKey: <Buffer b8 a6 0c 55 69 8e c9 59 4f f3 dd 0b 6f a5 58 d4 6e 3c 9b 98 7d dd 29 59 f6 52 5e b6 d7 0f 32 55>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 8a 28 17 77 53 e9 9d b6 99 33 9a 05 79 96 88 e2 ef 2d f9 9f d9 f4 a4 41 ad 88 00 ab f4 fb 90 26>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 bc 11 21 e4 29 ad 9f bf 1a 16 d9 57 7a 26 2a 08 1b e8 7a 31 04 47 fe 1d c0 3e fa db 7b 6a cd 25>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632788474,
+    created: 1780632788474,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 bc 11 21 e4 29 ad 9f bf 1a 16 d9 57 7a 26 2a 08 1b e8 7a 31 04 47 fe 1d c0 3e fa db 7b 6a cd 25>,
+    preKeyId: 11732308
+  }
+}
+Removing old closed session: SessionEntry {
+  _chains: {
+    'BTev5r5J2dbC1BxP/uYl0rjs4v7GwyP5EZvhDOP3vhdX': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 37 af e6 be 49 d9 d6 c2 d4 1c 4f fe e6 25 d2 b8 ec e2 fe c6 c3 23 f9 11 9b e1 0c e3 f7 be 17 57>,
+      privKey: <Buffer 20 f8 00 03 72 3f d0 13 9e 3e 0d a1 bf f0 e0 9d 00 fe d9 e8 34 8f 84 0b c3 e4 96 27 34 d7 72 7b>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer fe 4b 17 38 c7 f2 d3 2c 01 06 3f 53 67 84 61 10 a0 7c d5 bb 7e 7a f9 04 c4 92 3a 00 d6 1a 5f 87>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 e6 08 58 1b e3 24 6c 93 c5 f1 01 fa 24 60 61 85 5f 3b d2 65 cc 56 0a 85 f9 ae 34 5d b3 48 f4 76>,
+    baseKeyType: 1,
+    closed: 1780632087371,
+    used: 1780632034689,
+    created: 1780632034689,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 e6 08 58 1b e3 24 6c 93 c5 f1 01 fa 24 60 61 85 5f 3b d2 65 cc 56 0a 85 f9 ae 34 5d b3 48 f4 76>,
+    preKeyId: 11732433
+  }
+}
+[05/06/2026, 01:13:30] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:13:35] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:13:36] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:13:36] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 13m 44s
+  RAM: 42.4MB
+  Comandos: 10
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    BZAYQ2kUxKVsxOjQpD2XRLja58iZ8A3Ky3bxBc61PEMZ: { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 90 18 43 69 14 c4 a5 6c c4 e8 d0 a4 3d 97 44 b8 da e7 c8 99 f0 0d ca cb 76 f1 05 ce b5 3c 43 19>,
+      privKey: <Buffer 50 0c e4 57 e6 19 ba 80 c3 af 35 39 ca ec 96 1b 69 7d d0 ce 52 94 16 b2 70 71 d4 d1 c8 ed 6a 57>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer dc 32 ec d2 de 44 07 03 51 b8 94 ec 6e 62 9c 19 72 f8 cf f3 f1 4d c1 7c 35 ed 0b b2 ac 26 d9 d4>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 e4 8c 4c 57 91 4f f6 c9 c9 65 2e fa 6d d9 d2 b4 58 13 92 90 c6 95 1b 76 cf cb 03 c8 cc e6 1d 5c>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632810678,
+    created: 1780632810678,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 e4 8c 4c 57 91 4f f6 c9 c9 65 2e fa 6d d9 d2 b4 58 13 92 90 c6 95 1b 76 cf cb 03 c8 cc e6 1d 5c>,
+    preKeyId: 11732722
+  }
+}
+Removing old closed session: SessionEntry {
+  _chains: {
+    'BWpxsAIGlKcoY/92cip5Gue6q41yFrJt9UyFKn3lWuxh': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 6a 71 b0 02 06 94 a7 28 63 ff 76 72 2a 79 1a e7 ba ab 8d 72 16 b2 6d f5 4c 85 2a 7d e5 5a ec 61>,
+      privKey: <Buffer 50 a2 58 48 94 b6 5b 1f 1c ea 56 ae d0 b4 1f b4 cf 3b 16 58 37 c7 f9 ad 5d e3 4a bf 94 7e 6d 53>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 49 d1 92 d0 60 b5 ff 2b 3c 70 6a 21 13 ee 21 ca 50 48 ea 54 61 43 bf ca 08 b7 d1 e9 27 37 d0 aa>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 88 7f f4 79 20 a9 2d 93 fd 45 88 6d 0b fe 6f bf 56 c2 ac 48 b8 51 6b c1 c6 c8 c5 6c 32 81 d3 61>,
+    baseKeyType: 1,
+    closed: 1780632098065,
+    used: 1780632091723,
+    created: 1780632091723,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 88 7f f4 79 20 a9 2d 93 fd 45 88 6d 0b fe 6f bf 56 c2 ac 48 b8 51 6b c1 c6 c8 c5 6c 32 81 d3 61>,
+    preKeyId: 11732405
+  }
+}
+[05/06/2026, 01:13:43] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:13:49] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:13:51] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:13:51] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 13m 59s
+  RAM: 43.8MB
+  Comandos: 10
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    BfEdsTvVmygSdrnM8enfqL8tEIO1xLTQphJKQb7aTi88: { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 f1 1d b1 3b d5 9b 28 12 76 b9 cc f1 e9 df a8 bf 2d 10 83 b5 c4 b4 d0 a6 12 4a 41 be da 4e 2f 3c>,
+      privKey: <Buffer f8 07 b4 1d f7 87 f7 7d 2d 30 d4 23 79 d7 1d 76 06 44 42 3d 64 02 35 f9 92 ab f6 ca cc c6 f1 51>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer f7 a0 ba 09 e3 b7 1d c1 1e d5 16 30 93 eb 23 31 32 f9 ad 4c 50 c0 6a c6 3f 43 7f 80 77 85 f5 25>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 c7 e6 3e 3d 9d 6e b5 9c 3a 64 6c 83 81 2f 89 33 3f 75 48 d0 b8 c6 58 3a c1 5e 2b 44 92 be 2d 6a>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632825937,
+    created: 1780632825937,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 c7 e6 3e 3d 9d 6e b5 9c 3a 64 6c 83 81 2f 89 33 3f 75 48 d0 b8 c6 58 3a c1 5e 2b 44 92 be 2d 6a>,
+    preKeyId: 11732437
+  }
+}
+Removing old closed session: SessionEntry {
+  _chains: {
+    'Bc3z3mdssrIWaaC8OFrmdUCctmOHlwIXEvEqOkq3GKg+': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 cd f3 de 67 6c b2 b2 16 69 a0 bc 38 5a e6 75 40 9c b6 63 87 97 02 17 12 f1 2a 3a 4a b7 18 a8 3e>,
+      privKey: <Buffer 20 cc 9d 35 b6 cf 9c c2 49 7d 48 45 5a b2 c4 5a ee 9f 50 5f 58 8b 5c 9f f1 90 2d ad 08 d6 21 56>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 85 b4 cb 3c fe d5 a9 58 fb 9a 04 81 fc bc 6b 78 a3 ce 97 20 fb f7 c2 59 2c b0 f6 6f 2e 8a b0 92>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 95 b3 6f ae ee e3 ab e0 4f 15 2f 18 31 4b a9 c0 6f 68 e5 74 a7 cf 33 95 e1 78 d8 f9 af a5 96 78>,
+    baseKeyType: 1,
+    closed: 1780632110492,
+    used: 1780632105346,
+    created: 1780632105346,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 95 b3 6f ae ee e3 ab e0 4f 15 2f 18 31 4b a9 c0 6f 68 e5 74 a7 cf 33 95 e1 78 d8 f9 af a5 96 78>,
+    preKeyId: 11732700
+  }
+}
+[05/06/2026, 01:15:02] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:15:08] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:15:09] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:15:09] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 15m 17s
+  RAM: 44.8MB
+  Comandos: 10
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BbyjDFGlcv1rHqnYuPfDXcgcuVYGnP6YqHWe/ZBrNPZU': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 bc a3 0c 51 a5 72 fd 6b 1e a9 d8 b8 f7 c3 5d c8 1c b9 56 06 9c fe 98 a8 75 9e fd 90 6b 34 f6 54>,
+      privKey: <Buffer a0 1a f8 8c 3b ec b8 8b 4d 33 d9 6b 2b 97 ef 0e be e9 36 f2 0b 8d 5c 78 1b 82 6b 94 3c c8 a3 40>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 56 63 7c 34 47 75 ea 0c 04 67 94 91 01 53 8b e4 90 64 73 3d 52 e4 8f 15 a4 01 7f 66 23 02 b6 2b>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 f1 52 2c 69 73 7a 35 1e 46 39 6b 6c 22 8b 62 ed ca b3 70 34 f0 91 86 d1 08 6b 40 e4 eb 6e 60 7e>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632903598,
+    created: 1780632903598,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 f1 52 2c 69 73 7a 35 1e 46 39 6b 6c 22 8b 62 ed ca b3 70 34 f0 91 86 d1 08 6b 40 e4 eb 6e 60 7e>,
+    preKeyId: 11732694
+  }
+}
+Removing old closed session: SessionEntry {
+  _chains: {
+    'Bb7rO3V73PlHPqXPq+VCoPCudhWGjbA9aFApvwr06wEE': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 be eb 3b 75 7b dc f9 47 3e a5 cf ab e5 42 a0 f0 ae 76 15 86 8d b0 3d 68 50 29 bf 0a f4 eb 01 04>,
+      privKey: <Buffer 88 77 85 e5 cb 31 67 23 52 77 0a 98 23 7a 2e 68 f0 fe dd df 8c 4d d2 89 fd 2d 08 8b bd 63 9e 63>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer a5 99 20 48 82 2a ac e8 5b 8e 17 d6 f1 62 ec ba 70 9c 3c f4 fe 95 71 06 86 9a a7 07 eb 06 de 57>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 c1 92 5e 7b 08 99 8b e2 f1 5b 68 6f 92 c8 b4 3e f2 82 11 9f c4 1a 93 d8 79 9f 63 6b 1b 3c 4f 0a>,
+    baseKeyType: 1,
+    closed: 1780632122436,
+    used: 1780632118141,
+    created: 1780632118141,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 c1 92 5e 7b 08 99 8b e2 f1 5b 68 6f 92 c8 b4 3e f2 82 11 9f c4 1a 93 d8 79 9f 63 6b 1b 3c 4f 0a>,
+    preKeyId: 11732704
+  }
+}
+[05/06/2026, 01:15:36] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:15:41] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:15:42] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:15:42] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 15m 50s
+  RAM: 39.9MB
+  Comandos: 10
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'BRJtn6z+bluI2xJDRvoyvnUAGeifLrS6NbG+gJttEaRs': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 12 6d 9f ac fe 6e 5b 88 db 12 43 46 fa 32 be 75 00 19 e8 9f 2e b4 ba 35 b1 be 80 9b 6d 11 a4 6c>,
+      privKey: <Buffer d8 5c 19 4b 69 ae b4 aa d8 d5 a4 a0 90 1d b3 ff 21 e3 f1 31 3d 15 6c 1c 0e 8b 85 f1 8c 16 a4 48>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 77 06 42 0a fc e0 a0 15 a7 e5 fa 57 35 a7 8f 42 fe 2b 0c 6d af 34 9c b0 4b 6f f1 f0 8d 3e 27 6d>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 e8 04 1d e0 48 7d 46 f3 48 91 38 10 df e7 02 66 92 aa e0 f4 b4 68 09 6a d7 fe 8b 3e 41 3f 0b 68>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632937371,
+    created: 1780632937371,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 e8 04 1d e0 48 7d 46 f3 48 91 38 10 df e7 02 66 92 aa e0 f4 b4 68 09 6a d7 fe 8b 3e 41 3f 0b 68>,
+    preKeyId: 11732394
+  }
+}
+Removing old closed session: SessionEntry {
+  _chains: {
+    'BattVVdB3/Mxe6T58yMFchfhADBeC8mjlBe2Wpi0kgsN': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 ab 6d 55 57 41 df f3 31 7b a4 f9 f3 23 05 72 17 e1 00 30 5e 0b c9 a3 94 17 b6 5a 98 b4 92 0b 0d>,
+      privKey: <Buffer 18 b1 0e 69 53 d6 bb e9 ac ab a3 03 e6 e0 c0 06 56 39 be 95 00 58 09 53 ed f3 80 32 7e 28 2e 4f>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 16 2c 8d 50 76 7f 88 4c 8b 14 04 f3 e3 ca 51 2d 9e 9d 52 a7 c0 c1 27 c6 e9 2b d8 87 8f 1e ef cb>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 a6 c2 54 e5 3d cb 9b f9 e5 b7 61 67 07 1d 57 19 5d 96 46 43 21 73 b3 23 d7 e0 d2 ec 99 55 b8 28>,
+    baseKeyType: 1,
+    closed: 1780632134574,
+    used: 1780632129968,
+    created: 1780632129968,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 a6 c2 54 e5 3d cb 9b f9 e5 b7 61 67 07 1d 57 19 5d 96 46 43 21 73 b3 23 d7 e0 d2 ec 99 55 b8 28>,
+    preKeyId: 11732315
+  }
+}
+[05/06/2026, 01:15:52] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:15:57] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+[05/06/2026, 01:16:00] [INFO] Conectado ao WhatsApp com sucesso!
+[05/06/2026, 01:16:00] [INFO] Numero: 5511930132708
+
+========================================
+     NovaBot WhatsApp - Premium
+========================================
+  Telefone: 5511930132708
+  Uptime: 0h 16m 8s
+  RAM: 41.5MB
+  Comandos: 10
+  Grupos: 1
+  Usuarios: 1
+  OS: win32 10.0.19044
+========================================
+
+Closing session: SessionEntry {
+  _chains: {
+    'Bac1lq6kQF91h/TbVdzcA9BciLv//rjmDNvFlRcGR29d': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 a7 35 96 ae a4 40 5f 75 87 f4 db 55 dc dc 03 d0 5c 88 bb ff fe b8 e6 0c db c5 95 17 06 47 6f 5d>,
+      privKey: <Buffer 48 72 12 5d ab b7 ac 51 70 7d 2e cb 98 0f e4 d0 b6 8a 00 60 cf 5d 26 45 1f 44 6d ff 7f a2 11 6f>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 8e 10 51 f7 94 b8 89 4c ed 5b 48 54 ed 28 a3 f3 4f c8 b0 c2 4f bf 34 f4 23 f5 7b 61 af bb 39 53>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 83 5c bf 58 30 b4 27 76 7f e3 82 df c4 17 fe 4b fd f2 9d 99 64 1c 9e 29 07 14 ea 38 ec 08 e6 3f>,
+    baseKeyType: 1,
+    closed: -1,
+    used: 1780632953530,
+    created: 1780632953530,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 83 5c bf 58 30 b4 27 76 7f e3 82 df c4 17 fe 4b fd f2 9d 99 64 1c 9e 29 07 14 ea 38 ec 08 e6 3f>,
+    preKeyId: 11732452
+  }
+}
+Removing old closed session: SessionEntry {
+  _chains: {
+    'BYdaCOQASidTssyBJ2AH8G3lepi9PssFmVw/SKrizXg1': { chainKey: [Object], chainType: 1, messageKeys: {} }
+  },
+  registrationId: 1852624639,
+  currentRatchet: {
+    ephemeralKeyPair: {
+      pubKey: <Buffer 05 87 5a 08 e4 00 4a 27 53 b2 cc 81 27 60 07 f0 6d e5 7a 98 bd 3e cb 05 99 5c 3f 48 aa e2 cd 78 35>,
+      privKey: <Buffer a0 ed 84 db 75 78 12 49 84 fb 0a 2f 19 5e 00 9a 91 fb 33 76 8f 0a 3a 15 1b d9 b5 35 b6 80 d2 7d>
+    },
+    lastRemoteEphemeralKey: <Buffer 05 0c 77 5c 3d d9 60 0b 14 c9 5e 14 07 18 29 28 78 ae 20 53 0e d1 3e a5 5d c6 d7 46 82 06 16 53 44>,
+    previousCounter: 0,
+    rootKey: <Buffer 16 42 e8 0a 9e 48 54 88 dc d1 72 cc 4e 23 ef 53 6f 17 f8 78 0a 52 22 e7 b6 f8 80 8b 5e 26 30 d5>
+  },
+  indexInfo: {
+    baseKey: <Buffer 05 27 a8 c4 00 54 0d 68 86 03 7f b6 ce 71 e6 71 af 91 6d af f9 46 74 ac 63 73 cb e6 55 04 b0 05 2c>,
+    baseKeyType: 1,
+    closed: 1780632148289,
+    used: 1780632140427,
+    created: 1780632140427,
+    remoteIdentityKey: <Buffer 05 9b f9 25 f8 0e bf f2 d3 5a 1c 25 10 f7 52 4a fa 66 33 e1 6a 92 1d 6b 3d 04 6a a9 b2 ab 1a 9b 79>
+  },
+  pendingPreKey: {
+    signedKeyId: 15331227,
+    baseKey: <Buffer 05 27 a8 c4 00 54 0d 68 86 03 7f b6 ce 71 e6 71 af 91 6d af f9 46 74 ac 63 73 cb e6 55 04 b0 05 2c>,
+    preKeyId: 11732777
+  }
+}
+[05/06/2026, 01:16:10] [WARN] Desconectado (codigo: 440). Reconectando em 5s (tentativa 1/50)...
+[05/06/2026, 01:16:15] [INFO] Baileys version: 2.3000.1035194821 (latest: true)
+
+╔══════════════════════════════════════════╗
+║   ESCANEIE O QR CODE ABAIXO             ║
+║   WhatsApp > Apontados > Dispositivos    ║
+╚══════════════════════════════════════════╝
+
+▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄
+█ ▄▄▄▄▄ █▀▀█▀██▀▀    ▀█▀▀ ▄▀▀▀ █ ██▀█▀▄▀▀▄ ▄▀█▀▀▀█▄█  █ ▄▄▄▄▄ █
+█ █   █ █▀ █▄ ▀█▀ ▀ ▀██▄█▄▀█▄▀  █ ▄█▀ ▀▀ █▀█▀███▄▀▀ ▄ █ █   █ █
+█ █▄▄▄█ █▀▀  ▀▄ ██▄▀▄▀▀  ▄▀▀▀ ▄▄▄ ▄█  ▄█▄▄▄▄█▄▀████ ▄██ █▄▄▄█ █
+█▄▄▄▄▄▄▄█▄█▄▀ █▄▀▄▀ █▄▀ ▀ █ ▀ █▄█ █▄█ █ █▄▀ █ ▀ █▄▀▄█▄█▄▄▄▄▄▄▄█
+█ ▄ ▄▄█▄  ▀█▄▄▄█▄▄▀ ▀▀█▀  ▄▄▄▄ ▄ ▄▄█▄▄▀██▀   ▀▄▄▄ ▄█▀▄▄▀ ▀ ▀ ██
+█▀▀█▄  ▄▄ ▀▄█▄▄▄▄███▀ ▄█ ▀█ ▀█ ▀▀█▀█▄▀▀▀▀▄▀██ ▀▄▀██ ▄▄██▄ ▄█▄ █
+█ ▀ ▄██▄  ██   ▀▄▄▄▄ ▄▀██▀▄▀▀█ ▄█▀▄▄▄█▀ ▀██▀█▀█▄▀▄ █▀▄█▀ ▀▀▀█▀█
+██▄▄▀▀ ▄ ▀█▀█▄▀█ █▀▄▀▀▀ ▄▄█▄▄▄▀█ █▀█▄█▀█   ▀▄ ▄▄███  ▀ ▀▀█ ▄ ▄█
+█  ▄█▀█▄█▄▄  ▀▀█▀█▄▄ ▄▀▄▀▄ █▄▀█ ▄█▄█▄▄ ███▀▀▄▀█▄  ▀█▄▄▀▀ ██ █ █
+█▄▄ ██▀▄ █▄▄ ▀█ ▀██▄█▀██▀█▀ █▄   ▀█   ▄ ▄   ▀ █▄██ ▄█▀██ ▀▄█▄ █
+██▄▀▄ ▄▄▄▄▄ ▀  █▄█▄  ▄▀█  ▄▀▀███▀▄▄    █ █▀  ▀██▄▄▀▄▄▄▀▀ █▄▄▀▄█
+█▄▀ ▀▄▄▄█ █ ▄▀▀██ ▄███▀▀▄▀▀███▀ ▄█▄█▄█▄▀▀▄  ▄▀▄▄██▀▀▀▄▀▄▄ ▄█▄▄█
+█▄ ▀▀█ ▄ ▄▀▀█ ▄▀█▄▄▀▄███▀ ▀█▄▄ ▀▄▄██  ▀█▀▀▀ ▄▀█▄▄▄ ▄▄█ ▀█▀█▄█▄█
+██▄▄▀█▄▄▄  ▄▀ ▀█ ▀█▀▄█  ▄▄▀█▄▀▀▀▄   ▀▀▄██▀▄ ▄ █▄█▄▄  █ ▀▀ ▄▄  █
+█▄▀ ▄ ▄▄▄ ▄ ▄▀▀ ██ ▄█▄▀█▄▀ ▀▄ ▄▄▄ ▄▄▀ ▄█▀█▀ ▄█▄██▄ ▄█ ▄▄▄  ▄▄ █
+█▄█▄▀ █▄█ ▀▀▀ ▄██▄▄▀ ▀▄█▄█ ██ █▄█  ██ ▄█  ▄▀█ ▀▄▄█▀▄▀ █▄█ ▄▄▄ █
+█ ▄  ▄ ▄ ▄█▄▀█▄▀▄▀█▄▀█▄█▄ ▀▀▄ ▄   ▄▄▄▄▄▄▀▀▀  ▀▀▄▄  ██   ▄▄▄█▀██
+██   ██▄ ▄▄▀ ▄█▀▄ █▀ ▀▄ ▄ ▄ ▄ ▀ ▀█▀▄█ ▀▄▀▀▄ █▀▄▄ ▄█▀█▀▄ ▀█▄█▄▄█
+█▄██▀▀ ▄▄  ▄▀█▄  ▄▄  ▄▄▀  ▄▀▀ ▀ ▀▄▀█▄ ▄▄▄█▀  ▀█▄  ██▄▀▄▄ █▄▄▄▀█
+██▄  ▄█▄█ ▄▀██ ▄██▀ ▄█▀▀▀▄▄  ▄▀█▀█▀▀  ▄▄▀▄▀██▀ ▄█▀▄▄█▀▀▄  ▄█  █
+█  ▀██▄▄ █▄▀▄▀▄▀▄▄▀ ▀▀▀▀ ▀▄▄▀  ▄  █▄▄  ▄▀█ ▀ █▀▄   ▄▄█▄▀▀▄█▄ ▀█
+█▄█ ▄▀▄▄█ ▀█▀▀██████▀  ▄▀▄▀▀ ██▀▀▄█▄█ ▀ ▀▀█▀█▄▀▄███ ▄ ▄ █▀██▀ █
+███▀█ █▄▄ ▄█▄▄  █▄  ▄▄██▀ ▄▀ ▄ ▄▄▄▄▄▄█▀ ██ ▀ ▀██ ▄▀▄▄▄ ▄▄▄▀▀▀▄█
+█▄▀██▀▄▄▄▄█▄▄▄█    ██▀▀ █▄▄█ ▄█▄▄█▄▄ ███▄▀▄ ██▄▀ ▄▄█▀▀▄▄▄▄▄█  █
+█▀▀ █▄ ▄▀▀█ ▄▄▀█▀█▄▄▀▄▀▄▀▄▀▀▄▀  ▄█▄▄█▄▄▄██  ▄██▄▄ █▄▄▀▄█▄▄▄██▀█
+█▀▀ ▄ ▄▄█  ▀▄▄ ▀▀█▀▀ ▄▄▀▀█▄  ▄▄█ █▄▀▀▄▄ █▀██  ▄   ▀▄██▄ ▄███▄▄█
+█▄▄▄▄██▄█ █▄▀▄ ▄██▄ ▀███▀▀ ▀█ ▄▄▄ ▄ ▄▄▀█▄█▀▀▄▀▄█ ▄ █▄ ▄▄▄  █▄▀█
+█ ▄▄▄▄▄ █▄ ▀▀ ▄██▄▄██▄▄▀▀ ▀█▄ █▄█  █▄ ▄▀█▀▀ ▄▀█▀ ▄ ▄  █▄█ ▄█  █
+█ █   █ █ ▀▄▀▄▀▄▀▄▄▀▄█▀██▀▀█   ▄▄ ██▄▄ ██▀▀ ▄█▀█ ▄ █  ▄▄▄ ▀ █ █
+█ █▄▄▄█ █ ▀ █▀▄█▄█ ▄▄██▀ ▄▄█▄ █ ▄▀▄█▀ ▄█ ▀█▀ ▄▄▄▀▀▄ █▀▀ █▀▄██ █
+█▄▄▄▄▄▄▄█▄██▄▄▄▄█▄▄▄▄▄▄██▄▄█▄█████▄▄█▄▄█████▄█▄█▄▄▄█▄▄█▄▄▄█▄▄▄█
+
+
+📱 Link alternativo (se o QR nao aparecer):
+https://wa.me/settings/linked_devices#2@YnDUkqClZQkr0VTzasdHK9/uK3RAprZhzWzwPhqMBxVeXxmz5NNOx9kjYWn+5EglVsgrN0sRahxCIW8VtMUBZFf/KOXxzYQrXU4=,yGZvVcGmHsSl/d5hthNNpJ2HN/UVf8KpF8uB+yBhjws=,CjdvPQctFOXHSiR2FbprvFVEoVBYolhKnntlSWaJHW8=,trHIGU/AlyxCLdeA43jLKbcfFH5wYzj3dqDSHn+dPjE=,6
+
