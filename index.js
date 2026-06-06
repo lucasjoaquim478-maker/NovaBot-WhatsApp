@@ -20,6 +20,9 @@ const { handleInformacao, informacaoCommands, setStartTime } = require('./comman
 const { handleTikTok, handleTikTokMp3, tiktokCommands, tiktokMp3Commands } = require('./commands/tiktok');
 const { handleRoblox, handleTrending, handleTop, handleLancar, handleSimilar, handleReview, handleCreator, robloxCommands, trendCommands, topCommands, lancarCommands, similarCommands, reviewCommands, creatorCommands } = require('./commands/roblox');
 const { handleVoices, vozCommands } = require('./commands/vozes');
+const { handleUpdate, updateCommands } = require('./commands/update');
+const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate');
+const { startAutoCheck } = require('./lib/updater');
 const os = require('os');
 
 const startTime = Date.now();
@@ -53,7 +56,9 @@ function registerCommands() {
     { cmds: similarCommands, handler: handleSimilar },
     { cmds: reviewCommands, handler: handleReview },
     { cmds: creatorCommands, handler: handleCreator },
-    { cmds: vozCommands, handler: handleVoices }
+    { cmds: vozCommands, handler: handleVoices },
+    { cmds: updateCommands, handler: handleUpdate },
+    { cmds: testUpdateCommands, handler: handleTestUpdate }
   ];
 
   for (const reg of registrations) {
@@ -129,6 +134,12 @@ async function main() {
   if (config.autoBackup) {
     scheduleBackup(config.backupInterval || 86400000);
     logger.info('[BACKUP] Backup automatico ativado');
+  }
+
+  if (config.autoUpdate) {
+    startAutoCheck();
+  } else {
+    logger.info('[UPDATE] Auto-update desativado');
   }
 
   if (config.ollamaApiKey) {
