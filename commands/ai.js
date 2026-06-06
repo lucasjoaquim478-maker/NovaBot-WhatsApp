@@ -33,13 +33,13 @@ async function askOllama(prompt, history = []) {
   if (!res.ok) {
     const err = await res.text().catch(() => '');
     if (res.status === 404 && err.includes('not found')) {
-      return `❌ Modelo *${OLLAMA_MODEL}* nao encontrado.`;
+      return `❌ Modelo *${OLLAMA_MODEL}* não encontrado.`;
     }
     throw new Error(`Ollama (${res.status})`);
   }
 
   const data = await res.json();
-  return data.message?.content || '❌ Modelo nao gerou resposta.';
+  return data.message?.content || '❌ Modelo não gerou resposta.';
 }
 
 async function handleAI(sock, { msg, jid, sender, args }) {
@@ -89,7 +89,7 @@ async function generateStability(prompt) {
 
 async function handleImage(sock, { msg, jid, sender, args }) {
   if (!args.length) {
-    await sock.sendMessage(jid, { text: '❌ Digite a descricao da imagem. Ex: !imagem gato cibernetico' });
+    await sock.sendMessage(jid, { text: '❌ Digite a descrição da imagem. Ex: !imagem gato cibernetico' });
     return;
   }
 
