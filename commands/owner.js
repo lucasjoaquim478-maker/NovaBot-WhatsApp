@@ -74,6 +74,31 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
   }
 }
 
-const ownerCommands = ['reiniciar', 'shutdown', 'backup', 'broadcast', 'blacklist', 'unblacklist', 'eval'];
+async function handleAddDono(sock, { jid, sender, args, chat }) {
+  if (chat === 'group') {
+    await sock.sendMessage(jid, { text: '❌ Envie este comando no privado do bot.' });
+    return;
+  }
+
+  const number = args[0]?.replace(/[^0-9]/g, '');
+  if (!number) {
+    await sock.sendMessage(jid, { text: `❌ Use: !adddono SEUNUMERO\n\nSeu JID: ${sender}\nEnvie !adddono seguido do seu numero (so numeros, com codigo do pais).` });
+    return;
+  }
+
+  const ownerPhones = config.ownerNumbers.map(n => n.split('@')[0].replace(/[^0-9]/g, ''));
+  const match = ownerPhones.some(p => number.endsWith(p.slice(-10)) || p.endsWith(number.slice(-10)));
+  if (!match) {
+    await sock.sendMessage(jid, { text: `❌ Numero ${number} nao autorizado como dono.` });
+    return;
+  }
+
+  if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
+  global.resolvedOwnerJids.add(sender);
+  global.resolvedOwnerJids.add(sender.split('@')[0]);
+  await sock.sendMessage(jid, { text: `✅ JID ${sender} adicionado como dono! Agora voce pode usar comandos restritos.` });
+}
+
+const ownerCommands = ['reiniciar', 'shutdown', 'backup', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono'];
 
 module.exports = { handleOwner, ownerCommands };
