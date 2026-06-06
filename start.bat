@@ -21,34 +21,43 @@ set NODE_VERSION=v22.14.0
 set NODE_ZIP=node-%NODE_VERSION%-win-x64.zip
 set NODE_URL=https://nodejs.org/dist/%NODE_VERSION%/%NODE_ZIP%
 
-if not exist "%TEMP%\%NODE_ZIP%" (
-    echo Baixando Node.js %NODE_VERSION%...
-    powershell -Command "[Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; Invoke-WebRequest -Uri '%NODE_URL%' -OutFile '%TEMP%\%NODE_ZIP%'"
-    if %errorlevel% neq 0 (
-        echo [ERRO] Falha ao baixar Node.js!
-        echo Baixe manualmente em: https://nodejs.org
-        pause
-        exit /b
-    )
-)
+if exist "%TEMP%\%NODE_ZIP%" goto EXTRACT
 
-echo Extraindo...
-powershell -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::ExtractToDirectory('%TEMP%\%NODE_ZIP%', '.'); Move-Item 'node-%NODE_VERSION%-win-x64' 'node' -Force"
-if %errorlevel% neq 0 (
+echo 1. Baixando Node.js %NODE_VERSION% (%~dp0node\)
+echo.
+
+REM Try curl.exe (Windows 10+ native)
+curl.exe -L --progress-bar "%NODE_URL%" -o "%TEMP%\%NODE_ZIP%"
+if %errorlevel% equ 0 goto EXTRACT
+
+REM Fallback: PowerShell
+echo Tentando metodo alternativo...
+powershell -Command "& {try{curl.exe -L -o '%TEMP%\%NODE_ZIP%' '%NODE_URL%' 2>$null; if(test-path '%TEMP%\%NODE_ZIP%'){exit 0}}catch{}; [Net.ServicePointManager]::SecurityProtocol = [Net.SecurityProtocolType]::Tls12; try{(New-Object Net.WebClient).DownloadFile('%NODE_URL%', '%TEMP%\%NODE_ZIP%'); exit 0}catch{}; Start-BitsTransfer -Source '%NODE_URL%' -Destination '%TEMP%\%NODE_ZIP%' 2>$null; if(test-path '%TEMP%\%NODE_ZIP%'){exit 0}else{exit 1}}"
+if %errorlevel% equ 0 goto EXTRACT
+
+echo [ERRO] Nao foi possivel baixar o Node.js automaticamente.
+echo.
+echo Solucao manual:
+echo 1. Acesse: https://nodejs.org/dist/%NODE_VERSION%/
+echo 2. Baixe: %NODE_ZIP%
+echo 3. Extraia para a pasta "node" dentro da pasta do bot
+echo 4. Execute start.bat novamente
+echo.
+pause
+exit /b
+
+:EXTRACT
+echo 2. Extraindo...
+if exist "node" rmdir /s /q "node" 2>nul
+powershell -Command "Add-Type -AssemblyName System.IO.Compression.FileSystem; try{[System.IO.Compression.ZipFile]::ExtractToDirectory('%TEMP%\%NODE_ZIP%', '.')}catch{}; if(test-path 'node-%NODE_VERSION%-win-x64'){Move-Item 'node-%NODE_VERSION%-win-x64' 'node' -Force}"
+if not exist "node\node.exe" (
     echo [ERRO] Falha ao extrair Node.js!
     pause
     exit /b
 )
-
-if exist "node\node.exe" (
-    set "NODE_CMD=node\node.exe"
-    set "PATH=%~dp0node;%~dp0node_modules\.bin;%PATH%"
-    echo [NODE] Node.js %NODE_VERSION% instalado com sucesso!
-) else (
-    echo [ERRO] Node.js nao encontrado apos extracao!
-    pause
-    exit /b
-)
+echo [NODE] Node.js %NODE_VERSION% instalado com sucesso!
+set "NODE_CMD=node\node.exe"
+set "PATH=%~dp0node;%~dp0node_modules\.bin;%PATH%"
 
 :CHECK_DEPS
 echo.
