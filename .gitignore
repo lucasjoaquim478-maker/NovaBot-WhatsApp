@@ -1,9 +1,15 @@
 node_modules/
+node/
 temp/
 sessions/
 logs/
 bin/
+backups/
+storage/
 *.log
 .DS_Store
 package-lock.json
 voz_cache/
+*.part
+database/users.json
+database/groups.json
