@@ -6,7 +6,7 @@ const { handleMessages, setHandler } = require('./events/messages.upsert');
 const { handleGroupUpdate } = require('./events/group-update');
 const { buildMenu } = require('./commands/menu');
 const { handleAdmin, adminCommands } = require('./commands/admin');
-const { handleOwner, ownerCommands } = require('./commands/owner');
+const { handleOwner, handleAddDono, ownerCommands } = require('./commands/owner');
 const { handleAI, aiCommands, handleImage, imageCommands } = require('./commands/ai');
 const { handlePlay, playCommands } = require('./commands/play');
 const { handleVideo, videoCommands } = require('./commands/video');
@@ -36,6 +36,7 @@ function registerCommands() {
     { cmds: ['help', 'menu'], handler: handleMenu },
     { cmds: adminCommands, handler: handleAdmin },
     { cmds: ownerCommands, handler: handleOwner },
+    { cmds: ['adddono'], handler: handleAddDono },
     { cmds: aiCommands, handler: handleAI },
     { cmds: playCommands, handler: handlePlay },
     { cmds: videoCommands, handler: handleVideo },
