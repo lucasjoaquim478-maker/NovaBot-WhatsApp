@@ -12,14 +12,14 @@ async function handleFerramentas(sock, { msg, jid, sender, args, commandName }) 
   switch (commandName) {
     case 'sticker': {
       const hasImage = getMediaMessage(msg, 'image');
-      const hasVideo = getMediaMessage(msg, 'video');
-      if (!hasImage && !hasVideo) {
-        return await sock.sendMessage(jid, { text: '❌ Envie ou marque uma imagem/video para criar sticker.' });
+      const hasVídeo = getMediaMessage(msg, 'vídeo');
+      if (!hasImage && !hasVídeo) {
+        return await sock.sendMessage(jid, { text: '❌ Envie ou marque uma imagem/vídeo para criar sticker.' });
       }
       try {
-        const type = hasImage ? 'image' : 'video';
+        const type = hasImage ? 'image' : 'vídeo';
         const media = await downloadMedia(msg, type);
-        if (!media) return await sock.sendMessage(jid, { text: '❌ Erro ao baixar midia.' });
+        if (!media) return await sock.sendMessage(jid, { text: '❌ Erro ao baixar mídia.' });
         let stickerData = media;
         if (type === 'image') {
           const sharp = lazyLoad('sharp');
@@ -64,14 +64,14 @@ async function handleFerramentas(sock, { msg, jid, sender, args, commandName }) 
         const text = args.join(' ');
         const tempDir = path.join(process.cwd(), 'temp');
         if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
-        const audioPath = path.join(tempDir, `tts-${Date.now()}.mp3`);
+        const áudioPath = path.join(tempDir, `tts-${Date.now()}.mp3`);
         await new Promise((resolve, reject) => {
           const gtts = new gTTS(text, 'pt');
-          gtts.save(audioPath, (err) => { if (err) reject(err); else resolve(); });
+          gtts.save(áudioPath, (err) => { if (err) reject(err); else resolve(); });
         });
-        const audioData = fs.readFileSync(audioPath);
-        await sock.sendMessage(jid, { audio: audioData, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
-        fs.unlinkSync(audioPath);
+        const áudioData = fs.readFileSync(áudioPath);
+        await sock.sendMessage(jid, { áudio: áudioData, mimetype: 'áudio/mpeg', ptt: false }, { quoted: msg });
+        fs.unlinkSync(áudioPath);
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
       }
@@ -84,7 +84,7 @@ async function handleFerramentas(sock, { msg, jid, sender, args, commandName }) 
         const text = args.join(' ');
         const result = await translate(text, { to: 'pt' });
         await sock.sendMessage(jid, {
-          text: `🌐 *Traducao (${result.from?.language?.iso || 'auto'} \u2192 pt)*\n\n${result.text}`
+          text: `🌐 *Tradução (${result.from?.language?.iso || 'auto'} \u2192 pt)*\n\n${result.text}`
         });
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
