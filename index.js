@@ -24,6 +24,8 @@ const { handleUpdate, updateCommands } = require('./commands/update');
 const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate');
 const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { startAutoCheck } = require('./lib/updater');
+const fs = require('fs');
+const path = require('path');
 const os = require('os');
 
 const startTime = Date.now();
@@ -133,6 +135,19 @@ async function main() {
   console.log('');
 
   registerCommands();
+
+  // Load persisted owners
+  try {
+    const ownersFile = path.join(__dirname, 'database', 'owners.json');
+    if (fs.existsSync(ownersFile)) {
+      const owners = JSON.parse(fs.readFileSync(ownersFile, 'utf-8'));
+      if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
+      for (const jid of owners) global.resolvedOwnerJids.add(jid);
+      logger.info(`[OWNER] ${owners.length} donos persistentes carregados`);
+    }
+  } catch (e) {
+    logger.warn(`[OWNER] Erro ao carregar donos: ${e.message}`);
+  }
 
   if (config.autoBackup) {
     scheduleBackup(config.backupInterval || 86400000);
