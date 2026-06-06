@@ -77,7 +77,7 @@ async function tryOembed(url) {
 async function handleSocial(sock, { msg, jid, args, commandName }) {
   const input = args.join(' ').trim();
   if (!input) {
-    return await sock.sendMessage(jid, { text: `❌ Informe URL ou @usuario.\n📌 !instagram https://instagram.com/reel/...\n📌 !instagram @usuario` });
+    return await sock.sendMessage(jid, { text: `❌ Informe URL ou @usuário.\n📌 !instagram https://instagram.com/reel/...\n📌 !instagram @usuário` });
   }
 
   await sock.sendPresenceUpdate('composing', jid);
@@ -98,7 +98,7 @@ async function handleSocial(sock, { msg, jid, args, commandName }) {
     const yt = await downloadYtDlp(profileUrl);
     if (yt.success) {
       const v = ['mp4', 'webm', 'mkv'].includes(yt.ext);
-      await sock.sendMessage(jid, { [v ? 'video' : 'image']: yt.data, mimetype: v ? 'video/mp4' : `image/${yt.ext === 'jpg' ? 'jpeg' : yt.ext}`, caption: `📥 @${username}` }, { quoted: msg });
+      await sock.sendMessage(jid, { [v ? 'vídeo' : 'image']: yt.data, mimetype: v ? 'vídeo/mp4' : `image/${yt.ext === 'jpg' ? 'jpeg' : yt.ext}`, caption: `📥 @${username}` }, { quoted: msg });
       return;
     }
 
@@ -112,7 +112,7 @@ async function handleSocial(sock, { msg, jid, args, commandName }) {
         const r = await downloadYtDlp(googleUrl, v.args);
         if (r.success) {
           const isV = ['mp4', 'webm', 'mkv'].includes(r.ext);
-          await sock.sendMessage(jid, { [isV ? 'video' : 'image']: r.data, mimetype: isV ? 'video/mp4' : `image/${r.ext === 'jpg' ? 'jpeg' : r.ext}`, caption: `📥 @${username}` }, { quoted: msg });
+          await sock.sendMessage(jid, { [isV ? 'vídeo' : 'image']: r.data, mimetype: isV ? 'vídeo/mp4' : `image/${r.ext === 'jpg' ? 'jpeg' : r.ext}`, caption: `📥 @${username}` }, { quoted: msg });
           return;
         }
       }
@@ -128,7 +128,7 @@ async function handleSocial(sock, { msg, jid, args, commandName }) {
     }
 
     return await sock.sendMessage(jid, {
-      text: `❌ Nao encontrei posts de @${username}.\n\n📌 Tente com a URL direta:\n!instagram https://instagram.com/reel/...`
+      text: `❌ Não encontrei posts de @${username}.\n\n📌 Tente com a URL direta:\n!instagram https://instagram.com/reel/...`
     });
   }
 
@@ -152,7 +152,7 @@ async function handleSocial(sock, { msg, jid, args, commandName }) {
     const r = await downloadYtDlp(url, v.args);
     if (r.success) {
       const isV = ['mp4', 'webm', 'mkv'].includes(r.ext);
-      await sock.sendMessage(jid, { [isV ? 'video' : 'image']: r.data, mimetype: isV ? 'video/mp4' : `image/${r.ext === 'jpg' ? 'jpeg' : r.ext}`, caption: `📥 De ${commandName}` }, { quoted: msg });
+      await sock.sendMessage(jid, { [isV ? 'vídeo' : 'image']: r.data, mimetype: isV ? 'vídeo/mp4' : `image/${r.ext === 'jpg' ? 'jpeg' : r.ext}`, caption: `📥 De ${commandName}` }, { quoted: msg });
       return;
     }
   }
