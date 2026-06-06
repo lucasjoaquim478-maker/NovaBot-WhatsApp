@@ -16,9 +16,10 @@ const menu = {
     ['facebook [url]', 'Download Facebook']
   ]},
   pesquisa: { emoji: '🔎', title: 'PESQUISAS', header: true, cmds: [
+    ['achar [termo]', 'Buscar informações na web'],
     ['google [pesquisa]', null],
     ['wiki [termo]', null],
-    ['noticias [categoria]', null],
+    ['notícias [categoria]', null],
     ['clima [cidade]', null]
   ]},
   ferramentas: { emoji: '🛠️', title: 'FERRAMENTAS', header: true, cmds: [
@@ -66,7 +67,12 @@ const menu = {
     ['broadcast [msg]', null],
     ['blacklist @user', null],
     ['unblacklist @user', null],
-    ['eval [código]', null]
+    ['eval [código]', null],
+    ['adddono [número]', 'Adicionar-se como dono'],
+    ['update', 'Verificar atualizações'],
+    ['update force', 'Forçar atualização'],
+    ['versao', 'Versão do bot'],
+    ['rollback', 'Restaurar backup']
   ]},
   info: { emoji: '📊', title: 'INFORMAÇÕES', header: true, cmds: [
     ['ping', null],
