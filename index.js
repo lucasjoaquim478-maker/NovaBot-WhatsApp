@@ -22,6 +22,7 @@ const { handleRoblox, handleTrending, handleTop, handleLancar, handleSimilar, ha
 const { handleVoices, vozCommands } = require('./commands/vozes');
 const { handleUpdate, updateCommands } = require('./commands/update');
 const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate');
+const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { startAutoCheck } = require('./lib/updater');
 const os = require('os');
 
@@ -59,7 +60,8 @@ function registerCommands() {
     { cmds: creatorCommands, handler: handleCreator },
     { cmds: vozCommands, handler: handleVoices },
     { cmds: updateCommands, handler: handleUpdate },
-    { cmds: testUpdateCommands, handler: handleTestUpdate }
+    { cmds: testUpdateCommands, handler: handleTestUpdate },
+    { cmds: testeCommands, handler: handleTeste }
   ];
 
   for (const reg of registrations) {
