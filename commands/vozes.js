@@ -17,7 +17,7 @@ const ABBREVIATIONS = {
   'vc': 'você', 'tb': 'também', 'pq': 'porque', 'q': 'que',
   'td': 'tudo', 'ngm': 'ninguém', 'obg': 'obrigado', 'blz': 'beleza',
   'dps': 'depois', 'tlgd': 'entendeu', 'mt': 'muito', 'to': 'estou',
-  'ta': 'está', 'tá': 'está', 'nao': 'não', 'so': 'só',
+  'ta': 'está', 'tá': 'está', 'não': 'não', 'so': 'só',
   'cmg': 'comigo', 'ctg': 'contigo', 'pra': 'para', 'pro': 'para o',
   'num': 'não', 'mto': 'muito', 'mts': 'muitos', 'qnd': 'quando',
   'aki': 'aqui', 'aki': 'aqui', 'pqp': 'puxa',
@@ -35,7 +35,7 @@ function preprocessText(text) {
   t = t.replace(/\s+/g, ' ').trim();
 
   // Expand common abbreviations (word boundary)
-  t = t.replace(/\b(vc|tb|pq|q|td|ngm|obg|blz|dps|tlgd|mt|to|ta|tá|nao|so|cmg|ctg|pra|pro|num|mto|mts|qnd|aki|pqp)\b/gi,
+  t = t.replace(/\b(vc|tb|pq|q|td|ngm|obg|blz|dps|tlgd|mt|to|ta|tá|não|so|cmg|ctg|pra|pro|num|mto|mts|qnd|aki|pqp)\b/gi,
     (m) => ABBREVIATIONS[m.toLowerCase()] || m);
 
   // Ensure sentence ends with period if missing and long enough
@@ -65,7 +65,7 @@ async function sapiTTS(text, voiceName) {
       execFile('powershell', ['-ExecutionPolicy', 'Bypass', '-File', psFile], { timeout: 30000, windowsHide: true }, (err, stdout, stderr) => {
         safeUnlink(psFile);
         if (err) return reject(new Error('SAPI: ' + (stderr || err.message).slice(0, 200)));
-        if (!fs.existsSync(wav)) return reject(new Error('SAPI: no audio output'));
+        if (!fs.existsSync(wav)) return reject(new Error('SAPI: no áudio output'));
         resolve();
       });
     });
@@ -88,7 +88,7 @@ async function gttsTTS(text) {
   return { raw, out };
 }
 
-async function generateBaseAudio(text) {
+async function generateBaseÁudio(text) {
   // Try SAPI first, fall back to gTTS
   try {
     const { wav, mp3 } = await sapiTTS(text);
@@ -131,7 +131,7 @@ function buildPostFilter(opts) {
   // 1. Resample to 44100 Hz for consistency
   chain.push('aresample=44100');
 
-  // 2. Volume normalize (Dynamic Audio Normalizer)
+  // 2. Volume normalize (Dynamic Áudio Normalizer)
   chain.push('dynaudnorm=p=0.95:g=15:m=10');
 
   // 4. Apply voice-specific effects
@@ -186,7 +186,7 @@ function buildPostFilter(opts) {
   return chain.join(',');
 }
 
-async function processAudio(inputPath, inputType, voiceOpts) {
+async function processÁudio(inputPath, inputType, voiceOpts) {
   const outputPath = path.join(TEMP_DIR, 'va_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6) + '.mp3');
   const filter = buildPostFilter(voiceOpts);
 
@@ -370,7 +370,7 @@ function findVoice(name) {
   return null;
 }
 
-async function generateVoiceAudio(text, voiceOpts, voiceId) {
+async function generateVoiceÁudio(text, voiceOpts, voiceId) {
   const processedText = preprocessText(text);
   if (!processedText) throw new Error('Texto vazio após processamento');
 
@@ -381,11 +381,11 @@ async function generateVoiceAudio(text, voiceOpts, voiceId) {
     return fs.readFileSync(cached);
   }
 
-  // Generate base audio
-  const base = await generateBaseAudio(processedText);
+  // Generate base áudio
+  const base = await generateBaseÁudio(processedText);
 
   // Process with ffmpeg
-  const processedFile = await processAudio(base.path, base.type, voiceOpts);
+  const processedFile = await processÁudio(base.path, base.type, voiceOpts);
 
   // Cache result
   writeCache(cacheKey, processedFile);
@@ -398,8 +398,8 @@ async function generateVoiceAudio(text, voiceOpts, voiceId) {
 
 // ─── COMMAND HANDLERS ────────────────────────────────────
 async function sendVoice(sock, jid, msg, voice, text) {
-  const data = await generateVoiceAudio(text, voice.opts, voice.display);
-  await sock.sendMessage(jid, { audio: data, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
+  const data = await generateVoiceÁudio(text, voice.opts, voice.display);
+  await sock.sendMessage(jid, { áudio: data, mimetype: 'áudio/mpeg', ptt: false }, { quoted: msg });
 }
 
 async function sendWarning(sock, jid, voice, text) {
