@@ -2,6 +2,24 @@ const { backup } = require('../database/backup');
 const db = require('../database/index');
 const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
+const fs = require('fs');
+const path = require('path');
+const OWNERS_FILE = path.join(__dirname, '..', 'database', 'owners.json');
+
+function loadPersistedOwners() {
+  try {
+    if (fs.existsSync(OWNERS_FILE)) return JSON.parse(fs.readFileSync(OWNERS_FILE, 'utf-8'));
+  } catch {}
+  return [];
+}
+
+function savePersistedOwner(jid) {
+  const owners = loadPersistedOwners();
+  if (!owners.includes(jid)) {
+    owners.push(jid);
+    fs.writeFileSync(OWNERS_FILE, JSON.stringify(owners, null, 2));
+  }
+}
 
 async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
   if (!await isOwner(sender, sock)) {
@@ -97,7 +115,9 @@ async function handleAddDono(sock, { jid, sender, args, chat }) {
   if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
   global.resolvedOwnerJids.add(sender);
   global.resolvedOwnerJids.add(sender.split('@')[0]);
-  await sock.sendMessage(jid, { text: `✅ JID ${sender} adicionado como dono! Agora voce pode usar comandos restritos.` });
+  savePersistedOwner(sender);
+  savePersistedOwner(sender.split('@')[0]);
+  await sock.sendMessage(jid, { text: `✅ Dono salvo permanentemente! Agora voce pode usar comandos restritos.` });
 }
 
 const ownerCommands = ['reiniciar', 'shutdown', 'backup', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono'];
