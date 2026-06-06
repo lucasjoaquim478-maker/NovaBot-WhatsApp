@@ -28,5 +28,9 @@
   "levelMultiplier": 1.5,
   "autoBackup": true,
   "backupInterval": 86400000,
+  "autoUpdate": true,
+  "githubRepo": "lucasjoaquim478-maker/NovaBot-WhatsApp",
+  "branch": "main",
+  "checkInterval": 3600000,
   "logLevel": "info"
 }
