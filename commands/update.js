@@ -1,5 +1,5 @@
 const config = require('../config.json');
-const { isOwner } = require('../lib/utils');
+const { isOwner, cleanJid } = require('../lib/utils');
 const {
   checkForUpdates,
   performUpdate,
@@ -9,7 +9,7 @@ const {
   getLatestVersion,
 } = require('../lib/updater');
 
-const updateCommands = ['update', 'versao', 'rollback'];
+const updateCommands = ['update', 'versao', 'rollback', 'meunumero'];
 
 async function handleUpdate(sock, { jid, sender, args, commandName }) {
   const owner = await isOwner(sender, sock);
@@ -24,6 +24,13 @@ async function handleUpdate(sock, { jid, sender, args, commandName }) {
   }
 
   switch (commandName) {
+    case 'meunumero': {
+      await sock.sendMessage(jid, {
+        text: `📱 *Seu JID:* ${sender}\n👤 *Nome:* ${msg.pushName || 'N/A'}\n🔍 *No config:* ${config.ownerNumbers.some(n => sender.startsWith(n.split('@')[0])) ? 'SIM' : 'NAO'}\n👑 *isOwner:* ${await isOwner(sender, sock) ? 'SIM' : 'NAO'}`
+      });
+      return;
+    }
+
     case 'versao': {
       const local = getCurrentVersion();
       const latest = getLatestVersion();
