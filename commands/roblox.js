@@ -185,7 +185,7 @@ function buildAnalysisPrompt(name, detail, votes) {
   const visits = detail.visits?.toLocaleString() || 'N/A';
   const favorited = detail.favoritedCount?.toLocaleString() || 'N/A';
   const genre = detail.genre || 'N/A';
-  const desc = (detail.description || 'Sem descricao').slice(0, 300);
+  const desc = (detail.description || 'Sem descrição').slice(0, 300);
   const created = formatDate(detail.created);
   const updated = formatDate(detail.updated);
   const creator = detail.creator?.name || 'Desconhecido';
@@ -196,7 +196,7 @@ function buildAnalysisPrompt(name, detail, votes) {
     if (total > 0) likePct = ((votes.upVotes / total) * 100).toFixed(1) + '%';
   }
 
-  return `Analise o jogo Roblox abaixo e gere uma review completa em PORTUGUES BRASILEIRO:
+  return `Análise o jogo Roblox abaixo e gere uma review completa em PORTUGUES BRASILEIRO:
 
 DADOS OFICIAIS:
 Nome: ${name}
@@ -204,18 +204,18 @@ Criador: ${creator}
 Jogadores ativos: ${playing}
 Visitas totais: ${visits}
 Favoritos: ${favorited}
-Avaliacao: ${likePct} de curtidas
-Genero: ${genre}
+Avaliação: ${likePct} de curtidas
+Gênero: ${genre}
 Criado em: ${created}
-Ultima atualizacao: ${updated}
-Descricao original (${'ingles'}): ${desc}
+Última atualização: ${updated}
+Descrição original (${'inglês'}): ${desc}
 
 Com base NESTES DADOS REAIS, gere:
 
-1. 📝 DESCRICAO (traduza a descricao acima para portugues brasileiro).
+1. 📝 DESCRICAO (traduza a descrição acima para portugues brasileiro).
 2. 🔥 ANALISE (5-10 linhas): explique o objetivo do jogo, como funciona, o que o torna popular, se ainda vale a pena jogar hoje.
-3. ✅ PONTOS FORTES: 3 pontos especificos baseados nos dados.
-4. ❌ PONTOS FRACOS: 2-3 pontos especificos baseados nos dados.
+3. ✅ PONTOS FORTES: 3 pontos específicos baseados nos dados.
+4. ❌ PONTOS FRACOS: 2-3 pontos específicos baseados nos dados.
 5. 🎯 RECOMENDADO PARA: tipos de jogadores.
 6. 🏆 NOTA: X.X/10 baseada nos dados.
 
@@ -257,10 +257,10 @@ function buildHeader(name, detail, votes) {
   text += '╚═══════════════════════╝\n\n';
   text += '┃ 👨‍💻 *Criador:* ' + creator + '\n';
   text += '┃ 👥 *Jogando agora:* ' + playing + '\n';
-  text += '┃ 👍 *Avaliacao:* ' + likePct + '\n';
+  text += '┃ 👍 *Avaliação:* ' + likePct + '\n';
   text += '┃ ⭐ *Favoritos:* ' + favorited + '\n';
   text += '┃ 👁️ *Visitas:* ' + visits + '\n';
-  text += '┃ 🏷️ *Genero:* ' + genre + '\n';
+  text += '┃ 🏷️ *Gênero:* ' + genre + '\n';
   text += '┃ 📅 *Criado em:* ' + created + '\n';
   text += '┃ 🔄 *Atualizado:* ' + updated + '\n\n';
   text += '┃ 🔗 *Jogar:* ' + link;
@@ -274,7 +274,7 @@ function buildResultList(items) {
     text += (nums[i] || (i+1)) + ' *' + (g.name || '?') + '*\n';
     text += '   👤 ' + (g.creator?.name || '?') + '  👥 ' + fmt(g.playing || 0) + '\n\n';
   });
-  text += '📌 *Digite o numero* (1-' + items.length + ')';
+  text += '📌 *Digite o número* (1-' + items.length + ')';
   return text;
 }
 
@@ -282,7 +282,7 @@ function buildResultList(items) {
 async function sendGameInfo(sock, jid, msg, detail) {
   const uid = detail.universeId || detail.rootPlaceId;
   const placeId = detail.rootPlaceId || uid;
-  if (!uid) return await sock.sendMessage(jid, { text: '❌ ID do jogo nao encontrado.' });
+  if (!uid) return await sock.sendMessage(jid, { text: '❌ ID do jogo não encontrado.' });
 
   await sock.sendPresenceUpdate('composing', jid);
   await sock.sendMessage(jid, { text: '📊 Coletando dados...' });
@@ -315,14 +315,14 @@ async function sendGameInfo(sock, jid, msg, detail) {
 
     // Generate AI analysis
     await sock.sendPresenceUpdate('composing', jid);
-    await sock.sendMessage(jid, { text: '🤖 Gerando analise com IA...' });
+    await sock.sendMessage(jid, { text: '🤖 Gerando análise com IA...' });
 
     const analysisPrompt = buildAnalysisPrompt(detail.name || 'Jogo', detail, votes);
     let analysis = '';
     try {
       analysis = await askOllama(analysisPrompt);
     } catch (e) {
-      analysis = '⚠️ Analise indisponivel no momento.';
+      analysis = '⚠️ Análise indisponível no momento.';
     }
 
     const score = calcScore(detail, votes);
@@ -364,9 +364,9 @@ async function handleRoblox(sock, { msg, jid, sender, args }) {
     await sock.sendMessage(jid, { text: '🔎 Obtendo dados do jogo...' });
     try {
       const page = await scrapeGamePage(placeId);
-      if (!page.universeId) throw new Error('Jogo nao encontrado (ID invalido)');
+      if (!page.universeId) throw new Error('Jogo não encontrado (ID inválido)');
       const detail = await getGameDetails(page.universeId);
-      if (!detail) throw new Error('Dados nao disponiveis');
+      if (!detail) throw new Error('Dados não disponíveis');
       await sendGameInfo(sock, jid, msg, detail);
     } catch (e) {
       await sock.sendMessage(jid, { text: '❌ Erro: ' + e.message });
@@ -381,7 +381,7 @@ async function handleRoblox(sock, { msg, jid, sender, args }) {
   try {
     const found = await searchGameUrl(input);
     if (!found) {
-      await sock.sendMessage(jid, { text: '❌ Nao encontrei o jogo "' + input + '".\nTente usar a URL direta:\n!roblox https://www.roblox.com/games/ID/Nome' });
+      await sock.sendMessage(jid, { text: '❌ Não encontrei o jogo "' + input + '".\nTente usar a URL direta:\n!roblox https://www.roblox.com/games/ID/Nome' });
       return;
     }
 
@@ -390,7 +390,7 @@ async function handleRoblox(sock, { msg, jid, sender, args }) {
     const page = await scrapeGamePage(found);
     if (!page.universeId) throw new Error('Nao foi possivel obter dados do jogo');
     const detail = await getGameDetails(page.universeId);
-    if (!detail) throw new Error('Dados nao disponiveis');
+    if (!detail) throw new Error('Dados não disponíveis');
     await sendGameInfo(sock, jid, msg, detail);
   } catch (e) {
     await sock.sendMessage(jid, { text: '❌ Erro: ' + e.message });
@@ -417,7 +417,7 @@ async function handleTrending(sock, { msg, jid }) {
     text += nums[i] + ' *' + g.n + '*\n';
     text += '   🔗 roblox.com/games/' + g.id + '\n\n';
   });
-  text += '📌 Use *!roblox [nome/URL]* para ver detalhes + analise IA';
+  text += '📌 Use *!roblox [nome/URL]* para ver detalhes + análise IA';
 
   // Try to get first game thumbnail
   try {
@@ -443,7 +443,7 @@ async function handleTop(sock, { msg, jid }) {
 
 async function handleLancar(sock, { msg, jid }) {
   await sock.sendPresenceUpdate('composing', jid);
-  await sock.sendMessage(jid, { text: '🆕 *Jogos recem-lancados*\n\nPara ver jogos novos, acesse:\nhttps://www.roblox.com/discover\n\nE use *!roblox [URL]* para analisar qualquer jogo!' });
+  await sock.sendMessage(jid, { text: '🆕 *Jogos recém-lancados*\n\nPara ver jogos novos, acesse:\nhttps://www.roblox.com/discover\n\nE use *!roblox [URL]* para analisar qualquer jogo!' });
 }
 
 async function handleSimilar(sock, { msg, jid, args }) {
@@ -453,7 +453,7 @@ async function handleSimilar(sock, { msg, jid, args }) {
   }
   const query = args.join(' ');
   await sock.sendPresenceUpdate('composing', jid);
-  await sock.sendMessage(jid, { text: '🔎 Buscando jogos similares a "' + query + '"...\n\nUse *!roblox [nome]* para buscar um jogo especifico.' });
+  await sock.sendMessage(jid, { text: '🔎 Buscando jogos similares a "' + query + '"...\n\nUse *!roblox [nome]* para buscar um jogo específico.' });
 }
 
 async function handleReview(sock, { msg, jid, args }) {
@@ -472,7 +472,7 @@ async function handleCreator(sock, { msg, jid, args }) {
 
   try {
     const users = await searchUser(name);
-    if (!users.length) return await sock.sendMessage(jid, { text: '❌ Criador nao encontrado.' });
+    if (!users.length) return await sock.sendMessage(jid, { text: '❌ Criador não encontrado.' });
 
     const user = users[0];
     const userInfo = await getUserById(user.id).catch(() => ({}));
