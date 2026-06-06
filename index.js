@@ -6,20 +6,27 @@ const { handleMessages, setHandler } = require('./events/messages.upsert');
 const { handleGroupUpdate } = require('./events/group-update');
 const { buildMenu } = require('./commands/menu');
 const { handleAdmin, adminCommands } = require('./commands/admin');
-const { handleOwner, ownerCommands } = require('./commands/owner');
+const { handleOwner, handleAddDono, ownerCommands } = require('./commands/owner');
 const { handleAI, aiCommands, handleImage, imageCommands } = require('./commands/ai');
 const { handlePlay, playCommands } = require('./commands/play');
-const { handleVideo, videoCommands } = require('./commands/video');
+const { handleVídeo, vídeoCommands } = require('./commands/video');
 const { handleDownload, downloadCommands } = require('./commands/download');
 const { handlePesquisa, pesquisaCommands } = require('./commands/pesquisa');
 const { handleFerramentas, ferramentasCommands } = require('./commands/ferramentas');
-const { handleDiversao, diversaoCommands } = require('./commands/diversao');
+const { handleDiversão, diversãoCommands } = require('./commands/diversao');
 const { handleEconomia, economiaCommands } = require('./commands/economia');
 const { handleNiveis, niveisCommands } = require('./commands/niveis');
 const { handleInformacao, informacaoCommands, setStartTime } = require('./commands/informacao');
 const { handleTikTok, handleTikTokMp3, tiktokCommands, tiktokMp3Commands } = require('./commands/tiktok');
 const { handleRoblox, handleTrending, handleTop, handleLancar, handleSimilar, handleReview, handleCreator, robloxCommands, trendCommands, topCommands, lancarCommands, similarCommands, reviewCommands, creatorCommands } = require('./commands/roblox');
 const { handleVoices, vozCommands } = require('./commands/vozes');
+const { handleUpdate, updateCommands } = require('./commands/update');
+const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate');
+const { handleTeste, testeCommands } = require('./commands/testeauto');
+const { handleAchar, acharCommands } = require('./commands/achar');
+const { startAutoCheck } = require('./lib/updater');
+const fs = require('fs');
+const path = require('path');
 const os = require('os');
 
 const startTime = Date.now();
@@ -33,16 +40,17 @@ function registerCommands() {
     { cmds: ['help', 'menu'], handler: handleMenu },
     { cmds: adminCommands, handler: handleAdmin },
     { cmds: ownerCommands, handler: handleOwner },
+    { cmds: ['adddono'], handler: handleAddDono },
     { cmds: aiCommands, handler: handleAI },
     { cmds: playCommands, handler: handlePlay },
-    { cmds: videoCommands, handler: handleVideo },
+    { cmds: vídeoCommands, handler: handleVídeo },
     { cmds: downloadCommands, handler: handleDownload },
     { cmds: pesquisaCommands, handler: handlePesquisa },
     { cmds: ferramentasCommands, handler: handleFerramentas },
     { cmds: imageCommands, handler: handleImage },
-    { cmds: ['meme', 'piada', 'dado', 'moeda', 'roleta', 'perfil'], handler: handleDiversao },
+    { cmds: ['meme', 'piada', 'dado', 'moeda', 'roleta', 'perfil'], handler: handleDiversão },
     { cmds: ['saldo', 'daily', 'trabalhar', 'depositar', 'sacar', 'ranking'], handler: handleEconomia },
-    { cmds: ['nivel'], handler: handleNiveis },
+    { cmds: ['nível'], handler: handleNiveis },
     { cmds: ['ping', 'uptime', 'status', 'grupoinfo'], handler: handleInformacao },
     { cmds: tiktokCommands, handler: handleTikTok },
     { cmds: tiktokMp3Commands, handler: handleTikTokMp3 },
@@ -53,7 +61,11 @@ function registerCommands() {
     { cmds: similarCommands, handler: handleSimilar },
     { cmds: reviewCommands, handler: handleReview },
     { cmds: creatorCommands, handler: handleCreator },
-    { cmds: vozCommands, handler: handleVoices }
+    { cmds: vozCommands, handler: handleVoices },
+    { cmds: updateCommands, handler: handleUpdate },
+    { cmds: testUpdateCommands, handler: handleTestUpdate },
+    { cmds: testeCommands, handler: handleTeste },
+    { cmds: acharCommands, handler: handleAchar }
   ];
 
   for (const reg of registrations) {
@@ -84,7 +96,7 @@ function displayPanel(sock) {
   out += '  RAM: ' + (used.heapUsed / 1024 / 1024).toFixed(1) + 'MB\n';
   out += '  Comandos: ' + totalCommands + '\n';
   out += '  Grupos: ' + totalGroups + '\n';
-  out += '  Usuarios: ' + totalUsers + '\n';
+  out += '  Usuários: ' + totalUsers + '\n';
   out += '  OS: ' + os.platform() + ' ' + os.release() + '\n';
   out += line + '\n';
   console.log(out);
@@ -126,9 +138,28 @@ async function main() {
 
   registerCommands();
 
+  // Load persisted owners
+  try {
+    const ownersFile = path.join(__dirname, 'database', 'owners.json');
+    if (fs.existsSync(ownersFile)) {
+      const owners = JSON.parse(fs.readFileSync(ownersFile, 'utf-8'));
+      if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
+      for (const jid of owners) global.resolvedOwnerJids.add(jid);
+      logger.info(`[OWNER] ${owners.length} donos persistentes carregados`);
+    }
+  } catch (e) {
+    logger.warn(`[OWNER] Erro ao carregar donos: ${e.message}`);
+  }
+
   if (config.autoBackup) {
     scheduleBackup(config.backupInterval || 86400000);
-    logger.info('[BACKUP] Backup automatico ativado');
+    logger.info('[BACKUP] Backup automático ativado');
+  }
+
+  if (config.autoUpdate) {
+    startAutoCheck();
+  } else {
+    logger.info('[UPDATE] Auto-update desativado');
   }
 
   if (config.ollamaApiKey) {
@@ -150,7 +181,7 @@ async function main() {
       }
     } else {
       try {
-        await sock.sendMessage(ctx.jid, { text: `❌ Comando "${ctx.commandName}" nao encontrado. Use ${ctx.prefix}help para ver os comandos disponiveis.` });
+        await sock.sendMessage(ctx.jid, { text: `❌ Comando "${ctx.commandName}" não encontrado. Use ${ctx.prefix}help para ver os comandos disponíveis.` });
       } catch {}
     }
   });

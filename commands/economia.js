@@ -44,13 +44,13 @@ async function handleEconomia(sock, { msg, jid, sender, args, commandName }) {
       db.save('users');
       const trabalhos = ['programou', ' limpou a casa', ' fez entregas', ' deu aulas', ' consertou carros', ' vendeu doces'];
       const job = trabalhos[Math.floor(Math.random() * trabalhos.length)];
-      await sock.sendMessage(jid, { text: `💼 *Trabalho concluido!*\n\nVoce ${job} e ganhou +${amount} coins!\n💳 Saldo: ${user.coins} coins` });
+      await sock.sendMessage(jid, { text: `💼 *Trabalho concluído!*\n\nVocê ${job} e ganhou +${amount} coins!\n💳 Saldo: ${user.coins} coins` });
       break;
     }
     case 'depositar': {
       const user = db.getUser(sender);
       const amount = parseInt(args[0]);
-      if (!amount || amount <= 0) return await sock.sendMessage(jid, { text: '❌ Digite um valor valido.' });
+      if (!amount || amount <= 0) return await sock.sendMessage(jid, { text: '❌ Digite um valor válido.' });
       if (amount > (user.coins || 0)) return await sock.sendMessage(jid, { text: '❌ Saldo insuficiente na carteira.' });
       user.coins = (user.coins || 0) - amount;
       user.bank = (user.bank || 0) + amount;
@@ -61,7 +61,7 @@ async function handleEconomia(sock, { msg, jid, sender, args, commandName }) {
     case 'sacar': {
       const user = db.getUser(sender);
       const amount = parseInt(args[0]);
-      if (!amount || amount <= 0) return await sock.sendMessage(jid, { text: '❌ Digite um valor valido.' });
+      if (!amount || amount <= 0) return await sock.sendMessage(jid, { text: '❌ Digite um valor válido.' });
       if (amount > (user.bank || 0)) return await sock.sendMessage(jid, { text: '❌ Saldo insuficiente no banco.' });
       user.bank = (user.bank || 0) - amount;
       user.coins = (user.coins || 0) + amount;

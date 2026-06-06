@@ -6,13 +6,13 @@ async function handleNiveis(sock, { msg, jid, sender, args, commandName }) {
   const progress = Math.min(100, Math.floor((user.xp || 0) / needed * 100));
   const bar = '█'.repeat(Math.floor(progress / 10)) + '░'.repeat(10 - Math.floor(progress / 10));
 
-  if (commandName === 'nivel') {
+  if (commandName === 'nível') {
     await sock.sendMessage(jid, {
-      text: `⭐ *NIVEL*\n\n👤 Nivel: ${user.level || 1}\n📊 XP: ${user.xp || 0}/${needed}\n📈 Progresso: ${bar} ${progress}%`
+      text: `⭐ *NIVEL*\n\n👤 Nível: ${user.level || 1}\n📊 XP: ${user.xp || 0}/${needed}\n📈 Progresso: ${bar} ${progress}%`
     });
   }
 }
 
-const niveisCommands = ['nivel'];
+const niveisCommands = ['nível'];
 
 module.exports = { handleNiveis, niveisCommands };

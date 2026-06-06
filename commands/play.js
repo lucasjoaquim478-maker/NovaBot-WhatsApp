@@ -23,19 +23,19 @@ function runYtDlp(args) {
   });
 }
 
-async function downloadAudio(url) {
+async function downloadÁudio(url) {
   const tempDir = path.join(process.cwd(), 'temp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
-  const outFile = path.join(tempDir, `audio_${Date.now()}`);
+  const outFile = path.join(tempDir, `áudio_${Date.now()}`);
 
   try {
     const args = [
-      '-f', 'bestaudio[ext=m4a]/bestaudio',
+      '-f', 'bestáudio[ext=m4a]/bestáudio',
       '--max-filesize', '25M',
       '--ffmpeg-location', FFMPEG,
-      '--extract-audio',
-      '--audio-format', 'mp3',
-      '--audio-quality', '128K',
+      '--extract-áudio',
+      '--áudio-format', 'mp3',
+      '--áudio-quality', '128K',
       '--output', `${outFile}.%(ext)s`,
       '--no-warnings',
       '--no-playlist',
@@ -46,7 +46,7 @@ async function downloadAudio(url) {
 
     const mp3File = `${outFile}.mp3`;
     if (!fs.existsSync(mp3File)) {
-      throw new Error('Arquivo de audio nao foi gerado');
+      throw new Error('Arquivo de áudio não foi gerado');
     }
 
     const data = fs.readFileSync(mp3File);
@@ -66,34 +66,34 @@ async function searchMusic(query) {
   if (cached && Date.now() - cached.time < CACHE_TTL) return cached.data;
 
   const result = await yts(query);
-  const videos = result.videos
+  const vídeos = result.vídeos
     .filter(v => v.seconds < 900)
     .sort((a, b) => b.views - a.views);
 
-  if (!videos.length) return null;
+  if (!vídeos.length) return null;
 
-  const best = videos[0];
+  const best = vídeos[0];
   searchCache.set(cacheKey, { data: best, time: Date.now() });
   return best;
 }
 
 async function handlePlay(sock, { msg, jid, sender, args }) {
   if (!args.length) {
-    return await sock.sendMessage(jid, { text: '❌ Digite o nome da musica. Ex: !play Believer' });
+    return await sock.sendMessage(jid, { text: '❌ Digite o nome da música. Ex: !play Believer' });
   }
 
   const query = args.join(' ');
   await sock.sendPresenceUpdate('composing', jid);
 
   try {
-    const video = await searchMusic(query);
-    if (!video) return await sock.sendMessage(jid, { text: '❌ Musica nao encontrada.' });
+    const vídeo = await searchMusic(query);
+    if (!vídeo) return await sock.sendMessage(jid, { text: '❌ Música não encontrada.' });
 
-    const infoText = `🎵 *${video.title}*\n\n⏱ ${formatDuration(video.seconds)}  👁 ${formatNumber(video.views)}\n📺 ${video.author?.name || 'N/A'}\n\n⏳ Baixando audio...`;
+    const infoText = `🎵 *${vídeo.title}*\n\n⏱ ${formatDuration(vídeo.seconds)}  👁 ${formatNumber(vídeo.views)}\n📺 ${vídeo.author?.name || 'N/A'}\n\n⏳ Baixando áudio...`;
 
-    if (video.thumbnail) {
+    if (vídeo.thumbnail) {
       try {
-        await sock.sendMessage(jid, { image: { url: video.thumbnail }, caption: infoText });
+        await sock.sendMessage(jid, { image: { url: vídeo.thumbnail }, caption: infoText });
       } catch {
         await sock.sendMessage(jid, { text: infoText });
       }
@@ -101,17 +101,17 @@ async function handlePlay(sock, { msg, jid, sender, args }) {
       await sock.sendMessage(jid, { text: infoText });
     }
 
-    const result = await downloadAudio(video.url);
+    const result = await downloadÁudio(vídeo.url);
 
     if (!result.success) {
       return await sock.sendMessage(jid, {
-        text: `⚠️ Nao foi possivel baixar.\n\n📹 Link direto:\n${video.url}\n\n💡 Tente novamente ou use outro termo de busca.`
+        text: `⚠️ Nao foi possivel baixar.\n\n📹 Link direto:\n${vídeo.url}\n\n💡 Tente novamente ou use outro termo de busca.`
       });
     }
 
     await sock.sendMessage(jid, {
-      audio: result.data,
-      mimetype: 'audio/mpeg',
+      áudio: result.data,
+      mimetype: 'áudio/mpeg',
       ptt: false
     }, { quoted: msg });
 
@@ -120,6 +120,6 @@ async function handlePlay(sock, { msg, jid, sender, args }) {
   }
 }
 
-const playCommands = ['play', 'musica', 'music'];
+const playCommands = ['play', 'música', 'music'];
 
 module.exports = { handlePlay, playCommands };

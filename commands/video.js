@@ -17,7 +17,7 @@ function runYtDlp(args) {
   });
 }
 
-async function downloadVideo(url) {
+async function downloadVídeo(url) {
   const tempDir = path.join(process.cwd(), 'temp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
   const outFile = path.join(tempDir, `vid_${Date.now()}`);
@@ -36,17 +36,17 @@ async function downloadVideo(url) {
 
     await runYtDlp(args);
 
-    let videoFile = null;
+    let vídeoFile = null;
     for (const ext of ['mp4', 'webm', 'mkv']) {
       const p = `${outFile}.${ext}`;
-      if (fs.existsSync(p)) { videoFile = p; break; }
+      if (fs.existsSync(p)) { vídeoFile = p; break; }
     }
 
-    if (!videoFile) throw new Error('Video nao foi gerado');
+    if (!vídeoFile) throw new Error('Vídeo não foi gerado');
 
-    const data = fs.readFileSync(videoFile);
+    const data = fs.readFileSync(vídeoFile);
     const size = data.length;
-    fs.unlinkSync(videoFile);
+    fs.unlinkSync(vídeoFile);
     return { success: true, data, size };
   } catch (e) {
     for (const ext of ['mp4', 'webm', 'mkv']) {
@@ -56,29 +56,29 @@ async function downloadVideo(url) {
   }
 }
 
-async function searchVideo(query) {
+async function searchVídeo(query) {
   const result = await yts(query);
-  const videos = result.videos.sort((a, b) => (b.views || 0) - (a.views || 0));
-  return videos[0] || null;
+  const vídeos = result.vídeos.sort((a, b) => (b.views || 0) - (a.views || 0));
+  return vídeos[0] || null;
 }
 
-async function handleVideo(sock, { msg, jid, sender, args }) {
+async function handleVídeo(sock, { msg, jid, sender, args }) {
   if (!args.length) {
-    return await sock.sendMessage(jid, { text: '❌ Digite o nome. Ex: !video GTA 6 Trailer' });
+    return await sock.sendMessage(jid, { text: '❌ Digite o nome. Ex: !vídeo GTA 6 Trailer' });
   }
 
   const query = args.join(' ');
   await sock.sendPresenceUpdate('composing', jid);
 
   try {
-    const video = await searchVideo(query);
-    if (!video) return await sock.sendMessage(jid, { text: '❌ Video nao encontrado.' });
+    const vídeo = await searchVídeo(query);
+    if (!vídeo) return await sock.sendMessage(jid, { text: '❌ Vídeo não encontrado.' });
 
-    const infoText = `🎬 *${video.title}*\n\n⏱ ${formatDuration(video.seconds)}  👁 ${formatNumber(video.views)}\n📺 ${video.author?.name || 'N/A'}\n\n⏳ Baixando vídeo...`;
+    const infoText = `🎬 *${vídeo.title}*\n\n⏱ ${formatDuration(vídeo.seconds)}  👁 ${formatNumber(vídeo.views)}\n📺 ${vídeo.author?.name || 'N/A'}\n\n⏳ Baixando vídeo...`;
 
-    if (video.thumbnail) {
+    if (vídeo.thumbnail) {
       try {
-        await sock.sendMessage(jid, { image: { url: video.thumbnail }, caption: infoText });
+        await sock.sendMessage(jid, { image: { url: vídeo.thumbnail }, caption: infoText });
       } catch {
         await sock.sendMessage(jid, { text: infoText });
       }
@@ -86,22 +86,22 @@ async function handleVideo(sock, { msg, jid, sender, args }) {
       await sock.sendMessage(jid, { text: infoText });
     }
 
-    const result = await downloadVideo(video.url);
+    const result = await downloadVídeo(vídeo.url);
 
     if (!result.success) {
       return await sock.sendMessage(jid, {
-        text: `⚠️ Nao foi possivel baixar.\n\n📹 Link direto:\n${video.url}\n\n💡 Tente um video mais curto.`
+        text: `⚠️ Nao foi possivel baixar.\n\n📹 Link direto:\n${vídeo.url}\n\n💡 Tente um vídeo mais curto.`
       });
     }
 
     if (result.size > 50 * 1024 * 1024) {
-      return await sock.sendMessage(jid, { text: '❌ Video muito grande (limite: 50MB).' });
+      return await sock.sendMessage(jid, { text: '❌ Vídeo muito grande (limite: 50MB).' });
     }
 
     await sock.sendMessage(jid, {
-      video: result.data,
-      mimetype: 'video/mp4',
-      caption: `🎬 ${video.title}`
+      vídeo: result.data,
+      mimetype: 'vídeo/mp4',
+      caption: `🎬 ${vídeo.title}`
     }, { quoted: msg });
 
   } catch (e) {
@@ -109,6 +109,6 @@ async function handleVideo(sock, { msg, jid, sender, args }) {
   }
 }
 
-const videoCommands = ['video', 'vídeo'];
+const vídeoCommands = ['vídeo', 'vídeo'];
 
-module.exports = { handleVideo, videoCommands };
+module.exports = { handleVídeo, vídeoCommands };

@@ -1,4 +1,5 @@
 const config = require('../config.json');
+const pkg = require('../package.json');
 const { formatUptime } = require('../lib/utils');
 const db = require('../database/index');
 
@@ -16,9 +17,10 @@ const menu = {
     ['facebook [url]', 'Download Facebook']
   ]},
   pesquisa: { emoji: '🔎', title: 'PESQUISAS', header: true, cmds: [
+    ['achar [termo]', 'Buscar informações na web'],
     ['google [pesquisa]', null],
     ['wiki [termo]', null],
-    ['noticias [categoria]', null],
+    ['notícias [categoria]', null],
     ['clima [cidade]', null]
   ]},
   ferramentas: { emoji: '🛠️', title: 'FERRAMENTAS', header: true, cmds: [
@@ -66,7 +68,17 @@ const menu = {
     ['broadcast [msg]', null],
     ['blacklist @user', null],
     ['unblacklist @user', null],
-    ['eval [código]', null]
+    ['eval [código]', null],
+    ['adddono [número]', 'Adicionar-se como dono'],
+    ['update', 'Verificar atualizações'],
+    ['update force', 'Forçar atualização'],
+    ['versao', 'Versão do bot'],
+    ['rollback', 'Restaurar backup'],
+    ['meunumero', 'Ver seu número e status'],
+    ['testeauto', 'Testar auto-update'],
+    ['testarauto', 'Testar auto-update'],
+    ['testupdate', 'Testar sistema de update'],
+    ['testarupdate', 'Testar sistema de update']
   ]},
   info: { emoji: '📊', title: 'INFORMAÇÕES', header: true, cmds: [
     ['ping', null],
@@ -152,7 +164,7 @@ function buildCompleteMenu(prefix, botName) {
   }
 
   text += `╔${border}╗\n`;
-  text += `║      ✨ ${botName} Premium v1.0      ║\n`;
+  text += `║   ✨ ${botName} Premium ${pkg.version}   ║\n`;
   text += `║      ⚙️ Powered by Node.js        ║\n`;
   text += `║      🔥 Rápido • Seguro • IA      ║\n`;
   text += `╚${border}╝`;

@@ -22,10 +22,10 @@ async function handlePesquisa(sock, { msg, jid, sender, args, commandName }) {
       try {
         const lang = 'pt';
         const res = await fetch(`https://${lang}.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(query)}`);
-        if (res.status === 404) return await sock.sendMessage(jid, { text: '❌ Pagina nao encontrada.' });
-        if (!res.ok) throw new Error('API indisponivel');
+        if (res.status === 404) return await sock.sendMessage(jid, { text: '❌ Página não encontrada.' });
+        if (!res.ok) throw new Error('API indisponível');
         const data = await res.json();
-        const text = data.extract?.slice(0, 2000) || 'Sem descricao.';
+        const text = data.extract?.slice(0, 2000) || 'Sem descrição.';
         await sock.sendMessage(jid, {
           text: `📚 *${data.title}*\n\n${text}\n\n🔗 ${data.content_urls?.desktop?.page || ''}`
         });
@@ -34,7 +34,7 @@ async function handlePesquisa(sock, { msg, jid, sender, args, commandName }) {
       }
       break;
     }
-    case 'noticias': {
+    case 'notícias': {
       await sock.sendPresenceUpdate('composing', jid);
       try {
         const apiKey = config.newsApiKey || 'demo';
@@ -56,18 +56,18 @@ async function handlePesquisa(sock, { msg, jid, sender, args, commandName }) {
         if (!data.articles?.length) {
           return await sock.sendMessage(jid, {
             text: query
-              ? `📰 Nenhuma noticia encontrada para "${query}".`
-              : '📰 Nenhuma noticia no momento.'
+              ? `📰 Nenhuma notícia encontrada para "${query}".`
+              : '📰 Nenhuma notícia no momento.'
           });
         }
 
-        let msgText = `📰 *Noticias${query ? ': ' + query : ' do Brasil'}*\n\n`;
+        let msgText = `📰 *Notícias${query ? ': ' + query : ' do Brasil'}*\n\n`;
         data.articles.slice(0, 5).forEach((a, i) => {
           msgText += `*${i + 1}. ${a.title}*\n${a.source?.name || ''}\n${a.url}\n\n`;
         });
         await sock.sendMessage(jid, { text: msgText.trim() });
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro ao carregar noticias: ${e.message}` });
+        await sock.sendMessage(jid, { text: `❌ Erro ao carregar notícias: ${e.message}` });
       }
       break;
     }
@@ -79,10 +79,10 @@ async function handlePesquisa(sock, { msg, jid, sender, args, commandName }) {
         const text = await res.text();
         const parts = text.split('|');
         if (parts.length < 5 || text.includes('Unknown')) {
-          return await sock.sendMessage(jid, { text: '❌ Cidade nao encontrada.' });
+          return await sock.sendMessage(jid, { text: '❌ Cidade não encontrada.' });
         }
         await sock.sendMessage(jid, {
-          text: `🌤 *Clima: ${query}*\n\n🌡 Temperatura: ${parts[1]}\n☁️ Condicao: ${parts[0]}\n💧 Umidade: ${parts[2]}\n💨 Vento: ${parts[3]}\n🌧 Precipitacao: ${parts[4]}`
+          text: `🌤 *Clima: ${query}*\n\n🌡 Temperatura: ${parts[1]}\n☁️ Condição: ${parts[0]}\n💧 Umidade: ${parts[2]}\n💨 Vento: ${parts[3]}\n🌧 Precipitação: ${parts[4]}`
         });
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
@@ -92,6 +92,6 @@ async function handlePesquisa(sock, { msg, jid, sender, args, commandName }) {
   }
 }
 
-const pesquisaCommands = ['google', 'wiki', 'noticias', 'clima'];
+const pesquisaCommands = ['google', 'wiki', 'notícias', 'clima'];
 
 module.exports = { handlePesquisa, pesquisaCommands };

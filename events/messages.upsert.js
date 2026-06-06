@@ -32,7 +32,7 @@ async function handleMessages(sock, messages) {
             const isAdmin = groupMetadata.participants.some(p => cleanJid(p.id) === cleanJid(sender) && (p.admin === 'admin' || p.admin === 'superadmin'));
             const isBotAdmin = groupMetadata.participants.some(p => cleanJid(p.id) === cleanJid(sock.user?.id) && (p.admin === 'admin' || p.admin === 'superadmin'));
             if (!isAdmin && isBotAdmin) {
-              await sock.sendMessage(jid, { text: '❌ Links nao sao permitidos neste grupo!' });
+              await sock.sendMessage(jid, { text: '❌ Links não são permitidos neste grupo!' });
               await sock.groupParticipantsUpdate(jid, [sender], 'remove');
               continue;
             }
@@ -56,7 +56,7 @@ async function handleMessages(sock, messages) {
       if (!commandName) continue;
 
       if (user.banned) {
-        await sock.sendMessage(jid, { text: '❌ Voce esta banido do bot!' });
+        await sock.sendMessage(jid, { text: '❌ Você está banido do bot!' });
         continue;
       }
 
