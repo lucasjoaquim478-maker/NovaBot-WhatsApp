@@ -49,7 +49,7 @@ function extractMention(msg) {
 
 async function handleAdmin(sock, { msg, jid, sender, args, commandName, chat }) {
   if (chat !== 'group') {
-    await sock.sendMessage(jid, { text: '❌ Este comando so pode ser usado em grupos!' });
+    await sock.sendMessage(jid, { text: '❌ Este comando só pode ser usado em grupos!' });
     return;
   }
 
@@ -76,7 +76,7 @@ async function handleAdmin(sock, { msg, jid, sender, args, commandName, chat }) 
       break;
     }
     case 'add': {
-      if (!args[0]) return await sock.sendMessage(jid, { text: '❌ Informe o numero. Ex: !add 5511999999999' });
+      if (!args[0]) return await sock.sendMessage(jid, { text: '❌ Informe o número. Ex: !add 5511999999999' });
       const num = args[0].replace(/[^0-9]/g, '') + '@s.whatsapp.net';
       await sock.groupParticipantsUpdate(jid, [num], 'add');
       break;
