@@ -1,5 +1,6 @@
 const { backup } = require('../database/backup');
 const db = require('../database/index');
+const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
 
 async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
@@ -101,4 +102,4 @@ async function handleAddDono(sock, { jid, sender, args, chat }) {
 
 const ownerCommands = ['reiniciar', 'shutdown', 'backup', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono'];
 
-module.exports = { handleOwner, ownerCommands };
+module.exports = { handleOwner, handleAddDono, ownerCommands };
