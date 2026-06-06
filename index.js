@@ -189,7 +189,7 @@ async function main() {
   await start(setupEvents, {
     onConnected: async (s) => {
       displayPanel(s);
-      global.resolvedOwnerJids = new Set();
+      if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
       const ownerPhones = config.ownerNumbers || [config.ownerNumber].filter(Boolean);
       for (const num of ownerPhones) {
         const phone = num.split('@')[0];
