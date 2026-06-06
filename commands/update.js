@@ -1,5 +1,5 @@
 const config = require('../config.json');
-const { isOwner, cleanJid } = require('../lib/utils');
+const { isOwner } = require('../lib/utils');
 const {
   checkForUpdates,
   performUpdate,
@@ -11,7 +11,14 @@ const {
 
 const updateCommands = ['update', 'versao', 'rollback', 'meunumero'];
 
-async function handleUpdate(sock, { jid, sender, args, commandName }) {
+async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
+  if (commandName === 'meunumero') {
+    await sock.sendMessage(jid, {
+      text: `📱 *Seu JID:* ${sender}\n👤 *Nome:* ${msg.pushName || 'N/A'}\n🔍 *No config:* ${config.ownerNumbers.some(n => sender.startsWith(n.split('@')[0])) ? 'SIM' : 'NAO'}\n👑 *isOwner:* ${await isOwner(sender, sock) ? 'SIM' : 'NAO'}`
+    });
+    return;
+  }
+
   const owner = await isOwner(sender, sock);
   if (!owner) {
     await sock.sendMessage(jid, { text: '❌ Apenas o dono do bot pode usar este comando.' });
@@ -24,45 +31,34 @@ async function handleUpdate(sock, { jid, sender, args, commandName }) {
   }
 
   switch (commandName) {
-    case 'meunumero': {
-      await sock.sendMessage(jid, {
-        text: `📱 *Seu JID:* ${sender}\n👤 *Nome:* ${msg.pushName || 'N/A'}\n🔍 *No config:* ${config.ownerNumbers.some(n => sender.startsWith(n.split('@')[0])) ? 'SIM' : 'NAO'}\n👑 *isOwner:* ${await isOwner(sender, sock) ? 'SIM' : 'NAO'}`
-      });
-      return;
-    }
-
     case 'versao': {
       const local = getCurrentVersion();
       const latest = getLatestVersion();
-      let msg = `📦 *Versao atual:* v${local}\n`;
-      if (latest !== local) msg += `🎯 *Ultima disponivel:* v${latest}\n`;
-      else msg += `✅ *Ultima versao disponivel:* v${latest}\n`;
+      let txt = `📦 *Versao atual:* v${local}\n`;
+      if (latest !== local) txt += `🎯 *Ultima disponivel:* v${latest}\n`;
+      else txt += `✅ *Ultima versao disponivel:* v${latest}\n`;
       const changelog = await getChangelog();
-      if (changelog) msg += `\n📋 *Changelog:*\n${changelog.slice(0, 1500)}`;
-      await sock.sendMessage(jid, { text: msg });
+      if (changelog) txt += `\n📋 *Changelog:*\n${changelog.slice(0, 1500)}`;
+      await sock.sendMessage(jid, { text: txt });
       break;
     }
 
     case 'update': {
       const force = args[0]?.toLowerCase() === 'force';
-
       if (force) {
         await sock.sendMessage(jid, { text: '⚡ Forcando atualizacao...' });
         await performUpdate(sock, jid);
         return;
       }
-
       const result = await checkForUpdates();
       if (!result) {
         await sock.sendMessage(jid, { text: '❌ Nao foi possivel verificar atualizacoes. Verifique sua configuracao (githubRepo).' });
         return;
       }
-
       if (result.current) {
         await sock.sendMessage(jid, { text: `✅ Voce ja esta na versao mais recente: v${getCurrentVersion()}` });
         return;
       }
-
       if (result.hasUpdate) {
         await sock.sendMessage(jid, {
           text: `🔄 *Nova versao disponivel!*\n\n` +
