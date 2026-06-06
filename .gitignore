@@ -1,0 +1,9 @@
+node_modules/
+temp/
+sessions/
+logs/
+bin/
+*.log
+.DS_Store
+package-lock.json
+voz_cache/
