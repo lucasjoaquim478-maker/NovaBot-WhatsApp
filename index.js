@@ -2,7 +2,7 @@ const config = require('./config.json');
 const { start, getSock, logger } = require('./lib/baileys');
 const db = require('./database/index');
 const { backup, scheduleBackup } = require('./database/backup');
-const { handleMessages, setHandler } = require('./events/messages.upsert');
+const { extractText, isOwner } = require('./lib/utils');
 const { handleGroupUpdate } = require('./events/group-update');
 const { buildMenu } = require('./commands/menu');
 const { handleAdmin, adminCommands } = require('./commands/admin');
@@ -109,6 +109,9 @@ async function handleMenu(sock, ctx) {
 }
 
 async function handleConfirma(sock, ctx) {
+  if (!await isOwner(ctx.sender, sock)) {
+    return await sock.sendMessage(ctx.jid, { text: '❌ Apenas o dono pode usar este comando.' });
+  }
   const pkg = require('./package.json');
   const { getCurrentVersion } = require('./lib/updater');
   const remoteVer = getCurrentVersion();
