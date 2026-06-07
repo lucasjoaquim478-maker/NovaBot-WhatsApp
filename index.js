@@ -65,7 +65,8 @@ function registerCommands() {
     { cmds: updateCommands, handler: handleUpdate },
     { cmds: testUpdateCommands, handler: handleTestUpdate },
     { cmds: testeCommands, handler: handleTeste },
-    { cmds: acharCommands, handler: handleAchar }
+    { cmds: acharCommands, handler: handleAchar },
+    { cmds: ['testrd'], handler: handleTestRD }
   ];
 
   for (const reg of registrations) {
@@ -105,6 +106,15 @@ function displayPanel(sock) {
 async function handleMenu(sock, ctx) {
   const menu = buildMenu(sock, ctx.sender, ctx.args);
   await sock.sendMessage(ctx.jid, { text: menu });
+}
+
+async function handleTestRD(sock, ctx) {
+  const pkg = require('./package.json');
+  const { getCurrentVersion } = require('./lib/updater');
+  const remoteVer = getCurrentVersion();
+  await sock.sendMessage(ctx.jid, {
+    text: `🤖 *NovaBot - Diagnóstico*\n\n📦 Versão local: ${pkg.version}\n🏷️ Última tag: ${remoteVer || 'N/A'}\n⚡ Comandos: ${commandMap.size}\n👤 Dono: ${ctx.sender.split('@')[0]}\n✅ Sistema operacional`
+  });
 }
 
 function setupEvents(sock) {

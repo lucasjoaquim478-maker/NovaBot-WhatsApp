@@ -64,10 +64,13 @@ class Database {
 
   _recalcCounts() {
     let count = 0;
+    let cmdCount = 0;
     for (const u of Object.values(this.data.users)) {
       if (!u.banned) count++;
+      cmdCount += u.commands || 0;
     }
     this._userCount = count;
+    this._cmdCount = cmdCount;
   }
 
   getUser(jid) {
@@ -80,6 +83,11 @@ class Database {
       this._userCount++;
     }
     return this.data.users[jid];
+  }
+
+  addCommand(user) {
+    user.commands = (user.commands || 0) + 1;
+    this._cmdCount++;
   }
 
   getGroup(jid) {
@@ -111,9 +119,7 @@ class Database {
   }
 
   getCommandCount() {
-    let total = 0;
-    for (const u of Object.values(this.data.users)) total += u.commands || 0;
-    return total;
+    return this._cmdCount;
   }
 
   getUserCount() {

@@ -107,7 +107,7 @@ async function handleMessages(sock, messages) {
       const cooldown = checkCooldown(sender, commandName, config.cooldown || 3000);
       if (cooldown.onCooldown) continue;
 
-      user.commands = (user.commands || 0) + 1;
+      db.addCommand(user);
 
       if (db.data.config?.maintenance && !await isOwner(sender, sock)) {
         await sock.sendMessage(jid, { text: '🛠️ O bot está em manutenção. Tente mais tarde.' });
