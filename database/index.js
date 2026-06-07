@@ -72,7 +72,7 @@ class Database {
     if (!this.data.groups[jid]) {
       this.data.groups[jid] = {
         jid, name: '', welcome: true, goodbye: true,
-        antilink: false, antifake: false, members: {}, createdAt: Date.now()
+        antilink: false, antifake: false, members: {}, createdAt: Date.now(), inviteCode: ''
       };
     }
     return this.data.groups[jid];

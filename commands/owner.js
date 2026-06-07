@@ -120,6 +120,30 @@ async function handleAddDono(sock, { jid, sender, args, chat }) {
   await sock.sendMessage(jid, { text: `✅ Dono salvo permanentemente! Agora você pode usar comandos restritos.` });
 }
 
+async function handleSetPP(sock, { jid, sender }) {
+  if (!await isOwner(sender, sock)) {
+    await sock.sendMessage(jid, { text: '❌ Apenas o dono do bot pode usar este comando.' });
+    return;
+  }
+  try {
+    const imgPath = path.join(__dirname, '..', 'bot-avatar.png');
+    if (!fs.existsSync(imgPath)) {
+      await sock.sendMessage(jid, { text: '❌ Arquivo bot-avatar.png nao encontrado.' });
+      return;
+    }
+    const img = fs.readFileSync(imgPath);
+    const jidBot = sock.user?.id;
+    if (!jidBot) {
+      await sock.sendMessage(jid, { text: '❌ Nao foi possivel obter o ID do bot.' });
+      return;
+    }
+    await sock.updateProfilePicture(jidBot, img);
+    await sock.sendMessage(jid, { text: '✅ Foto de perfil atualizada!' });
+  } catch (e) {
+    await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+  }
+}
+
 const ownerCommands = ['reiniciar', 'shutdown', 'backup', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono'];
 
-module.exports = { handleOwner, handleAddDono, ownerCommands };
+module.exports = { handleOwner, handleAddDono, handleSetPP, ownerCommands };

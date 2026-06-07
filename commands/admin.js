@@ -13,28 +13,25 @@ async function isGroupAdmin(sock, jid, sender) {
 
 async function isBotAdmin(sock, jid) {
   try {
-    await sock.groupInviteCode(jid);
-    return true;
-  } catch {
-    try {
-      const group = await sock.groupMetadata(jid);
-      const raw = sock.user?.id;
-      if (!raw) return false;
-      const formats = [raw, cleanJid(raw), raw.split(':')[0], raw.split('@')[0]];
-      for (const f of formats) {
-        const p = group.participants.find(pp => pp.id === f || cleanJid(pp.id) === f || pp.id === cleanJid(f));
-        if (p && (p.admin === 'admin' || p.admin === 'superadmin')) return true;
+    const group = await sock.groupMetadata(jid);
+    const raw = sock.user?.id;
+    if (!raw) return false;
+    const formats = [raw, cleanJid(raw), raw.split(':')[0], raw.split('@')[0]];
+    const ownerPhones = config.ownerNumbers || [config.ownerNumber].filter(Boolean);
+    for (const num of ownerPhones) {
+      formats.push(cleanJid(num), num.split('@')[0]);
+    }
+    if (global.resolvedOwnerJids) {
+      for (const j of global.resolvedOwnerJids) {
+        formats.push(j, cleanJid(j), j.split('@')[0]);
       }
-      if (global.resolvedOwnerJids) {
-        for (const j of global.resolvedOwnerJids) {
-          const jc = cleanJid(j);
-          const p = group.participants.find(pp => pp.id === j || cleanJid(pp.id) === jc || pp.id === jc);
-          if (p && (p.admin === 'admin' || p.admin === 'superadmin')) return true;
-        }
-      }
-      return false;
-    } catch { return false; }
-  }
+    }
+    for (const f of formats) {
+      const p = group.participants.find(pp => pp.id === f || cleanJid(pp.id) === f || pp.id === cleanJid(f));
+      if (p && (p.admin === 'admin' || p.admin === 'superadmin')) return true;
+    }
+    return false;
+  } catch { return false; }
 }
 
 function extractMention(msg) {
@@ -70,7 +67,7 @@ async function handleAdmin(sock, { msg, jid, sender, args, commandName, chat }) 
     case 'kick': {
       const target = extractMention(msg) || args[0];
       if (!target) return await sock.sendMessage(jid, { text: '❌ Marque quem deseja remover.' });
-      const jidTarget = target.includes('@s.whatsapp.net') ? target : target + '@s.whatsapp.net';
+      const jidTarget = target.includes('@') ? target : target + '@s.whatsapp.net';
       if (await isOwner(jidTarget, sock)) return await sock.sendMessage(jid, { text: '❌ Nao posso remover o dono do bot.' });
       await sock.groupParticipantsUpdate(jid, [jidTarget], 'remove');
       break;
@@ -84,14 +81,14 @@ async function handleAdmin(sock, { msg, jid, sender, args, commandName, chat }) 
     case 'promover': {
       const target = extractMention(msg) || args[0];
       if (!target) return await sock.sendMessage(jid, { text: '❌ Marque quem deseja promover.' });
-      const jidTarget = target.includes('@s.whatsapp.net') ? target : target + '@s.whatsapp.net';
+      const jidTarget = target.includes('@') ? target : target + '@s.whatsapp.net';
       await sock.groupParticipantsUpdate(jid, [jidTarget], 'promote');
       break;
     }
     case 'rebaixar': {
       const target = extractMention(msg) || args[0];
       if (!target) return await sock.sendMessage(jid, { text: '❌ Marque quem deseja rebaixar.' });
-      const jidTarget = target.includes('@s.whatsapp.net') ? target : target + '@s.whatsapp.net';
+      const jidTarget = target.includes('@') ? target : target + '@s.whatsapp.net';
       await sock.groupParticipantsUpdate(jid, [jidTarget], 'demote');
       break;
     }

@@ -9,6 +9,9 @@ async function handleGroupUpdate(sock, updates) {
         const group = db.getGroup(jid);
 
         for (const p of update.participants) {
+          const botJid = sock.user?.id;
+          const isBot = botJid && (p === botJid || p.split('@')[0] === botJid.split('@')[0]);
+
           if (update.action === 'add' && group.welcome) {
             try {
               const metadata = await sock.groupMetadata(jid);
@@ -17,6 +20,14 @@ async function handleGroupUpdate(sock, updates) {
                 text: `🎉 Bem-vindo(a) @${p.split('@')[0]} ao grupo ${subject}!`,
                 mentions: [p]
               });
+            } catch {}
+          }
+
+          if (isBot && update.action === 'add') {
+            try {
+              const code = await sock.groupInviteCode(jid);
+              group.inviteCode = code;
+              db.save('groups');
             } catch {}
           }
 
