@@ -13,3 +13,6 @@ voz_cache/
 *.part
 database/users.json
 database/groups.json
+
+# Shortcuts
+*.lnk

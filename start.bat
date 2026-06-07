@@ -1,7 +1,25 @@
 @echo off
-title NovaBot WhatsApp
+title NovaBot WhatsApp - Robo
 color 0a
 cd /d "%~dp0"
+
+echo.
+echo      .------------------------------------------.
+echo      |                 .--.   .--.               |
+echo      |                /    \_/    \              |
+echo      |               |  .--.--.--.  |            |
+echo      |               |  |  |  |  |  |            |
+echo      |               |  '--'--'--'  |            |
+echo      |                \_/  \_/  \_/             |
+echo      |                  |       |                |
+echo      |               ___|___ ___|___             |
+echo      |              |           |   |            |
+echo      |              |    NovaBot   |            |
+echo      |              |   WhatsApp   |            |
+echo      |              |   Premium    |            |
+echo      |              '-------------'             |
+echo      '------------------------------------------'
+echo.
 
 :NODE_CHECK
 set "NODE_CMD=node"
