@@ -2,6 +2,7 @@ const config = require('./config.json');
 const { start, getSock, logger } = require('./lib/baileys');
 const db = require('./database/index');
 const { backup, scheduleBackup } = require('./database/backup');
+const { handleMessages, setHandler } = require('./events/messages.upsert');
 const { extractText, isOwner } = require('./lib/utils');
 const { handleGroupUpdate } = require('./events/group-update');
 const { buildMenu } = require('./commands/menu');
