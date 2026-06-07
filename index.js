@@ -24,7 +24,7 @@ const { handleUpdate, updateCommands } = require('./commands/update');
 const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate');
 const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { handleAchar, acharCommands } = require('./commands/achar');
-const { startAutoCheck } = require('./lib/updater');
+const { startAutoCheck, performUpdate } = require('./lib/updater');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -112,12 +112,8 @@ async function handleConfirma(sock, ctx) {
   if (!await isOwner(ctx.sender, sock)) {
     return await sock.sendMessage(ctx.jid, { text: '❌ Apenas o dono pode usar este comando.' });
   }
-  const pkg = require('./package.json');
-  const { getCurrentVersion } = require('./lib/updater');
-  const remoteVer = getCurrentVersion();
-  await sock.sendMessage(ctx.jid, {
-    text: `🤖 *NovaBot - Diagnóstico*\n\n📦 Versão local: ${pkg.version}\n🏷️ Última tag: ${remoteVer || 'N/A'}\n⚡ Comandos: ${commandMap.size}\n👤 Dono: ${ctx.sender.split('@')[0]}\n✅ Sistema operacional`
-  });
+  await sock.sendMessage(ctx.jid, { text: '⚡ Forçando atualização...' });
+  await performUpdate(sock, ctx.jid);
 }
 
 function setupEvents(sock) {
