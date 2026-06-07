@@ -19,97 +19,80 @@ function cacheSet(key, data) {
   cache.set(key.toLowerCase(), { data, ts: Date.now() });
 }
 
-async function wikiSummary(title) {
-  const candidates = [title, `${title} (cidade)`, `${title} (município)`, `${title} city`];
-  for (const c of candidates) {
-    try {
-      const url = `https://pt.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(c)}`;
-      const r = await fetch(url, {
-        headers: { 'User-Agent': 'NovaBot/3.0' },
-        signal: AbortSignal.timeout(7000)
-      });
-      if (r.ok) {
-        const d = await r.json();
-        if (d?.title && d?.extract) return { ...d, lang: 'pt' };
-      }
-    } catch {}
-  }
+async function callWikiAPI(params) {
+  const qs = new URLSearchParams({ ...params, format: 'json', redirects: '1', origin: '*' });
   try {
-    const url = `https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`;
-    const r = await fetch(url, {
-      headers: { 'User-Agent': 'NovaBot/3.0' },
-      signal: AbortSignal.timeout(7000)
-    });
-    if (r.ok) {
-      const d = await r.json();
-      if (d?.title && d?.extract) return { ...d, lang: 'en' };
-    }
-  } catch {}
-  return null;
-}
-
-async function wikiFullExtract(title) {
-  try {
-    const url = `https://pt.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=extracts&explaintext&format=json&redirects=1`;
-    const r = await fetch(url, {
+    const r = await fetch(`https://pt.wikipedia.org/w/api.php?${qs}`, {
       headers: { 'User-Agent': 'NovaBot/3.0' },
       signal: AbortSignal.timeout(10000)
     });
+    if (r.status === 429) return { rateLimited: true };
     if (!r.ok) return null;
-    const d = await r.json();
-    for (const p of Object.values(d.query?.pages || {})) {
-      return p.extract || null;
-    }
-  } catch {}
-  return null;
+    return await r.json();
+  } catch { return null; }
 }
 
-async function wikiImages(title) {
-  try {
-    const r = await fetch(
-      `https://pt.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageimages&format=json&piprop=original|thumbnail&pithumbsize=800&pilimit=5`,
-      { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(6000) }
-    );
-    if (!r.ok) return [];
-    const d = await r.json();
+async function fetchCityData(title) {
+  let d = await callWikiAPI({
+    action: 'query', titles: title,
+    prop: 'extracts|coordinates|pageimages|pageprops',
+    explaintext: '', exintro: '', pithumbsize: '800', piprop: 'original|thumbnail'
+  });
+
+  if (d?.rateLimited) return { rateLimited: true };
+
+  if (!d) {
+    d = await callWikiAPI({
+      action: 'query', list: 'search', srsearch: title, srlimit: '5', srprop: ''
+    });
+    if (d?.rateLimited) return { rateLimited: true };
+    if (!d?.query?.search?.length) return null;
+    const found = d.query.search[0].title;
+    d = await callWikiAPI({
+      action: 'query', titles: found,
+      prop: 'extracts|coordinates|pageimages|pageprops',
+      explaintext: '', exintro: '', pithumbsize: '800', piprop: 'original|thumbnail'
+    });
+    if (!d) return null;
+  }
+
+  for (const p of Object.values(d.query?.pages || {})) {
+    if (p.missing) continue;
+    const imgs = [];
     const seen = new Set();
-    const urls = [];
-    for (const p of Object.values(d.query?.pages || {})) {
-      for (const src of [p.original?.source, p.thumbnail?.source]) {
-        if (src && !seen.has(src)) { seen.add(src); urls.push(src); }
+    for (const src of [p.original?.source, p.thumbnail?.source]) {
+      if (src && !seen.has(src)) { seen.add(src); imgs.push(src); }
+    }
+    return {
+      pageid: p.pageid,
+      title: p.title,
+      extract: p.extract || null,
+      intro: p.extract?.split('\n')[0] || null,
+      description: p.description || null,
+      coordinates: p.coordinates?.[0] || null,
+      images: imgs,
+      wikidataId: p.pageprops?.wikibase_item || null,
+      lang: 'pt'
+    };
+  }
+
+  try {
+    const r = await fetch(`https://en.wikipedia.org/api/rest_v1/page/summary/${encodeURIComponent(title)}`, {
+      headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(7000)
+    });
+    if (r.ok) {
+      const ed = await r.json();
+      if (ed?.title && ed?.extract && !ed.type?.startsWith('https://mediawiki.org/wiki/HyperSwitch/errors/')) {
+        return {
+          title: ed.title, extract: ed.extract, intro: ed.extract?.split('\n')[0],
+          description: ed.description, coordinates: ed.coordinates || null,
+          images: ed.thumbnail?.source ? [ed.thumbnail.source] : [],
+          lang: 'en'
+        };
       }
     }
-    return urls;
-  } catch { return []; }
-}
-
-async function wikiCoords(title) {
-  try {
-    const r = await fetch(
-      `https://pt.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=coordinates&format=json&redirects=1`,
-      { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(5000) }
-    );
-    if (!r.ok) return null;
-    const d = await r.json();
-    for (const p of Object.values(d.query?.pages || {})) {
-      if (p.coordinates?.[0]) return p.coordinates[0];
-    }
   } catch {}
-  return null;
-}
 
-async function wikiPageProps(title) {
-  try {
-    const r = await fetch(
-      `https://pt.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(title)}&prop=pageprops&format=json&redirects=1`,
-      { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(5000) }
-    );
-    if (!r.ok) return null;
-    const d = await r.json();
-    for (const p of Object.values(d.query?.pages || {})) {
-      return p.pageprops || null;
-    }
-  } catch {}
   return null;
 }
 
@@ -295,28 +278,37 @@ async function handleCidade(sock, { jid, sender, args }) {
   let erro = '';
 
   try {
-    const wiki = await wikiSummary(cityName);
+    const wiki = await fetchCityData(cityName);
+    if (wiki?.rateLimited) {
+      await sock.sendMessage(jid, { text: `⏳ Muitas consultas seguidas! Aguarde alguns segundos e tente novamente.` });
+      return;
+    }
     if (!wiki) {
-      await sock.sendMessage(jid, { text: `❌ Cidade "${cityName}" não encontrada. Verifique o nome e tente novamente.` });
+      await sock.sendMessage(jid, { text: `❌ Cidade "${cityName}" não encontrada no Wikipedia. Verifique o nome e tente novamente.` });
       return;
     }
 
     const title = wiki.title;
-    const description = wiki.description || '';
     const extractIntro = wiki.extract || '';
-    const coords = wiki.coordinates || await wikiCoords(title);
-    const props = await wikiPageProps(title);
-    const wd = props?.wikibase_item ? await wikidataInfo(props.wikibase_item) : null;
-    const fullExtract = await wikiFullExtract(title) || extractIntro;
+    images.push(...(wiki.images || []));
+
+    let fullExtract = wiki.extract || '';
+    if (fullExtract) {
+      const moreR = await callWikiAPI({
+        action: 'query', titles: title,
+        prop: 'extracts', explaintext: '', formatversion: '2'
+      });
+      const p = moreR?.query?.pages?.[0];
+      if (p?.extract && p.extract.length > fullExtract.length) fullExtract = p.extract;
+    }
 
     const sections = parseSections(fullExtract);
-    const datapoints = extractDataPoints(fullExtract);
-    const wikiImgs = await wikiImages(title);
-    images.push(...wikiImgs);
+    const datapoints = extractDataPoints(extractIntro + '\n' + (fullExtract || ''));
+    const wd = wiki.wikidataId ? await wikidataInfo(wiki.wikidataId) : null;
 
     report += `━━━━━━━━━━━━━━━━━━\n`;
     report += `🏙️ *${title.toUpperCase()}*\n`;
-    if (description) report += `📝 ${description}\n`;
+    if (wiki.description) report += `📝 ${wiki.description}\n`;
     report += `━━━━━━━━━━━━━━━━━━\n\n`;
 
     report += `📍 *INFORMAÇÕES GERAIS*\n`;
@@ -326,7 +318,7 @@ async function handleCidade(sock, { jid, sender, args }) {
     report += `👥 População: ${wd?.population || datapoints.population || '❌ Informação indisponível.'}\n`;
     report += `📏 Área: ${wd?.area || datapoints.area || '❌ Informação indisponível.'}\n`;
     report += `📐 Altitude: ${wd?.elevation || datapoints.elevation || '❌ Informação indisponível.'} m\n`;
-    report += `🌐 Coordenadas: ${coords ? `${coords.lat.toFixed(4)}, ${coords.lon.toFixed(4)}` : '❌ Informação indisponível.'}\n`;
+    report += `🌐 Coordenadas: ${wiki.coordinates ? `${wiki.coordinates.lat.toFixed(4)}, ${wiki.coordinates.lon.toFixed(4)}` : '❌ Informação indisponível.'}\n`;
     report += `🕐 Fuso: ${wd?.timezone || '❌ Informação indisponível.'}\n`;
     if (wd?.founded || datapoints.founded) report += `📅 Fundação: ${wd?.founded || datapoints.founded}\n`;
     if (wd?.demonym) report += `👤 Gentílico: ${wd.demonym}\n`;
@@ -378,8 +370,8 @@ async function handleCidade(sock, { jid, sender, args }) {
       report += `\n📖 *SOBRE*\n${intro}\n`;
     }
 
-    if (coords) {
-      const weather = await getWeather(coords.lat, coords.lon);
+    if (wiki.coordinates) {
+      const weather = await getWeather(wiki.coordinates.lat, wiki.coordinates.lon);
       if (weather && weather.current) {
         report += `\n🌦️ *CLIMA ATUAL*\n`;
         report += `🌡️ Temperatura: ${weather.current.temperature_2m}°C\n`;
