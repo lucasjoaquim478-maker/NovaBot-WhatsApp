@@ -56,16 +56,25 @@ async function handleMessages(sock, messages) {
 
       const chat = isGroup(jid) ? 'group' : 'private';
       const prefix = config.prefix || '!';
+      const isCommand = text.startsWith(prefix);
 
-      if (chat === 'group') {
-        const group = db.getGroup(jid);
-        if (group.antilink) {
-          if (containsLink(text) && containsBlockedDomain(text)) {
-            const isAdmin = await processAntilink(sock, jid, sender, text);
-            if (!isAdmin) continue;
+      if (!isCommand) {
+        const hasTikTok = hasTikTokPending(sender);
+        if (hasTikTok && await handleTikTokSel(sock, msg, text, jid, sender)) continue;
+        const hasRoblox = hasRobloxPending(sender);
+        if (hasRoblox && await handleRobloxSel(sock, msg, text, jid, sender)) continue;
+        if (chat === 'group') {
+          const group = db.getGroup(jid);
+          if (group.antilink && containsLink(text) && containsBlockedDomain(text)) {
+            await processAntilink(sock, jid, sender, text);
           }
         }
+        continue;
       }
+
+      const args = text.slice(prefix.length).split(' ');
+      const commandName = args.shift()?.toLowerCase();
+      if (!commandName) continue;
 
       const user = db.getUser(sender);
 
@@ -79,14 +88,13 @@ async function handleMessages(sock, messages) {
       if (!user.name && msg.pushName) user.name = msg.pushName;
       db.addXp(sender, Math.floor(Math.random() * 16) + 5, user);
 
-      if (hasTikTokPending(sender) && await handleTikTokSel(sock, msg, text, jid, sender)) continue;
-      if (hasRobloxPending(sender) && await handleRobloxSel(sock, msg, text, jid, sender)) continue;
-
-      if (!text.startsWith(prefix)) continue;
-
-      const args = text.slice(prefix.length).split(/ +/);
-      const commandName = args.shift()?.toLowerCase();
-      if (!commandName) continue;
+      if (chat === 'group') {
+        const group = db.getGroup(jid);
+        if (group.antilink && containsLink(text) && containsBlockedDomain(text)) {
+          const isAdmin = await processAntilink(sock, jid, sender, text);
+          if (!isAdmin) continue;
+        }
+      }
 
       console.log(`[COMANDO] ${sender.split('@')[0]} usou: ${prefix}${commandName} ${args.join(' ')}`);
 
@@ -100,7 +108,6 @@ async function handleMessages(sock, messages) {
       if (cooldown.onCooldown) continue;
 
       user.commands = (user.commands || 0) + 1;
-      db.save('users');
 
       if (db.data.config?.maintenance && !await isOwner(sender, sock)) {
         await sock.sendMessage(jid, { text: '🛠️ O bot está em manutenção. Tente mais tarde.' });

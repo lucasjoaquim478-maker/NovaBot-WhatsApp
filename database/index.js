@@ -12,7 +12,7 @@ class Database {
     this._saveInterval = setInterval(() => {
       this.flushAll();
       if (global._antilinkCacheCleanup) global._antilinkCacheCleanup();
-    }, 30000);
+    }, 15000);
   }
 
   load() {
@@ -31,7 +31,7 @@ class Database {
       this._writeFile(key);
       delete this._saveTimers[key];
       delete this._pendingSaves[key];
-    }, 2000);
+    }, 5000);
   }
 
   _writeFile(key) {
