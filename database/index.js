@@ -7,8 +7,10 @@ class Database {
     this.data = { users: {}, groups: {}, vip: [], config: { maintenance: false } };
     this._saveTimers = {};
     this._pendingSaves = {};
+    this._userCount = 0;
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     this.load();
+    this._recalcCounts();
     this._saveInterval = setInterval(() => {
       this.flushAll();
       if (global._antilinkCacheCleanup) global._antilinkCacheCleanup();
@@ -60,6 +62,14 @@ class Database {
     for (const key of Object.keys(this.data)) this.saveSync(key);
   }
 
+  _recalcCounts() {
+    let count = 0;
+    for (const u of Object.values(this.data.users)) {
+      if (!u.banned) count++;
+    }
+    this._userCount = count;
+  }
+
   getUser(jid) {
     if (!this.data.users[jid]) {
       this.data.users[jid] = {
@@ -67,6 +77,7 @@ class Database {
         banned: false, xp: 0, level: 1, coins: 0, bank: 0,
         daily: 0, workCooldown: 0, messages: 0, commands: 0, iaHistory: []
       };
+      this._userCount++;
     }
     return this.data.users[jid];
   }
@@ -106,7 +117,7 @@ class Database {
   }
 
   getUserCount() {
-    return Object.values(this.data.users).filter(u => !u.banned).length;
+    return this._userCount;
   }
 
   getGroupCount() {
