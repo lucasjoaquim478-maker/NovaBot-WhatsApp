@@ -66,7 +66,7 @@ function registerCommands() {
     { cmds: testUpdateCommands, handler: handleTestUpdate },
     { cmds: testeCommands, handler: handleTeste },
     { cmds: acharCommands, handler: handleAchar },
-    { cmds: ['testrd'], handler: handleTestRD }
+    { cmds: ['confirma'], handler: handleConfirma }
   ];
 
   for (const reg of registrations) {
@@ -108,7 +108,7 @@ async function handleMenu(sock, ctx) {
   await sock.sendMessage(ctx.jid, { text: menu });
 }
 
-async function handleTestRD(sock, ctx) {
+async function handleConfirma(sock, ctx) {
   const pkg = require('./package.json');
   const { getCurrentVersion } = require('./lib/updater');
   const remoteVer = getCurrentVersion();
