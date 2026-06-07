@@ -6,7 +6,7 @@ const { handleMessages, setHandler } = require('./events/messages.upsert');
 const { handleGroupUpdate } = require('./events/group-update');
 const { buildMenu } = require('./commands/menu');
 const { handleAdmin, adminCommands } = require('./commands/admin');
-const { handleOwner, handleAddDono, handleSetPP, ownerCommands } = require('./commands/owner');
+const { handleOwner, handleAddDono, ownerCommands } = require('./commands/owner');
 const { handleAI, aiCommands, handleImage, imageCommands } = require('./commands/ai');
 const { handlePlay, playCommands } = require('./commands/play');
 const { handleVídeo, vídeoCommands } = require('./commands/video');
@@ -24,7 +24,6 @@ const { handleUpdate, updateCommands } = require('./commands/update');
 const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate');
 const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { handleAchar, acharCommands } = require('./commands/achar');
-const { handleZap } = require('./commands/zap');
 const { startAutoCheck } = require('./lib/updater');
 const fs = require('fs');
 const path = require('path');
@@ -66,9 +65,7 @@ function registerCommands() {
     { cmds: updateCommands, handler: handleUpdate },
     { cmds: testUpdateCommands, handler: handleTestUpdate },
     { cmds: testeCommands, handler: handleTeste },
-    { cmds: acharCommands, handler: handleAchar },
-    { cmds: ['setpp'], handler: handleSetPP },
-    { cmds: ['zap'], handler: handleZap }
+    { cmds: acharCommands, handler: handleAchar }
   ];
 
   for (const reg of registrations) {

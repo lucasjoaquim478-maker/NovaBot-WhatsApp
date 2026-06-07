@@ -2,7 +2,6 @@ const { backup } = require('../database/backup');
 const db = require('../database/index');
 const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
-const { rollback } = require('../lib/updater');
 const fs = require('fs');
 const path = require('path');
 const OWNERS_FILE = path.join(__dirname, '..', 'database', 'owners.json');
@@ -37,15 +36,6 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
     case 'shutdown': {
       await sock.sendMessage(jid, { text: '🛑 Desligando bot...' });
       process.exit(1);
-      break;
-    }
-    case 'backup': {
-      try {
-        const file = backup();
-        await sock.sendMessage(jid, { text: `✅ Backup concluído: ${path.basename(file)}` });
-      } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro no backup: ${e.message}` });
-      }
       break;
     }
     case 'broadcast': {
@@ -92,40 +82,6 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
       break;
     }
 
-    // VIP System
-    case 'vipadd': {
-      const target = msg.message?.extendedTextMessage?.contextInfo?.participant || msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
-      if (!target) return await sock.sendMessage(jid, { text: '❌ Marque o usuário que deseja adicionar ao VIP.' });
-      if (!db.data.vip.includes(target)) {
-        db.data.vip.push(target);
-        db.saveSync('vip');
-      }
-      await sock.sendMessage(jid, { text: `✅ Usuário @${target.split('@')[0]} adicionado ao sistema VIP.`, mentions: [target] });
-      break;
-    }
-    case 'vipremover': {
-      const target = msg.message?.extendedTextMessage?.contextInfo?.participant || msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
-      if (!target) return await sock.sendMessage(jid, { text: '❌ Marque o usuário que deseja remover do VIP.' });
-      db.data.vip = db.data.vip.filter(v => v !== target);
-      db.saveSync('vip');
-      await sock.sendMessage(jid, { text: `✅ Usuário @${target.split('@')[0]} removido do sistema VIP.`, mentions: [target] });
-      break;
-    }
-    case 'viplist': {
-      if (!db.data.vip.length) {
-        await sock.sendMessage(jid, { text: '📋 Lista VIP vazia.' });
-        return;
-      }
-      let text = '👑 *Lista VIP*\n\n';
-      for (let i = 0; i < db.data.vip.length; i++) {
-        const v = db.data.vip[i];
-        const name = db.data.users[v]?.name || v.split('@')[0];
-        text += `${i + 1}. ${name}\n`;
-      }
-      await sock.sendMessage(jid, { text });
-      break;
-    }
-
     // Cache Cleanup
     case 'limparcache': {
       let removed = 0;
@@ -167,12 +123,6 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
       }
       const sizeMB = (totalSize / 1024 / 1024).toFixed(2);
       await sock.sendMessage(jid, { text: `🧹 *Cache limpo com sucesso!*\n\n📄 Arquivos removidos: ${removed}\n💾 Espaço liberado: ${sizeMB} MB` });
-      break;
-    }
-
-    // Rollback
-    case 'rollback': {
-      await rollback(sock, jid);
       break;
     }
 
@@ -227,36 +177,10 @@ async function handleAddDono(sock, { jid, sender, args, chat }) {
   await sock.sendMessage(jid, { text: `✅ Dono salvo permanentemente! Agora você pode usar comandos restritos.` });
 }
 
-async function handleSetPP(sock, { jid, sender }) {
-  if (!await isOwner(sender, sock)) {
-    await sock.sendMessage(jid, { text: '❌ Apenas o dono do bot pode usar este comando.' });
-    return;
-  }
-  try {
-    const imgPath = path.join(__dirname, '..', 'bot-avatar.png');
-    if (!fs.existsSync(imgPath)) {
-      await sock.sendMessage(jid, { text: '❌ Arquivo bot-avatar.png nao encontrado.' });
-      return;
-    }
-    const img = fs.readFileSync(imgPath);
-    const jidBot = sock.user?.id;
-    if (!jidBot) {
-      await sock.sendMessage(jid, { text: '❌ Nao foi possivel obter o ID do bot.' });
-      return;
-    }
-    await sock.updateProfilePicture(jidBot, img);
-    await sock.sendMessage(jid, { text: '✅ Foto de perfil atualizada!' });
-  } catch (e) {
-    await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
-  }
-}
-
 const ownerCommands = [
-  'reiniciar', 'shutdown', 'backup', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono',
-  'vipadd', 'vipremover', 'viplist',
+  'reiniciar', 'shutdown', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono',
   'limparcache',
-  'rollback',
   'manutencao', 'statusmanutencao'
 ];
 
-module.exports = { handleOwner, handleAddDono, handleSetPP, ownerCommands };
+module.exports = { handleOwner, handleAddDono, ownerCommands };

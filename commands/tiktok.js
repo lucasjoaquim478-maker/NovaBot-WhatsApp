@@ -138,4 +138,6 @@ async function handleSelection(sock, msg, text, jid, sender) {
 const tiktokCommands = ['tiktok'];
 const tiktokMp3Commands = ['tiktokmp3'];
 
-module.exports = { handleTikTok, handleTikTokMp3, handleSelection, tiktokCommands, tiktokMp3Commands };
+function hasPending(sender) { const p = _pending.get(sender); return p && Date.now() - p.time <= 60000; }
+
+module.exports = { handleTikTok, handleTikTokMp3, handleSelection, hasPending, tiktokCommands, tiktokMp3Commands };

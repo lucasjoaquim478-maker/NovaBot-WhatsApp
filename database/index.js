@@ -9,7 +9,10 @@ class Database {
     this._pendingSaves = {};
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });
     this.load();
-    this._saveInterval = setInterval(() => this.flushAll(), 30000);
+    this._saveInterval = setInterval(() => {
+      this.flushAll();
+      if (global._antilinkCacheCleanup) global._antilinkCacheCleanup();
+    }, 30000);
   }
 
   load() {

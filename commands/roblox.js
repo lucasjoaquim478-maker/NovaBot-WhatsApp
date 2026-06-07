@@ -522,7 +522,9 @@ const similarCommands = ['robloxsimilar'];
 const reviewCommands = ['robloxreview'];
 const creatorCommands = ['robloxcriador'];
 
+function hasPending(sender) { const p = _pending.get(sender); return p && p.type === 'roblox' && Date.now() - p.time <= 60000; }
+
 module.exports = {
-  handleRoblox, handleTrending, handleTop, handleLancar, handleSimilar, handleReview, handleCreator, handleSelection,
+  handleRoblox, handleTrending, handleTop, handleLancar, handleSimilar, handleReview, handleCreator, handleSelection, hasPending,
   robloxCommands, trendCommands, topCommands, lancarCommands, similarCommands, reviewCommands, creatorCommands
 };
