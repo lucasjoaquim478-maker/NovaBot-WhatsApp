@@ -34,7 +34,8 @@ async function handlePesquisa(sock, { msg, jid, sender, args, commandName }) {
       }
       break;
     }
-    case 'notícias': {
+    case 'notícias':
+    case 'noticias': {
       await sock.sendPresenceUpdate('composing', jid);
       try {
         const apiKey = config.newsApiKey || 'demo';
@@ -92,6 +93,6 @@ async function handlePesquisa(sock, { msg, jid, sender, args, commandName }) {
   }
 }
 
-const pesquisaCommands = ['google', 'wiki', 'notícias', 'clima'];
+const pesquisaCommands = ['google', 'wiki', 'notícias', 'noticias', 'clima'];
 
 module.exports = { handlePesquisa, pesquisaCommands };

@@ -12,12 +12,12 @@ async function handleFerramentas(sock, { msg, jid, sender, args, commandName }) 
   switch (commandName) {
     case 'sticker': {
       const hasImage = getMediaMessage(msg, 'image');
-      const hasVídeo = getMediaMessage(msg, 'vídeo');
-      if (!hasImage && !hasVídeo) {
+      const hasVideo = getMediaMessage(msg, 'video');
+      if (!hasImage && !hasVideo) {
         return await sock.sendMessage(jid, { text: '❌ Envie ou marque uma imagem/vídeo para criar sticker.' });
       }
       try {
-        const type = hasImage ? 'image' : 'vídeo';
+        const type = hasImage ? 'image' : 'video';
         const media = await downloadMedia(msg, type);
         if (!media) return await sock.sendMessage(jid, { text: '❌ Erro ao baixar mídia.' });
         let stickerData = media;
@@ -64,14 +64,14 @@ async function handleFerramentas(sock, { msg, jid, sender, args, commandName }) 
         const text = args.join(' ');
         const tempDir = path.join(process.cwd(), 'temp');
         if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
-        const áudioPath = path.join(tempDir, `tts-${Date.now()}.mp3`);
+        const audioPath = path.join(tempDir, `tts-${Date.now()}.mp3`);
         await new Promise((resolve, reject) => {
           const gtts = new gTTS(text, 'pt');
-          gtts.save(áudioPath, (err) => { if (err) reject(err); else resolve(); });
+          gtts.save(audioPath, (err) => { if (err) reject(err); else resolve(); });
         });
-        const áudioData = fs.readFileSync(áudioPath);
-        await sock.sendMessage(jid, { áudio: áudioData, mimetype: 'áudio/mpeg', ptt: false }, { quoted: msg });
-        fs.unlinkSync(áudioPath);
+        const audioData = fs.readFileSync(audioPath);
+        await sock.sendMessage(jid, { audio: audioData, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
+        fs.unlinkSync(audioPath);
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
       }

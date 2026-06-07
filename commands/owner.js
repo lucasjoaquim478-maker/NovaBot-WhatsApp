@@ -178,7 +178,7 @@ async function handleAddDono(sock, { jid, sender, args, chat }) {
 }
 
 const ownerCommands = [
-  'reiniciar', 'shutdown', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono',
+  'reiniciar', 'shutdown', 'broadcast', 'blacklist', 'unblacklist', 'eval',
   'limparcache',
   'manutencao', 'statusmanutencao'
 ];

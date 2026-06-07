@@ -9,7 +9,7 @@ const {
   getLatestVersion,
 } = require('../lib/updater');
 
-const updateCommands = ['update', 'versão', 'rollback', 'meunúmero'];
+const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero'];
 
 async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
   if (commandName === 'meunúmero') {

@@ -165,7 +165,7 @@ function buildCompleteMenu(prefix, botName) {
     text += `╭━━━ ${cat.emoji} ${cat.title} ━━━╮\n`;
     for (let i = 0; i < cat.cmds.length; i++) {
       const [cmd, desc] = cat.cmds[i];
-      text += `┃ !${cmd}\n`;
+      text += `┃ ${prefix}${cmd}\n`;
       if (desc) {
         text += `┃ ➜ ${desc}\n`;
         if (i < cat.cmds.length - 1) text += `┃\n`;

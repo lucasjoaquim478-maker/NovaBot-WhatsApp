@@ -42,7 +42,7 @@ async function handleEconomia(sock, { msg, jid, sender, args, commandName }) {
       user.workCooldown = now;
       user.coins = (user.coins || 0) + amount;
       db.save('users');
-      const trabalhos = ['programou', ' limpou a casa', ' fez entregas', ' deu aulas', ' consertou carros', ' vendeu doces'];
+      const trabalhos = ['programou', 'limpou a casa', 'fez entregas', 'deu aulas', 'consertou carros', 'vendeu doces'];
       const job = trabalhos[Math.floor(Math.random() * trabalhos.length)];
       await sock.sendMessage(jid, { text: `💼 *Trabalho concluído!*\n\nVocê ${job} e ganhou +${amount} coins!\n💳 Saldo: ${user.coins} coins` });
       break;

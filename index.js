@@ -9,7 +9,6 @@ const { handleAdmin, adminCommands } = require('./commands/admin');
 const { handleOwner, handleAddDono, ownerCommands } = require('./commands/owner');
 const { handleAI, aiCommands, handleImage, imageCommands } = require('./commands/ai');
 const { handlePlay, playCommands } = require('./commands/play');
-const { handleVídeo, vídeoCommands } = require('./commands/video');
 const { handleDownload, downloadCommands } = require('./commands/download');
 const { handlePesquisa, pesquisaCommands } = require('./commands/pesquisa');
 const { handleFerramentas, ferramentasCommands } = require('./commands/ferramentas');
@@ -43,7 +42,7 @@ function registerCommands() {
     { cmds: ['adddono'], handler: handleAddDono },
     { cmds: aiCommands, handler: handleAI },
     { cmds: playCommands, handler: handlePlay },
-    { cmds: vídeoCommands, handler: handleVídeo },
+    { cmds: videoCommands, handler: handleVideo },
     { cmds: downloadCommands, handler: handleDownload },
     { cmds: pesquisaCommands, handler: handlePesquisa },
     { cmds: ferramentasCommands, handler: handleFerramentas },

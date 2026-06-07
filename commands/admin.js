@@ -1,6 +1,6 @@
 const db = require('../database/index');
 const config = require('../config.json');
-const { extractJid, cleanJid, isOwner } = require('../lib/utils');
+const { cleanJid, isOwner } = require('../lib/utils');
 
 async function isGroupAdmin(sock, jid, sender) {
   try {
@@ -57,7 +57,7 @@ async function handleAdmin(sock, { msg, jid, sender, args, commandName, chat }) 
   }
 
   const botIsAdmin = await isBotAdmin(sock, jid);
-  const adminCommands = ['kick', 'ban', 'add', 'promover', 'rebaixar', 'abrirgrupo', 'fechargrupo', 'hidetag'];
+  const adminCommands = ['kick', 'add', 'promover', 'rebaixar', 'abrirgrupo', 'fechargrupo', 'hidetag'];
   if (adminCommands.includes(commandName) && !botIsAdmin) {
     await sock.sendMessage(jid, { text: '❌ Preciso ser administrador para executar esta acao.' });
     return;

@@ -88,7 +88,7 @@ async function gttsTTS(text) {
   return { raw, out };
 }
 
-async function generateBaseÁudio(text) {
+async function generateBaseAudio(text) {
   // Try SAPI first, fall back to gTTS
   try {
     const { wav, mp3 } = await sapiTTS(text);
@@ -186,7 +186,7 @@ function buildPostFilter(opts) {
   return chain.join(',');
 }
 
-async function processÁudio(inputPath, inputType, voiceOpts) {
+async function processAudio(inputPath, inputType, voiceOpts) {
   const outputPath = path.join(TEMP_DIR, 'va_' + Date.now() + '_' + Math.random().toString(36).slice(2, 6) + '.mp3');
   const filter = buildPostFilter(voiceOpts);
 
@@ -370,27 +370,22 @@ function findVoice(name) {
   return null;
 }
 
-async function generateVoiceÁudio(text, voiceOpts, voiceId) {
+async function generateVoiceAudio(text, voiceOpts, voiceId) {
   const processedText = preprocessText(text);
-  if (!processedText) throw new Error('Texto vazio após processamento');
+  if (!processedText) throw new Error('Texto vazio apos processamento');
 
-  // Check cache
   const cacheKey = getCacheKey(voiceId, processedText);
   const cached = checkCache(cacheKey);
   if (cached) {
     return fs.readFileSync(cached);
   }
 
-  // Generate base áudio
-  const base = await generateBaseÁudio(processedText);
+  const base = await generateBaseAudio(processedText);
 
-  // Process with ffmpeg
-  const processedFile = await processÁudio(base.path, base.type, voiceOpts);
+  const processedFile = await processAudio(base.path, base.type, voiceOpts);
 
-  // Cache result
   writeCache(cacheKey, processedFile);
 
-  // Read and clean up
   const data = fs.readFileSync(processedFile);
   safeUnlink(processedFile);
   return data;
@@ -398,8 +393,8 @@ async function generateVoiceÁudio(text, voiceOpts, voiceId) {
 
 // ─── COMMAND HANDLERS ────────────────────────────────────
 async function sendVoice(sock, jid, msg, voice, text) {
-  const data = await generateVoiceÁudio(text, voice.opts, voice.display);
-  await sock.sendMessage(jid, { áudio: data, mimetype: 'áudio/mpeg', ptt: false }, { quoted: msg });
+  const data = await generateVoiceAudio(text, voice.opts, voice.display);
+  await sock.sendMessage(jid, { audio: data, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
 }
 
 async function sendWarning(sock, jid, voice, text) {
