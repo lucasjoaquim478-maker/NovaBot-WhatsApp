@@ -1,4 +1,4 @@
-const { extractText, extractJid, isGroup, cleanJid } = require('../lib/utils');
+const { extractText, extractJid, isGroup, cleanJid, isOwner } = require('../lib/utils');
 const { checkSpam } = require('../plugins/antispam');
 const { checkCooldown } = require('../plugins/cooldown');
 const { containsLink, containsBlockedDomain } = require('../plugins/antilink');
@@ -73,6 +73,11 @@ async function handleMessages(sock, messages) {
 
       user.commands = (user.commands || 0) + 1;
       db.save('users');
+
+      if (db.data.config?.maintenance && !await isOwner(sender, sock)) {
+        await sock.sendMessage(jid, { text: '🛠️ O bot está em manutenção. Tente mais tarde.' });
+        continue;
+      }
 
       if (handler) await handler(sock, { msg, jid, sender, text, args, commandName, chat, prefix, user });
 

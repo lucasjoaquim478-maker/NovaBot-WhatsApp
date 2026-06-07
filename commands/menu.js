@@ -114,6 +114,23 @@ const menu = {
     ['help roblox', null],
     ['help ferramentas', null],
     ['help vozes', null]
+  ]},
+  dono: { emoji: '👑', title: 'DONO', header: true, cmds: [
+    ['vipadd @user', 'Adicionar VIP'],
+    ['vipremover @user', 'Remover VIP'],
+    ['viplist', 'Listar VIPs'],
+    ['limparcache', 'Limpar cache do bot'],
+    ['rollback', 'Restaurar último backup'],
+    ['manutencao on/off', 'Ativar/desativar manutenção'],
+    ['statusmanutencao', 'Ver status da manutenção'],
+    ['setpp', 'Definir foto de perfil'],
+    ['backup', 'Criar backup'],
+    ['broadcast [msg]', 'Enviar para todos'],
+    ['blacklist @user', 'Banir usuário'],
+    ['unblacklist @user', 'Desbanir usuário'],
+    ['reiniciar', 'Reiniciar o bot'],
+    ['shutdown', 'Desligar o bot'],
+    ['eval [código]', 'Executar código JS']
   ]}
 };
 

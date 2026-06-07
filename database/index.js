@@ -4,7 +4,7 @@ const path = require('path');
 class Database {
   constructor(dir = path.join(process.cwd(), 'database')) {
     this.dir = dir;
-    this.data = { users: {}, groups: {} };
+    this.data = { users: {}, groups: {}, vip: [], config: { maintenance: false } };
     this._saveTimers = {};
     this._pendingSaves = {};
     if (!fs.existsSync(dir)) fs.mkdirSync(dir, { recursive: true });

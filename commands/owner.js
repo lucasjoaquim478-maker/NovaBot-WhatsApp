@@ -2,6 +2,7 @@ const { backup } = require('../database/backup');
 const db = require('../database/index');
 const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
+const { rollback } = require('../lib/updater');
 const fs = require('fs');
 const path = require('path');
 const OWNERS_FILE = path.join(__dirname, '..', 'database', 'owners.json');
@@ -41,7 +42,7 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
     case 'backup': {
       try {
         const file = backup();
-        await sock.sendMessage(jid, { text: `✅ Backup concluído: ${file}` });
+        await sock.sendMessage(jid, { text: `✅ Backup concluído: ${path.basename(file)}` });
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro no backup: ${e.message}` });
       }
@@ -88,6 +89,112 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ *Erro:*\n\`\`\`\n${e.message.slice(0, 3000)}\n\`\`\`` });
       }
+      break;
+    }
+
+    // VIP System
+    case 'vipadd': {
+      const target = msg.message?.extendedTextMessage?.contextInfo?.participant || msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+      if (!target) return await sock.sendMessage(jid, { text: '❌ Marque o usuário que deseja adicionar ao VIP.' });
+      if (!db.data.vip.includes(target)) {
+        db.data.vip.push(target);
+        db.saveSync('vip');
+      }
+      await sock.sendMessage(jid, { text: `✅ Usuário @${target.split('@')[0]} adicionado ao sistema VIP.`, mentions: [target] });
+      break;
+    }
+    case 'vipremover': {
+      const target = msg.message?.extendedTextMessage?.contextInfo?.participant || msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.[0];
+      if (!target) return await sock.sendMessage(jid, { text: '❌ Marque o usuário que deseja remover do VIP.' });
+      db.data.vip = db.data.vip.filter(v => v !== target);
+      db.saveSync('vip');
+      await sock.sendMessage(jid, { text: `✅ Usuário @${target.split('@')[0]} removido do sistema VIP.`, mentions: [target] });
+      break;
+    }
+    case 'viplist': {
+      if (!db.data.vip.length) {
+        await sock.sendMessage(jid, { text: '📋 Lista VIP vazia.' });
+        return;
+      }
+      let text = '👑 *Lista VIP*\n\n';
+      for (let i = 0; i < db.data.vip.length; i++) {
+        const v = db.data.vip[i];
+        const name = db.data.users[v]?.name || v.split('@')[0];
+        text += `${i + 1}. ${name}\n`;
+      }
+      await sock.sendMessage(jid, { text });
+      break;
+    }
+
+    // Cache Cleanup
+    case 'limparcache': {
+      let removed = 0;
+      let totalSize = 0;
+      const dirs = [
+        path.join(process.cwd(), 'temp'),
+        path.join(process.cwd(), 'voz_cache'),
+        path.join(process.cwd(), 'downloads')
+      ];
+      for (const dir of dirs) {
+        if (!fs.existsSync(dir)) continue;
+        const files = fs.readdirSync(dir);
+        for (const f of files) {
+          const full = path.join(dir, f);
+          try {
+            const stat = fs.statSync(full);
+            if (stat.isFile()) {
+              totalSize += stat.size;
+              fs.unlinkSync(full);
+              removed++;
+            }
+          } catch {}
+        }
+      }
+      // Also remove old backups (>10 oldest in database/backups)
+      const backupDir = path.join(process.cwd(), 'database', 'backups');
+      if (fs.existsSync(backupDir)) {
+        const backups = fs.readdirSync(backupDir).filter(f => f.startsWith('backup-')).sort();
+        while (backups.length > 10) {
+          const oldest = backups.shift();
+          const full = path.join(backupDir, oldest);
+          try {
+            const stat = fs.statSync(full);
+            totalSize += stat.size;
+            fs.unlinkSync(full);
+            removed++;
+          } catch {}
+        }
+      }
+      const sizeMB = (totalSize / 1024 / 1024).toFixed(2);
+      await sock.sendMessage(jid, { text: `🧹 *Cache limpo com sucesso!*\n\n📄 Arquivos removidos: ${removed}\n💾 Espaço liberado: ${sizeMB} MB` });
+      break;
+    }
+
+    // Rollback
+    case 'rollback': {
+      await rollback(sock, jid);
+      break;
+    }
+
+    // Maintenance Mode
+    case 'manutencao': {
+      const action = args[0]?.toLowerCase();
+      if (action === 'on') {
+        db.data.config.maintenance = true;
+        db.saveSync('config');
+        await sock.sendMessage(jid, { text: '🛠️ *Modo manutenção ativado!*\n\nApenas donos podem usar comandos.' });
+      } else if (action === 'off') {
+        db.data.config.maintenance = false;
+        db.saveSync('config');
+        await sock.sendMessage(jid, { text: '✅ *Sistema reativado!*\n\nComandos liberados para todos.' });
+      } else {
+        await sock.sendMessage(jid, { text: '❌ Use: !manutencao on ou !manutencao off' });
+      }
+      break;
+    }
+    case 'statusmanutencao': {
+      const status = db.data.config.maintenance;
+      await sock.sendMessage(jid, { text: status ? '🛠️ *Manutenção:* ATIVA' : '✅ *Sistema operacional.*' });
       break;
     }
   }
@@ -144,6 +251,12 @@ async function handleSetPP(sock, { jid, sender }) {
   }
 }
 
-const ownerCommands = ['reiniciar', 'shutdown', 'backup', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono'];
+const ownerCommands = [
+  'reiniciar', 'shutdown', 'backup', 'broadcast', 'blacklist', 'unblacklist', 'eval', 'adddono',
+  'vipadd', 'vipremover', 'viplist',
+  'limparcache',
+  'rollback',
+  'manutencao', 'statusmanutencao'
+];
 
 module.exports = { handleOwner, handleAddDono, handleSetPP, ownerCommands };
