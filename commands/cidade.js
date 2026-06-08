@@ -39,6 +39,24 @@ async function callWikiAPI(params) {
   } catch { return null; }
 }
 
+async function isCityByCategories(title) {
+  const d = await callWikiAPI({
+    action: 'query', titles: title,
+    prop: 'categories', cllimit: '200'
+  });
+  if (!d?.query?.pages) return null;
+  const page = Object.values(d.query.pages)[0];
+  if (!page?.categories) return null;
+  const cats = page.categories.map(c => c.title.toLowerCase()).filter(c => !c.startsWith('categoria:!'));
+  const cityKw = ['cidade', 'município', 'municipio', 'capital', 'freguesia', 'localidade', 'distrito', 'bairro', 'povoado', 'vila'];
+  const nonCityKw = ['empresa', 'rádio', 'radio', 'emissora', 'site', 'canal', 'produto', 'marca', 'loja', 'banda', 'programa', 'jornal', 'revista', 'editora'];
+  const hasCity = cats.some(c => cityKw.some(k => c.includes(k)));
+  const hasNonCity = cats.some(c => nonCityKw.some(k => c.includes(k)));
+  if (hasCity && !hasNonCity) return true;
+  if (hasNonCity && !hasCity) return false;
+  return null;
+}
+
 async function fetchCityData(title) {
   let d = await callWikiAPI({
     action: 'query', titles: title,
@@ -60,23 +78,27 @@ async function fetchCityData(title) {
 
   if (!foundPage) {
     d = await callWikiAPI({
-      action: 'query', list: 'search', srsearch: title, srlimit: '5', srprop: ''
+      action: 'query', list: 'search', srsearch: title, srlimit: '8', srprop: ''
     });
     if (d?.rateLimited) return { rateLimited: true };
     if (d?.query?.search?.length) {
-      const found = d.query.search[0].title;
-      d = await callWikiAPI({
-        action: 'query', titles: found,
-        prop: 'extracts|coordinates|pageimages|pageprops',
-        explaintext: '', pithumbsize: '800', piprop: 'original|thumbnail'
-      });
-      if (d?.query?.pages) {
-        for (const p of Object.values(d.query.pages)) {
-          if (p.missing !== undefined) continue;
-          if (!p.extract || p.extract.length < 10) continue;
-          foundPage = p;
-          break;
+      for (const result of d.query.search) {
+        const isValid = await isCityByCategories(result.title);
+        if (isValid === false) continue;
+        const rd = await callWikiAPI({
+          action: 'query', titles: result.title,
+          prop: 'extracts|coordinates|pageimages|pageprops',
+          explaintext: '', pithumbsize: '800', piprop: 'original|thumbnail'
+        });
+        if (rd?.query?.pages) {
+          for (const p of Object.values(rd.query.pages)) {
+            if (p.missing !== undefined) continue;
+            if (!p.extract || p.extract.length < 10) continue;
+            foundPage = p;
+            break;
+          }
         }
+        if (foundPage) break;
       }
     }
   }
@@ -119,34 +141,6 @@ async function fetchCityData(title) {
   } catch {}
 
   return null;
-}
-
-async function commonsImages(title) {
-  try {
-    const r = await fetch(
-      `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent('"' + title + '"')}&srnamespace=6&format=json&srlimit=8&srprop=`,
-      { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(7000) }
-    );
-    if (!r.ok) return [];
-    const d = await r.json();
-    const titles = (d?.query?.search || []).map(s => s.title).filter(t => t.toLowerCase().includes(title.split(' ')[0].toLowerCase()));
-    if (!titles.length) return [];
-    const ur = await fetch(
-      `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=imageinfo&iiprop=url&iiurlwidth=600&format=json`,
-      { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(7000) }
-    );
-    if (!ur.ok) return [];
-    const ud = await ur.json();
-    const urls = [];
-    const seen = new Set();
-    for (const p of Object.values(ud.query?.pages || {})) {
-      if (p.imageinfo?.[0]?.url && !seen.has(p.imageinfo[0].url)) {
-        seen.add(p.imageinfo[0].url);
-        urls.push(p.imageinfo[0].url);
-      }
-    }
-    return urls.slice(0, 6);
-  } catch { return []; }
 }
 
 async function wikidataInfo(qid) {
@@ -280,9 +274,9 @@ function extractSectionText(sections, keywords) {
 
 async function searchVideo(query) {
   try {
-    const r = await ytSearch(`${query} cidade turismo`);
-    return r?.videos?.slice(0, 2)
-      .filter(v => v.url && v.title && parseInt(v.seconds) < 600)
+    const r = await ytSearch(`"${query}" cidade turismo OR documentário OR guia`);
+    return r?.videos?.slice(0, 3)
+      .filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'))
       .map(v => ({ title: v.title, url: v.url, seconds: parseInt(v.seconds) || 0 })) || [];
   } catch { return []; }
 }
@@ -403,11 +397,6 @@ async function handleCidade(sock, { jid, sender, args }) {
     const title = wiki.title;
     const extractIntro = wiki.extract || '';
     images.push(...(wiki.images || []));
-
-    const commonImgs = await commonsImages(title);
-    for (const img of commonImgs) {
-      if (!images.includes(img)) images.push(img);
-    }
 
     let fullExtract = wiki.extract || '';
     if (fullExtract) {
