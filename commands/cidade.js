@@ -124,12 +124,12 @@ async function fetchCityData(title) {
 async function commonsImages(title) {
   try {
     const r = await fetch(
-      `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(title + ' cidade')}&srnamespace=6&format=json&srlimit=6&srprop=`,
+      `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent('"' + title + '"')}&srnamespace=6&format=json&srlimit=8&srprop=`,
       { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(7000) }
     );
     if (!r.ok) return [];
     const d = await r.json();
-    const titles = (d?.query?.search || []).map(s => s.title);
+    const titles = (d?.query?.search || []).map(s => s.title).filter(t => t.toLowerCase().includes(title.split(' ')[0].toLowerCase()));
     if (!titles.length) return [];
     const ur = await fetch(
       `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=imageinfo&iiprop=url&iiurlwidth=600&format=json`,
@@ -168,7 +168,7 @@ async function wikidataInfo(qid) {
       if (mainsnak?.datatype === 'quantity') {
         const q = mainsnak.datavalue?.value;
         if (!q) return null;
-        let v = `${q.amount}`;
+        let v = `${q.amount}`.replace(/^\+/, '');
         if (q.unit?.includes('Q712226')) v += ' km²';
         else if (q.unit?.includes('Q11570')) v += ' km²';
         return v;
@@ -258,8 +258,8 @@ function extractDataPoints(text) {
   const climaMatch = text.match(/clima[^.]{0,100}/i);
   if (climaMatch) data.climate = climaMatch[0].trim();
 
-  const estadoMatch = text.match(/(?:estado|estado do|estado da|estado de|província|provincia)[^.]{0,80}/i);
-  if (estadoMatch) data.state = estadoMatch[0].trim();
+  const estadoMatch = text.match(/(?:estado do|estado da|estado de|do estado)\s+([A-Z][a-zA-Záéíóúãõçâêô\s]+?)(?:\s*[,.]|\s+na|\s+em|\s+no|\s+à|\s+a\s)/i);
+  if (estadoMatch) data.state = estadoMatch[1].trim();
 
   return data;
 }
@@ -318,16 +318,46 @@ function downloadVideoClip(url) {
 
 function extractCountry(text) {
   if (!text) return null;
-  const countries = ['Brasil', 'Portugal', 'Angola', 'Moçambique', 'Cabo Verde', 'Guiné-Bissau',
-    'São Tomé e Príncipe', 'Timor-Leste', 'Estados Unidos', 'França', 'Inglaterra', 'Espanha',
-    'Itália', 'Alemanha', 'Japão', 'China', 'Índia', 'Argentina', 'México', 'Canadá',
-    'Austrália', 'Rússia', 'Reino Unido', 'África do Sul', 'Egito', 'Marrocos', 'Peru',
-    'Colômbia', 'Chile', 'Uruguai', 'Paraguai', 'Bolívia', 'Venezuela', 'Equador', 'Cuba'];
-  for (const c of countries) {
-    if (text.includes(c)) return c;
-  }
-  const m = text.match(/(?:país|no|da|do|na)\s+([A-Z][a-záéíóúãõçâêô]+)/);
-  return m?.[1] || null;
+  const lower = text.toLowerCase();
+  if (lower.includes('brasil') || lower.includes('brasileir')) return 'Brasil';
+  if (lower.includes('portugal') || lower.includes('português') || lower.includes('portuguesa') || lower.includes('luso')) return 'Portugal';
+  if (lower.includes('angola') || lower.includes('angolano')) return 'Angola';
+  if (lower.includes('moçambique') || lower.includes('mocambique') || lower.includes('moçambicano')) return 'Moçambique';
+  if (lower.includes('cabo verde') || lower.includes('caboverdiano') || lower.includes('cabo-verdiano')) return 'Cabo Verde';
+  if (lower.includes('guiné-bissau') || lower.includes('guine-bissau')) return 'Guiné-Bissau';
+  if (lower.includes('são tomé') || lower.includes('sao tome')) return 'São Tomé e Príncipe';
+  if (lower.includes('timor-leste') || lower.includes('timor leste')) return 'Timor-Leste';
+  if (lower.includes('frança') || lower.includes('francesa') || lower.includes('francês') || lower.includes('frances')) return 'França';
+  if (lower.includes('espanha') || lower.includes('espanhol') || lower.includes('espanhola')) return 'Espanha';
+  if (lower.includes('itália') || lower.includes('italia') || lower.includes('italiano') || lower.includes('italiana')) return 'Itália';
+  if (lower.includes('alemanha') || lower.includes('alemã') || lower.includes('alemão') || lower.includes('alemao')) return 'Alemanha';
+  if (lower.includes('inglaterra') || lower.includes('inglês') || lower.includes('ingles') || lower.includes('britânico') || lower.includes('britanico') || lower.includes('reino unido')) return 'Reino Unido';
+  if (lower.includes('estados unidos') || lower.includes('americano') || lower.includes('norte-americano')) return 'Estados Unidos';
+  if (lower.includes('argentina') || lower.includes('argentino') || lower.includes('argentina')) return 'Argentina';
+  if (lower.includes('méxico') || lower.includes('mexico') || lower.includes('mexicano') || lower.includes('mexicana')) return 'México';
+  if (lower.includes('canadá') || lower.includes('canada') || lower.includes('canadense') || lower.includes('canadiano')) return 'Canadá';
+  if (lower.includes('austrália') || lower.includes('australia') || lower.includes('australiano')) return 'Austrália';
+  if (lower.includes('rússia') || lower.includes('russia') || lower.includes('russo') || lower.includes('russa')) return 'Rússia';
+  if (lower.includes('japão') || lower.includes('japao') || lower.includes('japonês') || lower.includes('japones') || lower.includes('japonesa')) return 'Japão';
+  if (lower.includes('china') || lower.includes('chinês') || lower.includes('chines') || lower.includes('chinesa')) return 'China';
+  if (lower.includes('índia') || lower.includes('india') || lower.includes('indiano') || lower.includes('indiana')) return 'Índia';
+  if (lower.includes('áfrica do sul') || lower.includes('africa do sul') || lower.includes('sul-africano')) return 'África do Sul';
+  if (lower.includes('egito') || lower.includes('egípcio')) return 'Egito';
+  if (lower.includes('marrocos') || lower.includes('marroquino')) return 'Marrocos';
+  if (lower.includes('peru') || lower.includes('peruano')) return 'Peru';
+  if (lower.includes('colômbia') || lower.includes('colombia') || lower.includes('colombiano')) return 'Colômbia';
+  if (lower.includes('chile') || lower.includes('chileno')) return 'Chile';
+  if (lower.includes('uruguai') || lower.includes('uruguaio')) return 'Uruguai';
+  if (lower.includes('paraguai') || lower.includes('paraguaio')) return 'Paraguai';
+  if (lower.includes('bolívia') || lower.includes('bolivia') || lower.includes('boliviano')) return 'Bolívia';
+  if (lower.includes('venezuela') || lower.includes('venezuelano')) return 'Venezuela';
+  if (lower.includes('equador') || lower.includes('equatoriano')) return 'Equador';
+  if (lower.includes('cuba') || lower.includes('cubano')) return 'Cuba';
+  if (lower.includes('suíça') || lower.includes('suica') || lower.includes('suíço') || lower.includes('suico')) return 'Suíça';
+  if (lower.includes('holanda') || lower.includes('neerlândes') || lower.includes('neerlandes') || lower.includes('holandês') || lower.includes('holandes')) return 'Países Baixos';
+  if (lower.includes('suécia') || lower.includes('suecia') || lower.includes('sueco') || lower.includes('sueca')) return 'Suécia';
+  if (lower.includes('noruega') || lower.includes('norueguês') || lower.includes('noruegues') || lower.includes('norueguesa')) return 'Noruega';
+  return null;
 }
 
 async function handleCidade(sock, { jid, sender, args }) {
