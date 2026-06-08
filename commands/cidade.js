@@ -1,5 +1,11 @@
 const fetch = require('node-fetch');
 const ytSearch = require('yt-search');
+const { execFile } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+
+const YT_DLP = path.join(process.cwd(), 'bin', 'yt-dlp.exe');
+const TEMP_DIR = path.join(process.cwd(), 'temp');
 
 const cidadeCommands = ['cidade'];
 const cache = new Map();
@@ -41,37 +47,54 @@ async function fetchCityData(title) {
 
   if (d?.rateLimited) return { rateLimited: true };
 
-  if (!d) {
+  let foundPage = null;
+  if (d?.query?.pages) {
+    for (const p of Object.values(d.query.pages)) {
+      if (p.missing !== undefined) continue;
+      if (!p.extract || p.extract.length < 10) continue;
+      foundPage = p;
+      break;
+    }
+  }
+
+  if (!foundPage) {
     d = await callWikiAPI({
       action: 'query', list: 'search', srsearch: title, srlimit: '5', srprop: ''
     });
     if (d?.rateLimited) return { rateLimited: true };
-    if (!d?.query?.search?.length) return null;
-    const found = d.query.search[0].title;
-    d = await callWikiAPI({
-      action: 'query', titles: found,
-      prop: 'extracts|coordinates|pageimages|pageprops',
-      explaintext: '', exintro: '', pithumbsize: '800', piprop: 'original|thumbnail'
-    });
-    if (!d) return null;
+    if (d?.query?.search?.length) {
+      const found = d.query.search[0].title;
+      d = await callWikiAPI({
+        action: 'query', titles: found,
+        prop: 'extracts|coordinates|pageimages|pageprops',
+        explaintext: '', exintro: '', pithumbsize: '800', piprop: 'original|thumbnail'
+      });
+      if (d?.query?.pages) {
+        for (const p of Object.values(d.query.pages)) {
+          if (p.missing !== undefined) continue;
+          if (!p.extract || p.extract.length < 10) continue;
+          foundPage = p;
+          break;
+        }
+      }
+    }
   }
 
-  for (const p of Object.values(d.query?.pages || {})) {
-    if (p.missing) continue;
+  if (foundPage) {
     const imgs = [];
     const seen = new Set();
-    for (const src of [p.original?.source, p.thumbnail?.source]) {
+    for (const src of [foundPage.original?.source, foundPage.thumbnail?.source]) {
       if (src && !seen.has(src)) { seen.add(src); imgs.push(src); }
     }
     return {
-      pageid: p.pageid,
-      title: p.title,
-      extract: p.extract || null,
-      intro: p.extract?.split('\n')[0] || null,
-      description: p.description || null,
-      coordinates: p.coordinates?.[0] || null,
+      pageid: foundPage.pageid,
+      title: foundPage.title,
+      extract: foundPage.extract || null,
+      intro: foundPage.extract?.split('\n')[0] || null,
+      description: foundPage.description || null,
+      coordinates: foundPage.coordinates?.[0] || null,
       images: imgs,
-      wikidataId: p.pageprops?.wikibase_item || null,
+      wikidataId: foundPage.pageprops?.wikibase_item || null,
       lang: 'pt'
     };
   }
@@ -227,11 +250,29 @@ function extractSectionText(sections, keywords) {
 
 async function searchVideo(query) {
   try {
-    const r = await ytSearch(`${query} cidade`);
+    const r = await ytSearch(`${query} cidade turismo`);
     return r?.videos?.slice(0, 2)
-      .filter(v => v.url && v.title)
-      .map(v => ({ title: v.title, url: v.url })) || [];
+      .filter(v => v.url && v.title && parseInt(v.seconds) < 600)
+      .map(v => ({ title: v.title, url: v.url, seconds: parseInt(v.seconds) || 0 })) || [];
   } catch { return []; }
+}
+
+function downloadVideoClip(url) {
+  return new Promise((resolve) => {
+    if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
+    const outFile = path.join(TEMP_DIR, `cidade_${Date.now()}.mp4`);
+    const child = execFile(YT_DLP, [
+      url, '-f', 'best[height<=480]', '--max-filesize', '45M',
+      '--download-sections', '*0-30', '--force-keyframes-at-cuts',
+      '-o', outFile, '--no-playlist', '--no-warnings', '--no-progress'
+    ], { timeout: 45000 }, (err) => {
+      if (err || !fs.existsSync(outFile)) { resolve(null); return; }
+      const stat = fs.statSync(outFile);
+      if (stat.size > 50 * 1024 * 1024) { fs.unlinkSync(outFile); resolve(null); return; }
+      resolve(outFile);
+    });
+    child.on('error', () => resolve(null));
+  });
 }
 
 function extractCountry(text) {
@@ -424,7 +465,19 @@ async function handleCidade(sock, { jid, sender, args }) {
   }
 
   if (videoUrl) {
-    await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${videoUrl}` });
+    await sock.sendMessage(jid, { text: `⏳ Baixando vídeo sobre ${cityName}...` });
+    const videoPath = await downloadVideoClip(videoUrl);
+    if (videoPath) {
+      try {
+        const buf = fs.readFileSync(videoPath);
+        await sock.sendMessage(jid, { video: buf, caption: `🎥 ${cityName}` });
+        fs.unlinkSync(videoPath);
+      } catch {
+        await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${videoUrl}` });
+      }
+    } else {
+      await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${videoUrl}` });
+    }
   }
 
   await sock.sendMessage(jid, { text: `✅ Fim das informações sobre *${cityName}*.\nUse !cidade <outra cidade> para pesquisar novamente.` });
