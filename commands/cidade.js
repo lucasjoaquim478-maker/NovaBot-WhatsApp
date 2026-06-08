@@ -5,6 +5,7 @@ const fs = require('fs');
 const path = require('path');
 
 const YT_DLP = path.join(process.cwd(), 'bin', 'yt-dlp.exe');
+const FFMPEG = path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
 const TEMP_DIR = path.join(process.cwd(), 'temp');
 
 const cidadeCommands = ['cidade'];
@@ -42,7 +43,7 @@ async function fetchCityData(title) {
   let d = await callWikiAPI({
     action: 'query', titles: title,
     prop: 'extracts|coordinates|pageimages|pageprops',
-    explaintext: '', exintro: '', pithumbsize: '800', piprop: 'original|thumbnail'
+    explaintext: '', pithumbsize: '800', piprop: 'original|thumbnail'
   });
 
   if (d?.rateLimited) return { rateLimited: true };
@@ -67,7 +68,7 @@ async function fetchCityData(title) {
       d = await callWikiAPI({
         action: 'query', titles: found,
         prop: 'extracts|coordinates|pageimages|pageprops',
-        explaintext: '', exintro: '', pithumbsize: '800', piprop: 'original|thumbnail'
+        explaintext: '', pithumbsize: '800', piprop: 'original|thumbnail'
       });
       if (d?.query?.pages) {
         for (const p of Object.values(d.query.pages)) {
@@ -86,7 +87,7 @@ async function fetchCityData(title) {
     for (const src of [foundPage.original?.source, foundPage.thumbnail?.source]) {
       if (src && !seen.has(src)) { seen.add(src); imgs.push(src); }
     }
-    return {
+    const result = {
       pageid: foundPage.pageid,
       title: foundPage.title,
       extract: foundPage.extract || null,
@@ -97,6 +98,7 @@ async function fetchCityData(title) {
       wikidataId: foundPage.pageprops?.wikibase_item || null,
       lang: 'pt'
     };
+    return result;
   }
 
   try {
@@ -117,6 +119,34 @@ async function fetchCityData(title) {
   } catch {}
 
   return null;
+}
+
+async function commonsImages(title) {
+  try {
+    const r = await fetch(
+      `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(title + ' cidade')}&srnamespace=6&format=json&srlimit=6&srprop=`,
+      { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(7000) }
+    );
+    if (!r.ok) return [];
+    const d = await r.json();
+    const titles = (d?.query?.search || []).map(s => s.title);
+    if (!titles.length) return [];
+    const ur = await fetch(
+      `https://commons.wikimedia.org/w/api.php?action=query&titles=${encodeURIComponent(titles.join('|'))}&prop=imageinfo&iiprop=url&iiurlwidth=600&format=json`,
+      { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(7000) }
+    );
+    if (!ur.ok) return [];
+    const ud = await ur.json();
+    const urls = [];
+    const seen = new Set();
+    for (const p of Object.values(ud.query?.pages || {})) {
+      if (p.imageinfo?.[0]?.url && !seen.has(p.imageinfo[0].url)) {
+        seen.add(p.imageinfo[0].url);
+        urls.push(p.imageinfo[0].url);
+      }
+    }
+    return urls.slice(0, 6);
+  } catch { return []; }
 }
 
 async function wikidataInfo(qid) {
@@ -239,9 +269,9 @@ function extractSectionText(sections, keywords) {
     for (const [key, val] of Object.entries(sections)) {
       if (key.includes(kw) && val.length > 20) {
         const lines = val.split('\n').filter(l => l.trim() && !l.match(/^==+/));
-        return lines.length > 5
-          ? lines.slice(0, 5).join('\n').slice(0, 800)
-          : val.slice(0, 800);
+        return lines.length > 10
+          ? lines.slice(0, 10).join('\n').slice(0, 2000)
+          : val.slice(0, 2000);
       }
     }
   }
@@ -260,16 +290,27 @@ async function searchVideo(query) {
 function downloadVideoClip(url) {
   return new Promise((resolve) => {
     if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
-    const outFile = path.join(TEMP_DIR, `cidade_${Date.now()}.mp4`);
+    const outFile = path.join(TEMP_DIR, `cidade_${Date.now()}`);
     const child = execFile(YT_DLP, [
-      url, '-f', 'best[height<=480]', '--max-filesize', '45M',
-      '--download-sections', '*0-30', '--force-keyframes-at-cuts',
-      '-o', outFile, '--no-playlist', '--no-warnings', '--no-progress'
-    ], { timeout: 45000 }, (err) => {
-      if (err || !fs.existsSync(outFile)) { resolve(null); return; }
-      const stat = fs.statSync(outFile);
-      if (stat.size > 50 * 1024 * 1024) { fs.unlinkSync(outFile); resolve(null); return; }
-      resolve(outFile);
+      url, '-f', 'best[height<=720]/best',
+      '--max-filesize', '45M',
+      '--merge-output-format', 'mp4',
+      '--download-sections', '*0:00-0:30',
+      '--force-keyframes-at-cuts',
+      '--ffmpeg-location', FFMPEG,
+      '--output', `${outFile}.%(ext)s`,
+      '--no-playlist', '--no-warnings', '--no-progress'
+    ], { timeout: 60000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
+      if (err) { resolve(null); return; }
+      let videoFile = null;
+      for (const ext of ['mp4', 'webm', 'mkv']) {
+        const p = `${outFile}.${ext}`;
+        if (fs.existsSync(p)) { videoFile = p; break; }
+      }
+      if (!videoFile) { resolve(null); return; }
+      const stat = fs.statSync(videoFile);
+      if (stat.size > 50 * 1024 * 1024) { fs.unlinkSync(videoFile); resolve(null); return; }
+      resolve(videoFile);
     });
     child.on('error', () => resolve(null));
   });
@@ -332,6 +373,11 @@ async function handleCidade(sock, { jid, sender, args }) {
     const title = wiki.title;
     const extractIntro = wiki.extract || '';
     images.push(...(wiki.images || []));
+
+    const commonImgs = await commonsImages(title);
+    for (const img of commonImgs) {
+      if (!images.includes(img)) images.push(img);
+    }
 
     let fullExtract = wiki.extract || '';
     if (fullExtract) {
