@@ -816,10 +816,18 @@ async function handleCidade(sock, { jid, sender, args }) {
         }
       }
 
+      if (!fetchedMayorImg && !isDup && (fotoMayorId || fotoMayorName)) {
+        try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] foto prefeito nao encontrada\n`); } catch {}
+      }
+
       if (anthemResult) {
         try {
           await sock.sendMessage(jid, { audio: anthemResult.data, mimetype: 'audio/mpeg', ptt: false });
-        } catch {}
+        } catch (e) {
+          try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] ERROR ao enviar hino: ${e.message}\n`); } catch {}
+        }
+      } else {
+        try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] hino nao encontrado\n`); } catch {}
       }
 
       if (fetchedVideoUrl) {
