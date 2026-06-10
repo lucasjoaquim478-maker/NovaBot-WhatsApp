@@ -780,85 +780,62 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     } catch {}
   }
 
+  // Foto do prefeito (background, nao bloqueia)
   (async () => {
     try {
-      if (!title) return;
-      const fotoMayorId = wd?.mayorId;
-      const fotoMayorName = mayorName;
-      let fetchedMayorImg = null;
-      if (fotoMayorId || fotoMayorName) {
-        fetchedMayorImg = await fetchEntityImage(fotoMayorId, fotoMayorName);
-        try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] foto: id=${fotoMayorId} name=${fotoMayorName} img=${fetchedMayorImg}\n`); } catch {}
-      }
-
-      const [anthemResult, videos] = await Promise.all([
-        fetchAnthemAudio(cityName),
-        searchVideo(title)
-      ]);
-
-      let fetchedVideoUrl = '';
-      if (videos?.length > 0) fetchedVideoUrl = videos[0].url;
-
-      const isDup = fetchedMayorImg && images.some(img =>
-        img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === fetchedMayorImg.split('/').pop().replace(/^(thumb\/)?\d+px-/, '')
+      if (!title || (!wd?.mayorId && !mayorName)) return;
+      const fetched = await fetchEntityImage(wd?.mayorId, mayorName);
+      if (!fetched) return;
+      const dup = images.some(img =>
+        img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === fetched.split('/').pop().replace(/^(thumb\/)?\d+px-/, '')
       );
-      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] BG: mayorImg=${fetchedMayorImg != null} isDup=${isDup} anthemAudio=${anthemResult ? 'yes' : 'null'}\n`); } catch {}
-
-      if (fetchedMayorImg && !isDup) {
-        try {
-          const r = await fetch(fetchedMayorImg, { signal: AbortSignal.timeout(15000) });
-          if (r.ok) {
-            const buf = await r.buffer();
-            await sock.sendMessage(jid, { image: buf, caption: '👤 Prefeito(a)' }, { quoted: msg });
-          }
-        } catch (e) {
-          try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] ERROR mayorImg: ${e.message}\n`); } catch {}
-        }
-      }
-
-      if (!fetchedMayorImg && !isDup && (fotoMayorId || fotoMayorName)) {
-        try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] foto prefeito nao encontrada\n`); } catch {}
-      }
-
-      if (anthemResult) {
-        try {
-          await sock.sendMessage(jid, { audio: anthemResult.data, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
-        } catch (e) {
-          try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] ERROR ao enviar hino: ${e.message}\n`); } catch {}
-        }
-      } else {
-        try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] hino nao encontrado\n`); } catch {}
-      }
-
-      if (fetchedVideoUrl) {
-        await sock.sendMessage(jid, { text: `⏳ Baixando vídeo sobre ${cityName}...` }, { quoted: msg });
-        const videoPath = await downloadVideoClip(fetchedVideoUrl);
-        if (videoPath) {
-          try {
-            const buf = fs.readFileSync(videoPath);
-            await sock.sendMessage(jid, { video: buf, caption: `🎥 ${cityName}` }, { quoted: msg });
-            fs.unlinkSync(videoPath);
-          } catch {
-            await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${fetchedVideoUrl}` }, { quoted: msg });
-          }
-        } else {
-          await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${fetchedVideoUrl}` }, { quoted: msg });
-        }
-      }
-
-      const updatedCache = cacheGet(cityName);
-      if (updatedCache) {
-        updatedCache.video = fetchedVideoUrl;
-        updatedCache.mayorImg = fetchedMayorImg;
-        updatedCache.anthemAudio = anthemResult;
-        cacheSet(cityName, updatedCache);
-      }
-
-      await sock.sendMessage(jid, { text: `✅ Fim das informações sobre *${cityName}*.` });
-    } catch (bgErr) {
-      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] BG_ERR: ${bgErr.message}\n`); } catch {}
-    }
+      if (dup) return;
+      const r = await fetch(fetched, { signal: AbortSignal.timeout(15000) });
+      if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '👤 Prefeito(a)' }, { quoted: msg });
+    } catch {}
   })();
+
+  // Hino MP3 (logo abaixo das imagens)
+  await sock.sendMessage(jid, { text: `🎵 Aguarde, buscando hino de *${cityName}*...` }, { quoted: msg });
+  const anthemResult = await fetchAnthemAudio(cityName);
+  if (anthemResult) {
+    try {
+      await sock.sendMessage(jid, { audio: anthemResult.data, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
+    } catch {}
+  }
+
+  // Vídeo drone/aéreo MP4
+  const droneRes = await ytSearch(`"${title}" (vista aérea OR drone OR panorama OR sobrevoo)`);
+  const droneVideos = (droneRes?.videos || [])
+    .filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'))
+    .slice(0, 3)
+    .map(v => ({ title: v.title, url: v.url, seconds: parseInt(v.seconds) || 0 }));
+  const droneVideoUrl = droneVideos?.[0]?.url || '';
+
+  if (droneVideoUrl) {
+    await sock.sendMessage(jid, { text: `⏳ Baixando vídeo aéreo de *${cityName}*...` }, { quoted: msg });
+    const videoPath = await downloadVideoClip(droneVideoUrl);
+    if (videoPath) {
+      try {
+        const buf = fs.readFileSync(videoPath);
+        await sock.sendMessage(jid, { video: buf, caption: `🎥 ${cityName}` }, { quoted: msg });
+        fs.unlinkSync(videoPath);
+      } catch {
+        await sock.sendMessage(jid, { text: `🎥 *${cityName}*\n${droneVideoUrl}` }, { quoted: msg });
+      }
+    } else {
+      await sock.sendMessage(jid, { text: `🎥 *${cityName}*\n${droneVideoUrl}` }, { quoted: msg });
+    }
+  }
+
+  const updatedCache = cacheGet(cityName);
+  if (updatedCache) {
+    updatedCache.video = droneVideoUrl;
+    updatedCache.anthemAudio = anthemResult;
+    cacheSet(cityName, updatedCache);
+  }
+
+  await sock.sendMessage(jid, { text: `✅ Fim das informações sobre *${cityName}*.` });
 }
 
 module.exports = { handleCidade, cidadeCommands };
