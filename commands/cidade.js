@@ -806,14 +806,12 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     } catch {}
   }
 
-  // Vídeo drone/aéreo MP4
+  // Vídeo drone/aéreo MP4 (mais recente primeiro)
   await sock.sendMessage(jid, { text: `🔍 Buscando vídeo aéreo de *${cityName}*...` }, { quoted: msg });
-  const droneRes = await ytSearch(`"${title}" vista aérea OR drone OR panorama OR sobrevoo`);
-  const droneVideos = (droneRes?.videos || [])
-    .filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'))
-    .slice(0, 3)
-    .map(v => ({ title: v.title, url: v.url, seconds: parseInt(v.seconds) || 0 }));
-  let droneVideoUrl = droneVideos?.[0]?.url || '';
+  let droneVids = (await ytSearch(`"${title}" vista aérea OR drone OR panorama OR sobrevoo`))?.videos || [];
+  droneVids = droneVids.filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'));
+  droneVids.sort((a, b) => new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
+  let droneVideoUrl = droneVids?.[0]?.url || '';
 
   if (droneVideoUrl) {
     await sock.sendMessage(jid, { text: `⏳ Baixando vídeo aéreo de *${cityName}*...` }, { quoted: msg });
@@ -830,13 +828,11 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
       await sock.sendMessage(jid, { text: `🎥 *${cityName}*\n${droneVideoUrl}` }, { quoted: msg });
     }
   } else {
-    // Fallback: busca normal
-    const fbRes = await ytSearch(`"${title}" cidade turismo OR documentário OR guia`);
-    const fbVideos = (fbRes?.videos || [])
-      .filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'))
-      .slice(0, 3)
-      .map(v => ({ title: v.title, url: v.url, seconds: parseInt(v.seconds) || 0 }));
-    const fbUrl = fbVideos?.[0]?.url || '';
+    // Fallback: busca normal (mais recente primeiro)
+    let fbVids = (await ytSearch(`"${title}" cidade turismo OR documentário OR guia`))?.videos || [];
+    fbVids = fbVids.filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'));
+    fbVids.sort((a, b) => new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
+    const fbUrl = fbVids?.[0]?.url || '';
     if (fbUrl) {
       await sock.sendMessage(jid, { text: `⏳ Baixando vídeo de *${cityName}*...` }, { quoted: msg });
       const fbPath = await downloadVideoClip(fbUrl);
