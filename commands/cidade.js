@@ -61,7 +61,8 @@ async function fetchCityData(title) {
   let d = await callWikiAPI({
     action: 'query', titles: title,
     prop: 'extracts|coordinates|pageimages|pageprops',
-    explaintext: '', pithumbsize: '800', piprop: 'original|thumbnail'
+    explaintext: '', pithumbsize: '800', piprop: 'original|thumbnail',
+    exchars: '8000'
   });
 
   if (d?.rateLimited) return { rateLimited: true };
@@ -88,7 +89,8 @@ async function fetchCityData(title) {
         const rd = await callWikiAPI({
           action: 'query', titles: result.title,
           prop: 'extracts|coordinates|pageimages|pageprops',
-          explaintext: '', pithumbsize: '800', piprop: 'original|thumbnail'
+          explaintext: '', pithumbsize: '800', piprop: 'original|thumbnail',
+          exchars: '8000'
         });
         if (rd?.query?.pages) {
           for (const p of Object.values(rd.query.pages)) {
@@ -155,6 +157,30 @@ async function wikidataInfo(qid) {
     const entity = d.entities?.[qid];
     if (!entity) return null;
     const claims = entity.claims || {};
+
+    const itemProps = ['P6', 'P17', 'P131', 'P421', 'P1549', 'P2196'];
+    const itemIds = new Set();
+    for (const pid of itemProps) {
+      const c = claims[pid];
+      const id = c?.[0]?.mainsnak?.datavalue?.value?.id;
+      if (id) itemIds.add(id);
+    }
+    const labels = {};
+    if (itemIds.size > 0) {
+      try {
+        const lr = await fetch(
+          `https://www.wikidata.org/w/api.php?action=wbgetentities&ids=${[...itemIds].join('|')}&props=labels&languages=pt|en&format=json&origin=*`,
+          { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(5000) }
+        );
+        if (lr.ok) {
+          const ld = await lr.json();
+          for (const [id, ent] of Object.entries(ld.entities || {})) {
+            labels[id] = ent.labels?.pt?.value || ent.labels?.en?.value || id;
+          }
+        }
+      } catch {}
+    }
+
     const getVal = (pid) => {
       const c = claims[pid];
       if (!c?.[0]) return null;
@@ -171,8 +197,7 @@ async function wikidataInfo(qid) {
       if (mainsnak?.datatype === 'wikibase-item') {
         const id = mainsnak.datavalue?.value?.id;
         if (!id) return null;
-        const label = entity.labels?.['pt']?.value || entity.labels?.['en']?.value || id;
-        return label;
+        return labels[id] || id;
       }
       if (mainsnak?.datatype === 'globe-coordinate') {
         const coord = mainsnak.datavalue?.value;
@@ -197,8 +222,155 @@ async function wikidataInfo(qid) {
       demonym: getVal('P1549'),
       density: getVal('P2196'),
       mayor: getVal('P6'),
+      mayorId: claims.P6?.[0]?.mainsnak?.datavalue?.value?.id || null,
+      anthemId: claims.P85?.[0]?.mainsnak?.datavalue?.value?.id || null,
     };
   } catch { return null; }
+}
+
+async function fetchEntityImage(qid, fallbackName) {
+  if (qid) {
+    try {
+      const r = await fetch(
+        `https://www.wikidata.org/wiki/Special:EntityData/${qid}.json`,
+        { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(10000) }
+      );
+      if (r.ok) {
+        const d = await r.json();
+        const entity = d.entities?.[qid];
+        const filename = entity?.claims?.P18?.[0]?.mainsnak?.datavalue?.value;
+        if (filename) {
+          const safeName = filename.replace(/ /g, '_');
+          const ir = await fetch(
+            `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(safeName)}&prop=imageinfo&iiprop=url&format=json&origin=*`,
+            { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(10000) }
+          );
+          if (ir.ok) {
+            const j = await ir.json();
+            const page = Object.values(j.query?.pages || {})[0];
+            const url = page?.imageinfo?.[0]?.url;
+            if (url) return url;
+          }
+        }
+      }
+    } catch (e) {
+      try { fs.appendFileSync('cidade_debug.log', `[WD] fetchEntityImage qid err: ${e.message}\n`); } catch {}
+    }
+  }
+
+  if (fallbackName) {
+    const ddgSearch = async (q) => {
+      try {
+        const dq = await fetch('https://duckduckgo.com/?q=' + encodeURIComponent(q) + '&t=h_&ia=web', { headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000) });
+        if (!dq.ok) return null;
+        const dt = await dq.text();
+        const vqdM = dt.match(/vqd=([\d-]+)&/);
+        if (!vqdM) return null;
+        const ij = await fetch('https://duckduckgo.com/i.js?q=' + encodeURIComponent(q) + '&o=json&vqd=' + vqdM[1], { headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://duckduckgo.com/' }, signal: AbortSignal.timeout(8000) });
+        if (!ij.ok) return null;
+        const jd = await ij.json();
+        if (!jd.results?.length) return null;
+        for (const res of jd.results) {
+          if (res.image && /\.(jpg|jpeg|png|webp)/i.test(res.image)) return res.image;
+        }
+      } catch {}
+      return null;
+    };
+    const queries = [
+      fallbackName,
+      fallbackName + ' prefeito',
+      fallbackName + ' político',
+      fallbackName + ' politica'
+    ];
+    for (const q of queries) {
+      const img = await ddgSearch(q);
+      if (img) return img;
+    }
+
+    try {
+      const sr = await fetch(
+        `https://pt.wikipedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(fallbackName)}&srlimit=5&format=json&origin=*`,
+        { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(10000) }
+      );
+      if (sr.ok) {
+        const sd = await sr.json();
+        for (const result of (sd.query?.search || [])) {
+          const tr = await fetch(
+            `https://pt.wikipedia.org/w/api.php?action=query&titles=${encodeURIComponent(result.title)}&prop=pageimages&pithumbsize=400&format=json&origin=*`,
+            { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(10000) }
+          );
+          if (tr.ok) {
+            const td = await tr.json();
+            const p = Object.values(td.query?.pages || {})[0];
+            if (p?.thumbnail?.source) return p.thumbnail.source;
+          }
+        }
+      }
+    } catch (e) {
+      try { fs.appendFileSync('cidade_debug.log', `[WP] fetchEntityImage fallback err: ${e.message}\n`); } catch {}
+    }
+
+    try {
+      const cr = await fetch(
+        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(fallbackName)}&srnamespace=6&srlimit=5&format=json&origin=*`,
+        { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(10000) }
+      );
+      if (cr.ok) {
+        const cd = await cr.json();
+        for (const result of (cd.query?.search || [])) {
+          const fn = result.title.replace(/^File:/, '');
+          const ir = await fetch(
+            `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fn.replace(/ /g, '_'))}&prop=imageinfo&iiprop=url&format=json&origin=*`,
+            { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(10000) }
+          );
+          if (ir.ok) {
+            const j = await ir.json();
+            const page = Object.values(j.query?.pages || {})[0];
+            const url = page?.imageinfo?.[0]?.url;
+            if (url && /\.(jpg|jpeg|png|webp)$/i.test(url)) return url;
+          }
+        }
+      }
+    } catch (e) {
+      try { fs.appendFileSync('cidade_debug.log', `[CM] fetchEntityImage commons err: ${e.message}\n`); } catch {}
+    }
+
+    try {
+      const yr = await ytSearch(fallbackName + ' prefeito');
+      const yv = yr?.videos?.filter(v => v.thumbnail && !v.title?.toLowerCase().includes('short'))[0];
+      if (yv?.thumbnail) return yv.thumbnail;
+    } catch (e) {
+      try { fs.appendFileSync('cidade_debug.log', `[YT] fetchEntityImage err: ${e.message}\n`); } catch {}
+    }
+  }
+
+  return null;
+}
+
+async function fetchExtraImages(title) {
+  const d = await callWikiAPI({
+    action: 'query', titles: title,
+    generator: 'images', gimlimit: '15',
+    prop: 'imageinfo', iiprop: 'url', iiurlwidth: '800'
+  });
+  if (!d?.query?.pages) return [];
+  const urls = [];
+  const seen = new Set();
+  for (const p of Object.values(d.query.pages)) {
+    const url = p.imageinfo?.[0]?.url;
+    if (url && /\.(jpg|jpeg|png|webp)$/i.test(p.title) && !seen.has(url)) {
+      seen.add(url);
+      urls.push(url);
+    }
+  }
+  return urls;
+}
+
+function fmtNum(n) {
+  if (!n) return null;
+  const s = String(n).replace(/[^\d]/g, '');
+  if (!s) return n;
+  return parseInt(s, 10).toLocaleString('pt-BR');
 }
 
 async function getWeather(lat, lon) {
@@ -209,6 +381,41 @@ async function getWeather(lat, lon) {
     );
     if (!r.ok) return null;
     return await r.json();
+  } catch { return null; }
+}
+
+async function fetchAnthemAudio(cityName) {
+  try {
+    const r = await ytSearch(`"hino de ${cityName}" oficial mp3`);
+    const video = r?.videos?.filter(v => {
+      const t = v.title.toLowerCase();
+      return parseInt(v.seconds) < 600 && !t.includes('short');
+    })[0];
+    if (!video) return null;
+    const tempDir = path.join(process.cwd(), 'temp');
+    if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+    const outFile = path.join(tempDir, `hino_${Date.now()}`);
+    const args = [
+      '-f', 'bestaudio[ext=m4a]/bestaudio',
+      '--max-filesize', '15M',
+      '--ffmpeg-location', FFMPEG,
+      '--extract-audio',
+      '--audio-format', 'mp3',
+      '--output', `${outFile}.%(ext)s`,
+      '--no-warnings',
+      '--no-playlist',
+      video.url
+    ];
+    await new Promise((resolve, reject) => {
+      execFile(YT_DLP, args, { timeout: 60000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
+        if (err) reject(err); else resolve();
+      });
+    });
+    const mp3File = `${outFile}.mp3`;
+    if (!fs.existsSync(mp3File)) return null;
+    const data = fs.readFileSync(mp3File);
+    fs.unlinkSync(mp3File);
+    return { data, title: video.title };
   } catch { return null; }
 }
 
@@ -255,7 +462,26 @@ function extractDataPoints(text) {
   const estadoMatch = text.match(/(?:estado do|estado da|estado de|do estado)\s+([A-Z][a-zA-Záéíóúãõçâêô\s]+?)(?:\s*[,.]|\s+na|\s+em|\s+no|\s+à|\s+a\s)/i);
   if (estadoMatch) data.state = estadoMatch[1].trim();
 
+  const prefeitoMatch = text.match(/(?:prefeito|prefeita)\s*(?:atual|é|:|\s)\s*([A-ZÀ-Ú][a-zA-Zà-ú\s]+?)(?:\s*[,.]|\s*\(|\s*\[|\s*d[eo]\s|\s*–|\s*—)/i);
+  if (prefeitoMatch) data.mayor = prefeitoMatch[1].trim();
+
   return data;
+}
+
+async function fetchMayorFromWikitext(title) {
+  try {
+    const r = await fetch(
+      `https://pt.wikipedia.org/w/api.php?action=parse&page=${encodeURIComponent(title)}&prop=wikitext&section=0&format=json&origin=*`,
+      { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(8000) }
+    );
+    if (!r.ok) return null;
+    const d = await r.json();
+    const wikitext = d?.parse?.wikitext?.['*'];
+    if (!wikitext) return null;
+    const m = wikitext.match(/\|\s*(?:prefeito|prefeita)\s*=\s*(.+?)(?:\n|\||<)/i);
+    if (m) return m[1].replace(/\[\[([^\]|]+)(?:\|[^\]]+)?\]\]/g, '$1').replace(/'''/g, '').trim();
+    return null;
+  } catch { return null; }
 }
 
 function extractSectionText(sections, keywords) {
@@ -286,15 +512,14 @@ function downloadVideoClip(url) {
     if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
     const outFile = path.join(TEMP_DIR, `cidade_${Date.now()}`);
     const child = execFile(YT_DLP, [
-      url, '-f', 'best[height<=720]/best',
-      '--max-filesize', '45M',
+      url, '-f', 'best[height<=1080][ext=mp4]/best[height<=1080]/best[height<=720]/best',
+      '--max-filesize', '50M',
       '--merge-output-format', 'mp4',
-      '--download-sections', '*0:00-0:30',
-      '--force-keyframes-at-cuts',
       '--ffmpeg-location', FFMPEG,
       '--output', `${outFile}.%(ext)s`,
-      '--no-playlist', '--no-warnings', '--no-progress'
-    ], { timeout: 60000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
+      '--no-playlist', '--no-warnings', '--no-progress',
+      '--no-check-certificate'
+    ], { timeout: 120000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
       if (err) { resolve(null); return; }
       let videoFile = null;
       for (const ext of ['mp4', 'webm', 'mkv']) {
@@ -364,10 +589,21 @@ async function handleCidade(sock, { jid, sender, args }) {
   const cached = cacheGet(cityName);
   if (cached) {
     await sock.sendMessage(jid, { text: cached.report });
+    if (cached.mayorImg) {
+      try {
+        const r = await fetch(cached.mayorImg, { signal: AbortSignal.timeout(6000) });
+        if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '👤 Prefeito(a)' });
+      } catch {}
+    }
     for (const img of cached.images.slice(0, 4)) {
       try {
         const r = await fetch(img, { signal: AbortSignal.timeout(6000) });
         if (r.ok) await sock.sendMessage(jid, { image: await r.buffer() });
+      } catch {}
+    }
+    if (cached.anthemAudio?.data) {
+      try {
+        await sock.sendMessage(jid, { audio: cached.anthemAudio.data, mimetype: 'audio/mpeg', ptt: false });
       } catch {}
     }
     if (cached.video) {
@@ -381,6 +617,8 @@ async function handleCidade(sock, { jid, sender, args }) {
   let report = '';
   const images = [];
   let videoUrl = '';
+  let mayorImg = null;
+  let anthemAudio = null;
   let erro = '';
 
   try {
@@ -397,12 +635,22 @@ async function handleCidade(sock, { jid, sender, args }) {
     const title = wiki.title;
     const extractIntro = wiki.extract || '';
     images.push(...(wiki.images || []));
+    const extraImgs = await fetchExtraImages(title);
+    images.push(...extraImgs.filter(u => !images.includes(u)));
+
+    let weather = null;
+    let weatherTz = null;
+    if (wiki.coordinates) {
+      weather = await getWeather(wiki.coordinates.lat, wiki.coordinates.lon);
+      if (weather) weatherTz = weather.timezone;
+    }
 
     let fullExtract = wiki.extract || '';
     if (fullExtract) {
       const moreR = await callWikiAPI({
         action: 'query', titles: title,
-        prop: 'extracts', explaintext: '', formatversion: '2'
+        prop: 'extracts', explaintext: '', formatversion: '2',
+        exchars: '20000'
       });
       const p = moreR?.query?.pages?.[0];
       if (p?.extract && p.extract.length > fullExtract.length) fullExtract = p.extract;
@@ -411,6 +659,7 @@ async function handleCidade(sock, { jid, sender, args }) {
     const sections = parseSections(fullExtract);
     const datapoints = extractDataPoints(extractIntro + '\n' + (fullExtract || ''));
     const wd = wiki.wikidataId ? await wikidataInfo(wiki.wikidataId) : null;
+    try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] wd={mayor:${wd?.mayor}, tz:${wd?.timezone}} dt={mayor:${datapoints.mayor}} weatherTz=${weatherTz}\n`); } catch {}
 
     report += `━━━━━━━━━━━━━━━━━━\n`;
     report += `🏙️ *${title.toUpperCase()}*\n`;
@@ -421,13 +670,19 @@ async function handleCidade(sock, { jid, sender, args }) {
     report += `📍 Nome: ${title}\n`;
     report += `🌎 País: ${wd?.country || extractCountry(extractIntro) || '❌ Informação indisponível.'}\n`;
     report += `🏛️ Estado: ${wd?.state || datapoints.state || '❌ Informação indisponível.'}\n`;
-    report += `👥 População: ${wd?.population || datapoints.population || '❌ Informação indisponível.'}\n`;
+    report += `👥 População: ${fmtNum(wd?.population) || datapoints.population || '❌ Informação indisponível.'}\n`;
     report += `📏 Área: ${wd?.area || datapoints.area || '❌ Informação indisponível.'}\n`;
     report += `📐 Altitude: ${wd?.elevation || datapoints.elevation || '❌ Informação indisponível.'} m\n`;
     report += `🌐 Coordenadas: ${wiki.coordinates ? `${wiki.coordinates.lat.toFixed(4)}, ${wiki.coordinates.lon.toFixed(4)}` : '❌ Informação indisponível.'}\n`;
-    report += `🕐 Fuso: ${wd?.timezone || '❌ Informação indisponível.'}\n`;
+    report += `🕐 Fuso: ${wd?.timezone || weatherTz || '❌ Informação indisponível.'}\n`;
     if (wd?.founded || datapoints.founded) report += `📅 Fundação: ${wd?.founded || datapoints.founded}\n`;
     if (wd?.demonym) report += `👤 Gentílico: ${wd.demonym}\n`;
+    let mayorName = wd?.mayor || datapoints.mayor || null;
+    if (!mayorName) {
+      const wikiMayor = await fetchMayorFromWikitext(title);
+      if (wikiMayor) mayorName = wikiMayor;
+    }
+    if (mayorName) report += `👤 Prefeito: ${mayorName}\n`;
 
     const clima = extractSectionText(sections, ['clima']);
     if (clima) report += `\n🌤️ *CLIMA*\n${clima}\n`;
@@ -444,7 +699,7 @@ async function handleCidade(sock, { jid, sender, args }) {
     const geography = extractSectionText(sections, ['geografia']);
     if (geography) report += `\n🌳 *GEOGRAFIA*\n${geography}\n`;
 
-    const tourism = extractSectionText(sections, ['turismo']);
+    const tourism = extractSectionText(sections, ['turismo', 'pontos turísticos', 'pontos turisticos', 'atrações', 'atracoes', 'locais de interesse', 'principais pontos']);
     if (tourism) report += `\n🗺️ *TURISMO*\n${tourism}\n`;
 
     const gastronomy = extractSectionText(sections, ['gastronomia', 'culinária', 'culinaria']);
@@ -476,9 +731,7 @@ async function handleCidade(sock, { jid, sender, args }) {
       report += `\n📖 *SOBRE*\n${intro}\n`;
     }
 
-    if (wiki.coordinates) {
-      const weather = await getWeather(wiki.coordinates.lat, wiki.coordinates.lon);
-      if (weather && weather.current) {
+    if (weather && weather.current) {
         report += `\n🌦️ *CLIMA ATUAL*\n`;
         report += `🌡️ Temperatura: ${weather.current.temperature_2m}°C\n`;
         report += `🤔 Sensação: ${weather.current.apparent_temperature}°C\n`;
@@ -492,9 +745,18 @@ async function handleCidade(sock, { jid, sender, args }) {
             const date = weather.daily.time[i].split('-').slice(1).join('/');
             report += `  ${date}: 🌡️ ${weather.daily.temperature_2m_min[i]}~${weather.daily.temperature_2m_max[i]}°C\n`;
           }
-        }
       }
     }
+
+    const fotoMayorId = wd?.mayorId;
+    const fotoMayorName = mayorName;
+    if (fotoMayorId || fotoMayorName) {
+      mayorImg = await fetchEntityImage(fotoMayorId, fotoMayorName);
+      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] foto: id=${fotoMayorId} name=${fotoMayorName} img=${mayorImg}\n`); } catch {}
+    }
+
+    const anthemResult = await fetchAnthemAudio(cityName);
+    if (anthemResult) anthemAudio = anthemResult;
 
     const videos = await searchVideo(title);
     if (videos.length > 0) {
@@ -505,7 +767,7 @@ async function handleCidade(sock, { jid, sender, args }) {
     report += `\n❌ *Erro ao processar:* ${erro}`;
   }
 
-  const toCache = { report, images, video: videoUrl };
+  const toCache = { report, images, video: videoUrl, mayorImg, anthemAudio };
   cacheSet(cityName, toCache);
 
   const MAX = 4000;
@@ -522,10 +784,32 @@ async function handleCidade(sock, { jid, sender, args }) {
     await sock.sendMessage(jid, { text: report });
   }
 
+  const isDup = images.some(img => img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === (mayorImg || '').split('/').pop().replace(/^(thumb\/)?\d+px-/, ''));
+  try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] SEND_CHECK mayorImg=${mayorImg != null} isDup=${isDup} anthemAudio=${anthemAudio ? 'yes' : 'null'}\n`); } catch {}
+  if (mayorImg && !isDup) {
+    try {
+      const r = await fetch(mayorImg, { signal: AbortSignal.timeout(15000) });
+      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] FETCH mayorImg status=${r.status} ok=${r.ok}\n`); } catch {}
+      if (r.ok) {
+        const buf = await r.buffer();
+        try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] SEND mayorImg size=${buf.length}\n`); } catch {}
+        await sock.sendMessage(jid, { image: buf, caption: `👤 Prefeito(a)` });
+      }
+    } catch (e) {
+      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] ERROR mayorImg: ${e.message}\n`); } catch {}
+    }
+  }
+
   for (const img of images.slice(0, 4)) {
     try {
       const r = await fetch(img, { signal: AbortSignal.timeout(7000) });
       if (r.ok) await sock.sendMessage(jid, { image: await r.buffer() });
+    } catch {}
+  }
+
+  if (anthemAudio) {
+    try {
+      await sock.sendMessage(jid, { audio: anthemAudio.data, mimetype: 'audio/mpeg', ptt: false });
     } catch {}
   }
 

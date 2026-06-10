@@ -109,11 +109,17 @@ async function handlePlay(sock, { msg, jid, sender, args }) {
       });
     }
 
-    await sock.sendMessage(jid, {
-      audio: result.data,
-      mimetype: 'audio/mpeg',
-      ptt: false
-    }, { quoted: msg });
+    try {
+      await sock.sendMessage(jid, {
+        audio: result.data,
+        mimetype: 'audio/mpeg',
+        ptt: false
+      }, { quoted: msg });
+    } catch {
+      await sock.sendMessage(jid, {
+        text: `🎵 *${video.title}*\n\n📹 ${video.url}`
+      });
+    }
 
   } catch (e) {
     await sock.sendMessage(jid, { text: `❌ Erro: ${e.message.slice(0, 200)}` });
