@@ -106,15 +106,9 @@ if not exist "config.json" (
     if exist "config.example.json" (
         echo [CONFIG] config.json nao encontrado. Criando a partir de config.example.json...
         copy "config.example.json" "config.json" >nul
-        echo [CONFIG] Arquivo criado! Edite config.json com seus dados antes de continuar.
+        echo [CONFIG] ATENCAO: Edite config.json com seus dados (ownerNumber, api keys) quando puder.
+        echo [CONFIG] Por enquanto o bot vai iniciar com valores temporarios.
         echo.
-        echo   - ownerNumber: seu numero do WhatsApp
-        echo   - ollamaApiKey: sua chave da API Ollama
-        echo   - stabilityKey: sua chave da Stability AI
-        echo   - newsApiKey: sua chave da News API
-        echo.
-        pause
-        exit /b
     ) else (
         echo [ERRO] config.json e config.example.json nao encontrados!
         pause
