@@ -773,6 +773,22 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     await sock.sendMessage(jid, { text: report });
   }
 
+  // Foto do prefeito
+  if (title && (wd?.mayorId || mayorName)) {
+    try {
+      const fetched = await fetchEntityImage(wd?.mayorId, mayorName);
+      if (fetched) {
+        const dup = images.some(img =>
+          img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === fetched.split('/').pop().replace(/^(thumb\/)?\d+px-/, '')
+        );
+        if (!dup) {
+          const r = await fetch(fetched, { signal: AbortSignal.timeout(15000) });
+          if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '👤 Prefeito(a)' }, { quoted: msg });
+        }
+      }
+    } catch {}
+  }
+
   for (const img of images.slice(0, 4)) {
     try {
       const r = await fetch(img, { signal: AbortSignal.timeout(7000) });
@@ -780,22 +796,7 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     } catch {}
   }
 
-  // Foto do prefeito (background, nao bloqueia)
-  (async () => {
-    try {
-      if (!title || (!wd?.mayorId && !mayorName)) return;
-      const fetched = await fetchEntityImage(wd?.mayorId, mayorName);
-      if (!fetched) return;
-      const dup = images.some(img =>
-        img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === fetched.split('/').pop().replace(/^(thumb\/)?\d+px-/, '')
-      );
-      if (dup) return;
-      const r = await fetch(fetched, { signal: AbortSignal.timeout(15000) });
-      if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '👤 Prefeito(a)' }, { quoted: msg });
-    } catch {}
-  })();
-
-  // Hino MP3 (logo abaixo das imagens)
+  // Hino MP3
   await sock.sendMessage(jid, { text: `🎵 Aguarde, buscando hino de *${cityName}*...` }, { quoted: msg });
   const anthemResult = await fetchAnthemAudio(cityName);
   if (anthemResult) {
@@ -805,12 +806,13 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
   }
 
   // Vídeo drone/aéreo MP4
-  const droneRes = await ytSearch(`"${title}" (vista aérea OR drone OR panorama OR sobrevoo)`);
+  await sock.sendMessage(jid, { text: `🔍 Buscando vídeo aéreo de *${cityName}*...` }, { quoted: msg });
+  const droneRes = await ytSearch(`"${title}" vista aérea OR drone OR panorama OR sobrevoo`);
   const droneVideos = (droneRes?.videos || [])
     .filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'))
     .slice(0, 3)
     .map(v => ({ title: v.title, url: v.url, seconds: parseInt(v.seconds) || 0 }));
-  const droneVideoUrl = droneVideos?.[0]?.url || '';
+  let droneVideoUrl = droneVideos?.[0]?.url || '';
 
   if (droneVideoUrl) {
     await sock.sendMessage(jid, { text: `⏳ Baixando vídeo aéreo de *${cityName}*...` }, { quoted: msg });
@@ -825,6 +827,30 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
       }
     } else {
       await sock.sendMessage(jid, { text: `🎥 *${cityName}*\n${droneVideoUrl}` }, { quoted: msg });
+    }
+  } else {
+    // Fallback: busca normal
+    const fbRes = await ytSearch(`"${title}" cidade turismo OR documentário OR guia`);
+    const fbVideos = (fbRes?.videos || [])
+      .filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'))
+      .slice(0, 3)
+      .map(v => ({ title: v.title, url: v.url, seconds: parseInt(v.seconds) || 0 }));
+    const fbUrl = fbVideos?.[0]?.url || '';
+    if (fbUrl) {
+      await sock.sendMessage(jid, { text: `⏳ Baixando vídeo de *${cityName}*...` }, { quoted: msg });
+      const fbPath = await downloadVideoClip(fbUrl);
+      if (fbPath) {
+        try {
+          const buf = fs.readFileSync(fbPath);
+          await sock.sendMessage(jid, { video: buf, caption: `🎥 ${cityName}` }, { quoted: msg });
+          fs.unlinkSync(fbPath);
+        } catch {
+          await sock.sendMessage(jid, { text: `🎥 *${cityName}*\n${fbUrl}` }, { quoted: msg });
+        }
+      } else {
+        await sock.sendMessage(jid, { text: `🎥 *${cityName}*\n${fbUrl}` }, { quoted: msg });
+      }
+      droneVideoUrl = fbUrl;
     }
   }
 
