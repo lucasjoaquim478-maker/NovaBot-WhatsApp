@@ -579,7 +579,7 @@ function extractCountry(text) {
   return null;
 }
 
-async function handleCidade(sock, { jid, sender, args }) {
+async function handleCidade(sock, { jid, sender, args, msg }) {
   if (!args.length) {
     await sock.sendMessage(jid, { text: '❌ Use: !cidade <nome da cidade>\nExemplo: !cidade Paris' });
     return;
@@ -598,16 +598,16 @@ async function handleCidade(sock, { jid, sender, args }) {
     for (const img of cached.images.slice(0, 4)) {
       try {
         const r = await fetch(img, { signal: AbortSignal.timeout(6000) });
-        if (r.ok) await sock.sendMessage(jid, { image: await r.buffer() });
+        if (r.ok) await sock.sendMessage(jid, { image: await r.buffer() }, { quoted: msg });
       } catch {}
     }
     if (cached.anthemAudio?.data) {
       try {
-        await sock.sendMessage(jid, { audio: cached.anthemAudio.data, mimetype: 'audio/mpeg', ptt: false });
+        await sock.sendMessage(jid, { audio: cached.anthemAudio.data, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
       } catch {}
     }
     if (cached.video) {
-      await sock.sendMessage(jid, { text: `🎥 *Vídeo*\n${cached.video}` });
+      await sock.sendMessage(jid, { text: `🎥 *Vídeo*\n${cached.video}` }, { quoted: msg });
     }
     return;
   }
@@ -809,7 +809,7 @@ async function handleCidade(sock, { jid, sender, args }) {
           const r = await fetch(fetchedMayorImg, { signal: AbortSignal.timeout(15000) });
           if (r.ok) {
             const buf = await r.buffer();
-            await sock.sendMessage(jid, { image: buf, caption: '👤 Prefeito(a)' });
+            await sock.sendMessage(jid, { image: buf, caption: '👤 Prefeito(a)' }, { quoted: msg });
           }
         } catch (e) {
           try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] ERROR mayorImg: ${e.message}\n`); } catch {}
@@ -822,7 +822,7 @@ async function handleCidade(sock, { jid, sender, args }) {
 
       if (anthemResult) {
         try {
-          await sock.sendMessage(jid, { audio: anthemResult.data, mimetype: 'audio/mpeg', ptt: false });
+          await sock.sendMessage(jid, { audio: anthemResult.data, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
         } catch (e) {
           try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] ERROR ao enviar hino: ${e.message}\n`); } catch {}
         }
@@ -831,18 +831,18 @@ async function handleCidade(sock, { jid, sender, args }) {
       }
 
       if (fetchedVideoUrl) {
-        await sock.sendMessage(jid, { text: `⏳ Baixando vídeo sobre ${cityName}...` });
+        await sock.sendMessage(jid, { text: `⏳ Baixando vídeo sobre ${cityName}...` }, { quoted: msg });
         const videoPath = await downloadVideoClip(fetchedVideoUrl);
         if (videoPath) {
           try {
             const buf = fs.readFileSync(videoPath);
-            await sock.sendMessage(jid, { video: buf, caption: `🎥 ${cityName}` });
+            await sock.sendMessage(jid, { video: buf, caption: `🎥 ${cityName}` }, { quoted: msg });
             fs.unlinkSync(videoPath);
           } catch {
-            await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${fetchedVideoUrl}` });
+            await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${fetchedVideoUrl}` }, { quoted: msg });
           }
         } else {
-          await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${fetchedVideoUrl}` });
+          await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${fetchedVideoUrl}` }, { quoted: msg });
         }
       }
 
