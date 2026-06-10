@@ -1,9 +1,9 @@
 {
   "prefix": "!",
   "botName": "NovaBot",
-  "ownerNumber": "5511111111111@s.whatsapp.net",
-  "ownerNumbers": ["5511111111111@s.whatsapp.net"],
-  "ownerNumberDisplay": "5511111111111",
+  "ownerNumber": "5584981760391@s.whatsapp.net",
+  "ownerNumbers": ["5584981760391@s.whatsapp.net"],
+  "ownerNumberDisplay": "5584981760391",
   "sessionName": "session",
   "autoReconnect": true,
   "reconnectInterval": 5000,
