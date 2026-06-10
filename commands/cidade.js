@@ -512,7 +512,7 @@ function downloadVideoClip(url) {
     if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
     const outFile = path.join(TEMP_DIR, `cidade_${Date.now()}`);
     const child = execFile(YT_DLP, [
-      url, '-f', 'best[height<=1080][ext=mp4]/best[height<=1080]/best[height<=720]/best',
+      url, '-f', 'best[height<=1080][ext=mp4]/best[height<=1080][ext=webm]/best[height<=720][ext=mp4]/best[height<=720]/bestvideo+bestaudio/best',
       '--max-filesize', '50M',
       '--merge-output-format', 'mp4',
       '--ffmpeg-location', FFMPEG,
@@ -620,6 +620,9 @@ async function handleCidade(sock, { jid, sender, args }) {
   let mayorImg = null;
   let anthemAudio = null;
   let erro = '';
+  let wd = null;
+  let mayorName = null;
+  let title = '';
 
   try {
     const wiki = await fetchCityData(cityName);
@@ -632,7 +635,7 @@ async function handleCidade(sock, { jid, sender, args }) {
       return;
     }
 
-    const title = wiki.title;
+    title = wiki.title;
     const extractIntro = wiki.extract || '';
     images.push(...(wiki.images || []));
     const extraImgs = await fetchExtraImages(title);
@@ -658,7 +661,7 @@ async function handleCidade(sock, { jid, sender, args }) {
 
     const sections = parseSections(fullExtract);
     const datapoints = extractDataPoints(extractIntro + '\n' + (fullExtract || ''));
-    const wd = wiki.wikidataId ? await wikidataInfo(wiki.wikidataId) : null;
+    wd = wiki.wikidataId ? await wikidataInfo(wiki.wikidataId) : null;
     try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] wd={mayor:${wd?.mayor}, tz:${wd?.timezone}} dt={mayor:${datapoints.mayor}} weatherTz=${weatherTz}\n`); } catch {}
 
     report += `━━━━━━━━━━━━━━━━━━\n`;
@@ -677,7 +680,7 @@ async function handleCidade(sock, { jid, sender, args }) {
     report += `🕐 Fuso: ${wd?.timezone || weatherTz || '❌ Informação indisponível.'}\n`;
     if (wd?.founded || datapoints.founded) report += `📅 Fundação: ${wd?.founded || datapoints.founded}\n`;
     if (wd?.demonym) report += `👤 Gentílico: ${wd.demonym}\n`;
-    let mayorName = wd?.mayor || datapoints.mayor || null;
+    mayorName = wd?.mayor || datapoints.mayor || null;
     if (!mayorName) {
       const wikiMayor = await fetchMayorFromWikitext(title);
       if (wikiMayor) mayorName = wikiMayor;
@@ -779,6 +782,7 @@ async function handleCidade(sock, { jid, sender, args }) {
 
   (async () => {
     try {
+      if (!title) return;
       const fotoMayorId = wd?.mayorId;
       const fotoMayorName = mayorName;
       let fetchedMayorImg = null;
