@@ -73,6 +73,12 @@ if not exist "node\node.exe" (
     pause
     exit /b
 )
+if not exist "node\node_modules\npm" (
+    echo [ERRO] Node.js extraido incompleto (npm ausente). Tentando novamente...
+    if exist "%TEMP%\%NODE_ZIP%" del "%TEMP%\%NODE_ZIP%"
+    rmdir /s /q "node" 2>nul
+    goto NODE_CHECK
+)
 echo [NODE] Node.js %NODE_VERSION% instalado com sucesso!
 set "NODE_CMD=node\node.exe"
 set "PATH=%~dp0node;%~dp0node_modules\.bin;%PATH%"
