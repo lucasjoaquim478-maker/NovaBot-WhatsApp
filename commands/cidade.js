@@ -774,28 +774,29 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     await sock.sendMessage(jid, { text: report });
   }
 
-  // Imagens da cidade (imediatamente apos o relatorio)
+  // Foto do prefeito (logo apos o relatorio)
+  if (title && (wd?.mayorId || mayorName)) {
+    try {
+      const fetched = await fetchEntityImage(wd?.mayorId, mayorName);
+      if (fetched) {
+        const dup = images.some(img =>
+          img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === fetched.split('/').pop().replace(/^(thumb\/)?\d+px-/, '')
+        );
+        if (!dup) {
+          const r = await fetch(fetched, { signal: AbortSignal.timeout(15000) });
+          if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '👤 Prefeito(a)' }, { quoted: msg });
+        }
+      }
+    } catch {}
+  }
+
+  // Imagens da cidade
   for (const img of images.slice(0, 4)) {
     try {
       const r = await fetch(img, { signal: AbortSignal.timeout(7000) });
       if (r.ok) await sock.sendMessage(jid, { image: await r.buffer() });
     } catch {}
   }
-
-  // Foto do prefeito (background, nao bloqueia)
-  (async () => {
-    try {
-      if (!title || (!wd?.mayorId && !mayorName)) return;
-      const fetched = await fetchEntityImage(wd?.mayorId, mayorName);
-      if (!fetched) return;
-      const dup = images.some(img =>
-        img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === fetched.split('/').pop().replace(/^(thumb\/)?\d+px-/, '')
-      );
-      if (dup) return;
-      const r = await fetch(fetched, { signal: AbortSignal.timeout(15000) });
-      if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '👤 Prefeito(a)' }, { quoted: msg });
-    } catch {}
-  })();
 
   // Hino MP3
   await sock.sendMessage(jid, { text: `🎵 Aguarde, buscando hino de *${cityName}*...` }, { quoted: msg });
