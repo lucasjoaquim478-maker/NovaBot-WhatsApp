@@ -748,26 +748,12 @@ async function handleCidade(sock, { jid, sender, args }) {
       }
     }
 
-    const fotoMayorId = wd?.mayorId;
-    const fotoMayorName = mayorName;
-    if (fotoMayorId || fotoMayorName) {
-      mayorImg = await fetchEntityImage(fotoMayorId, fotoMayorName);
-      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] foto: id=${fotoMayorId} name=${fotoMayorName} img=${mayorImg}\n`); } catch {}
-    }
-
-    const anthemResult = await fetchAnthemAudio(cityName);
-    if (anthemResult) anthemAudio = anthemResult;
-
-    const videos = await searchVideo(title);
-    if (videos.length > 0) {
-      videoUrl = videos[0].url;
-    }
   } catch (err) {
     erro = err.message;
     report += `\n❌ *Erro ao processar:* ${erro}`;
   }
 
-  const toCache = { report, images, video: videoUrl, mayorImg, anthemAudio };
+  const toCache = { report, images, video: null, mayorImg: null, anthemAudio: null };
   cacheSet(cityName, toCache);
 
   const MAX = 4000;
@@ -784,22 +770,6 @@ async function handleCidade(sock, { jid, sender, args }) {
     await sock.sendMessage(jid, { text: report });
   }
 
-  const isDup = images.some(img => img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === (mayorImg || '').split('/').pop().replace(/^(thumb\/)?\d+px-/, ''));
-  try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] SEND_CHECK mayorImg=${mayorImg != null} isDup=${isDup} anthemAudio=${anthemAudio ? 'yes' : 'null'}\n`); } catch {}
-  if (mayorImg && !isDup) {
-    try {
-      const r = await fetch(mayorImg, { signal: AbortSignal.timeout(15000) });
-      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] FETCH mayorImg status=${r.status} ok=${r.ok}\n`); } catch {}
-      if (r.ok) {
-        const buf = await r.buffer();
-        try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] SEND mayorImg size=${buf.length}\n`); } catch {}
-        await sock.sendMessage(jid, { image: buf, caption: `👤 Prefeito(a)` });
-      }
-    } catch (e) {
-      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] ERROR mayorImg: ${e.message}\n`); } catch {}
-    }
-  }
-
   for (const img of images.slice(0, 4)) {
     try {
       const r = await fetch(img, { signal: AbortSignal.timeout(7000) });
@@ -807,29 +777,76 @@ async function handleCidade(sock, { jid, sender, args }) {
     } catch {}
   }
 
-  if (anthemAudio) {
+  (async () => {
     try {
-      await sock.sendMessage(jid, { audio: anthemAudio.data, mimetype: 'audio/mpeg', ptt: false });
-    } catch {}
-  }
-
-  if (videoUrl) {
-    await sock.sendMessage(jid, { text: `⏳ Baixando vídeo sobre ${cityName}...` });
-    const videoPath = await downloadVideoClip(videoUrl);
-    if (videoPath) {
-      try {
-        const buf = fs.readFileSync(videoPath);
-        await sock.sendMessage(jid, { video: buf, caption: `🎥 ${cityName}` });
-        fs.unlinkSync(videoPath);
-      } catch {
-        await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${videoUrl}` });
+      const fotoMayorId = wd?.mayorId;
+      const fotoMayorName = mayorName;
+      let fetchedMayorImg = null;
+      if (fotoMayorId || fotoMayorName) {
+        fetchedMayorImg = await fetchEntityImage(fotoMayorId, fotoMayorName);
+        try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] foto: id=${fotoMayorId} name=${fotoMayorName} img=${fetchedMayorImg}\n`); } catch {}
       }
-    } else {
-      await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${videoUrl}` });
-    }
-  }
 
-  await sock.sendMessage(jid, { text: `✅ Fim das informações sobre *${cityName}*.\nUse !cidade <outra cidade> para pesquisar novamente.` });
+      const [anthemResult, videos] = await Promise.all([
+        fetchAnthemAudio(cityName),
+        searchVideo(title)
+      ]);
+
+      let fetchedVideoUrl = '';
+      if (videos?.length > 0) fetchedVideoUrl = videos[0].url;
+
+      const isDup = fetchedMayorImg && images.some(img =>
+        img.split('/').pop().replace(/^(thumb\/)?\d+px-/, '') === fetchedMayorImg.split('/').pop().replace(/^(thumb\/)?\d+px-/, '')
+      );
+      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] BG: mayorImg=${fetchedMayorImg != null} isDup=${isDup} anthemAudio=${anthemResult ? 'yes' : 'null'}\n`); } catch {}
+
+      if (fetchedMayorImg && !isDup) {
+        try {
+          const r = await fetch(fetchedMayorImg, { signal: AbortSignal.timeout(15000) });
+          if (r.ok) {
+            const buf = await r.buffer();
+            await sock.sendMessage(jid, { image: buf, caption: '👤 Prefeito(a)' });
+          }
+        } catch (e) {
+          try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] ERROR mayorImg: ${e.message}\n`); } catch {}
+        }
+      }
+
+      if (anthemResult) {
+        try {
+          await sock.sendMessage(jid, { audio: anthemResult.data, mimetype: 'audio/mpeg', ptt: false });
+        } catch {}
+      }
+
+      if (fetchedVideoUrl) {
+        await sock.sendMessage(jid, { text: `⏳ Baixando vídeo sobre ${cityName}...` });
+        const videoPath = await downloadVideoClip(fetchedVideoUrl);
+        if (videoPath) {
+          try {
+            const buf = fs.readFileSync(videoPath);
+            await sock.sendMessage(jid, { video: buf, caption: `🎥 ${cityName}` });
+            fs.unlinkSync(videoPath);
+          } catch {
+            await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${fetchedVideoUrl}` });
+          }
+        } else {
+          await sock.sendMessage(jid, { text: `🎥 *Vídeo sobre ${cityName}*\n${fetchedVideoUrl}` });
+        }
+      }
+
+      const updatedCache = cacheGet(cityName);
+      if (updatedCache) {
+        updatedCache.video = fetchedVideoUrl;
+        updatedCache.mayorImg = fetchedMayorImg;
+        updatedCache.anthemAudio = anthemResult;
+        cacheSet(cityName, updatedCache);
+      }
+
+      await sock.sendMessage(jid, { text: `✅ Fim das informações sobre *${cityName}*.` });
+    } catch (bgErr) {
+      try { fs.appendFileSync('cidade_debug.log', `[${new Date().toISOString()}] BG_ERR: ${bgErr.message}\n`); } catch {}
+    }
+  })();
 }
 
 module.exports = { handleCidade, cidadeCommands };
