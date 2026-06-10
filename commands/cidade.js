@@ -512,14 +512,15 @@ function downloadVideoClip(url) {
     if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
     const outFile = path.join(TEMP_DIR, `cidade_${Date.now()}`);
     const child = execFile(YT_DLP, [
-      url, '-f', 'best[height<=1080][ext=mp4]/best[height<=1080][ext=webm]/best[height<=720][ext=mp4]/best[height<=720]/bestvideo+bestaudio/best',
-      '--max-filesize', '50M',
+      url, '-f', 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][ext=mp4]+bestaudio/best[height<=1080][ext=mp4]/best[height<=1080]/bestvideo[height<=720][ext=mp4]+bestaudio/best[height<=720][ext=mp4]/bestvideo+bestaudio/best',
+      '--max-filesize', '100M',
       '--merge-output-format', 'mp4',
+      '--embed-thumbnail',
       '--ffmpeg-location', FFMPEG,
       '--output', `${outFile}.%(ext)s`,
       '--no-playlist', '--no-warnings', '--no-progress',
       '--no-check-certificate'
-    ], { timeout: 120000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
+    ], { timeout: 180000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
       if (err) { resolve(null); return; }
       let videoFile = null;
       for (const ext of ['mp4', 'webm', 'mkv']) {
@@ -528,7 +529,7 @@ function downloadVideoClip(url) {
       }
       if (!videoFile) { resolve(null); return; }
       const stat = fs.statSync(videoFile);
-      if (stat.size > 50 * 1024 * 1024) { fs.unlinkSync(videoFile); resolve(null); return; }
+      if (stat.size > 100 * 1024 * 1024) { fs.unlinkSync(videoFile); resolve(null); return; }
       resolve(videoFile);
     });
     child.on('error', () => resolve(null));
