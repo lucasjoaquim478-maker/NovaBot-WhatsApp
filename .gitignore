@@ -3,7 +3,6 @@ node/
 temp/
 sessions/
 logs/
-bin/
 backups/
 storage/
 *.log
@@ -17,6 +16,9 @@ database/config.json
 database/vip.json
 database/owners.json
 database/backups/
+
+# Config (contem chaves de API)
+config.json
 
 # Shortcuts
 *.lnk
