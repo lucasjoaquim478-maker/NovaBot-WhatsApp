@@ -620,66 +620,69 @@ function haversineKm(lat1, lon1, lat2, lon2) {
   return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
 }
 
-function findStateCapital(stateName, cityCoords) {
-  if (!stateName || !cityCoords) return null;
-  const clean = stateName.toLowerCase().replace(/\(.*?\)/g, '').trim();
-  for (const [key, val] of Object.entries(STATE_CAPITALS)) {
-    if (clean.includes(key) || key.includes(clean)) {
-      const dist = haversineKm(cityCoords.lat, cityCoords.lon, val.lat, val.lon);
-      return { capital: val.capital, distanceKm: Math.round(dist), state: key };
+function findStateName(wd, datapoints, extractText) {
+  if (wd?.state) {
+    const s = wd.state.toLowerCase().replace(/\(.*?\)/g, '').trim();
+    for (const key of Object.keys(STATE_CAPITALS)) {
+      if (s.includes(key)) return key;
+    }
+    const words = s.split(/\s+/);
+    for (const key of Object.keys(STATE_CAPITALS)) {
+      const kw = key.split(/\s+/);
+      if (words.some(w => w.length > 3 && kw.includes(w))) return key;
     }
   }
-  const stateWords = clean.split(/\s+/);
-  for (const [key, val] of Object.entries(STATE_CAPITALS)) {
-    const keyWords = key.split(/\s+/);
-    if (stateWords.some(w => w.length > 3 && keyWords.includes(w))) {
-      const dist = haversineKm(cityCoords.lat, cityCoords.lon, val.lat, val.lon);
-      return { capital: val.capital, distanceKm: Math.round(dist), state: key };
+  if (datapoints?.state) {
+    const s = datapoints.state.toLowerCase().trim();
+    for (const key of Object.keys(STATE_CAPITALS)) {
+      if (s.includes(key)) return key;
     }
   }
-  const common = [
-    ['sp', 'são paulo'], ['rj', 'rio de janeiro'], ['mg', 'minas gerais'],
-    ['ba', 'bahia'], ['rs', 'rio grande do sul'], ['pr', 'paraná'],
-    ['sc', 'santa catarina'], ['pe', 'pernambuco'], ['ce', 'ceará'],
-    ['pa', 'pará'], ['ma', 'maranhão'], ['go', 'goiás'],
-    ['pb', 'paraíba'], ['pi', 'piauí'], ['al', 'alagoas'],
-    ['rn', 'rio grande do norte'], ['es', 'espírito santo'],
-    ['mt', 'mato grosso'], ['ms', 'mato grosso do sul'],
-    ['to', 'tocantins'], ['ro', 'rondônia'], ['rr', 'roraima'],
-    ['ac', 'acre'], ['am', 'amazonas'], ['ap', 'amapá'],
-    ['se', 'sergipe'], ['df', 'distrito federal'],
-  ];
-  for (const [abbr, full] of common) {
-    if (clean === abbr || clean.includes(abbr)) {
-      const v = STATE_CAPITALS[full];
-      if (v) {
-        const dist = haversineKm(cityCoords.lat, cityCoords.lon, v.lat, v.lon);
-        return { capital: v.capital, distanceKm: Math.round(dist), state: full };
-      }
+  if (extractText) {
+    const lower = extractText.toLowerCase();
+    for (const key of Object.keys(STATE_CAPITALS)) {
+      if (lower.includes(key + ' ') || lower.includes(key + ',') || lower.includes(key + '.') || lower.endsWith(key)) return key;
     }
   }
   return null;
 }
 
-async function searchTopicImage(query) {
-  try {
-    const dq = await fetch('https://duckduckgo.com/?q=' + encodeURIComponent(query) + '&t=h_&ia=web', {
-      headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000)
-    });
-    if (!dq.ok) return null;
-    const dt = await dq.text();
-    const vqdM = dt.match(/vqd=([\d-]+)&/);
-    if (!vqdM) return null;
-    const ij = await fetch('https://duckduckgo.com/i.js?q=' + encodeURIComponent(query) + '&o=json&vqd=' + vqdM[1], {
-      headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://duckduckgo.com/' }, signal: AbortSignal.timeout(8000)
-    });
-    if (!ij.ok) return null;
-    const jd = await ij.json();
-    if (!jd.results?.length) return null;
-    for (const res of jd.results) {
-      if (res.image && /\.(jpg|jpeg|png|webp)/i.test(res.image)) return res.image;
-    }
-  } catch {}
+function findStateCapital(stateKey, cityCoords) {
+  if (!stateKey || !cityCoords) return null;
+  const val = STATE_CAPITALS[stateKey];
+  if (!val) return null;
+  const dist = haversineKm(cityCoords.lat, cityCoords.lon, val.lat, val.lon);
+  return { capital: val.capital, distanceKm: Math.round(dist), state: stateKey };
+}
+
+async function searchTopicImage(query, extraKw) {
+  const searchQueries = [
+    `${query} ${extraKw}`,
+    `${query} ${extraKw} -logo -bandeira -brasão -escudo`,
+  ];
+  for (const q of searchQueries) {
+    try {
+      const sr = await fetch(
+        `https://commons.wikimedia.org/w/api.php?action=query&list=search&srsearch=${encodeURIComponent(q)}&srnamespace=6&srlimit=5&format=json&origin=*`,
+        { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(8000) }
+      );
+      if (!sr.ok) continue;
+      const sd = await sr.json();
+      for (const result of (sd.query?.search || [])) {
+        const fn = result.title.replace(/^File:/, '');
+        const ir = await fetch(
+          `https://commons.wikimedia.org/w/api.php?action=query&titles=File:${encodeURIComponent(fn.replace(/ /g, '_'))}&prop=imageinfo&iiprop=url&format=json&origin=*`,
+          { headers: { 'User-Agent': 'NovaBot/3.0' }, signal: AbortSignal.timeout(8000) }
+        );
+        if (ir.ok) {
+          const j = await ir.json();
+          const page = Object.values(j.query?.pages || {})[0];
+          const url = page?.imageinfo?.[0]?.url;
+          if (url && /\.(jpg|jpeg|png|webp)$/i.test(url)) return url;
+        }
+      }
+    } catch {}
+  }
   return null;
 }
 
@@ -791,8 +794,9 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     }
     if (mayorName) report += `👤 Prefeito: ${mayorName}\n`;
 
-    if (wiki.coordinates && wd?.state) {
-      const capInfo = findStateCapital(wd.state, wiki.coordinates);
+    const stateKey = findStateName(wd, datapoints, extractIntro);
+    if (wiki.coordinates && stateKey) {
+      const capInfo = findStateCapital(stateKey, wiki.coordinates);
       if (capInfo) {
         report += `\n🚗 *DISTÂNCIA DA CAPITAL*\n`;
         report += `📍 Capital: ${capInfo.capital}\n`;
@@ -809,13 +813,11 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     const culture = extractSectionText(sections, ['cultura']);
     if (culture) report += `\n🎭 *CULTURA*\n${culture}\n`;
 
-    let economyImgUrl = null;
     const economy = extractSectionText(sections, ['economia']);
     if (economy) report += `\n🏛️ *ECONOMIA*\n${economy}\n`;
 
     const gastronomy = extractSectionText(sections, ['gastronomia', 'culinária', 'culinaria']);
     if (gastronomy) report += `\n🍽️ *GASTRONOMIA*\n${gastronomy}\n`;
-    let foodImgUrl = null;
 
     const geography = extractSectionText(sections, ['geografia']);
     if (geography) report += `\n🌳 *GEOGRAFIA*\n${geography}\n`;
@@ -906,7 +908,7 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
 
   // Imagem da economia
   try {
-    const ecoUrl = await searchTopicImage(`${title} economia comércio indústria`);
+    const ecoUrl = await searchTopicImage(title, 'economia comércio indústria');
     if (ecoUrl) {
       const r = await fetch(ecoUrl, { signal: AbortSignal.timeout(7000) });
       if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '🏛️ Economia local' }, { quoted: msg });
@@ -915,7 +917,7 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
 
   // Imagem da comida típica
   try {
-    const foodUrl = await searchTopicImage(`${title} comida típica prato culinária`);
+    const foodUrl = await searchTopicImage(title, 'culinária gastronomia prato típico comida');
     if (foodUrl) {
       const r = await fetch(foodUrl, { signal: AbortSignal.timeout(7000) });
       if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '🍽️ Comida típica' }, { quoted: msg });
