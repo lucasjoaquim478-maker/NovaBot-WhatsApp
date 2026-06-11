@@ -26,6 +26,14 @@ const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate'
 const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { handleAchar, acharCommands } = require('./commands/achar');
 const { handleCidade, cidadeCommands } = require('./commands/cidade');
+// Auto-install se faltar dependencias
+try { require('puppeteer'); } catch {
+  const { execFile } = require('child_process');
+  const npmCmd = path.join(__dirname, 'node', 'npm.cmd');
+  const cmd = require('fs').existsSync(npmCmd) ? npmCmd : 'npm';
+  console.log('[STARTUP] Instalando dependencias...');
+  try { execFile(cmd, ['install', '--no-optional'], { cwd: __dirname, timeout: 300000 }); } catch {}
+}
 const { handleLink, linkCommands } = require('./commands/linkvertise');
 const { startAutoCheck, performUpdate } = require('./lib/updater');
 const fs = require('fs');

@@ -1,5 +1,10 @@
 const config = require('../config.json');
-const puppeteer = require('puppeteer');
+const fs = require('fs');
+const path = require('path');
+let puppeteer = null;
+try {
+  puppeteer = require('puppeteer');
+} catch {}
 const EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
 
 let browser = null;
@@ -54,6 +59,18 @@ async function handleLink(sock, { jid, args, msg }) {
     }
     if (!url.includes('linkvertise.com') && !url.includes('link-target.net')) {
       return await sock.sendMessage(jid, { text: '❌ Envie um link do Linkvertise (linkvertise.com ou link-target.net)' }, { quoted: msg });
+    }
+    if (!puppeteer) {
+      await sock.sendMessage(jid, { text: '📦 Instalando puppeteer (Chromium Edge)...' }, { quoted: msg });
+      const { execFile } = require('child_process');
+      const npmCmd = path.join(process.cwd(), 'node', 'npm.cmd');
+      const cmd = fs.existsSync(npmCmd) ? npmCmd : 'npm';
+      await new Promise((resolve, reject) => {
+        execFile(cmd, ['install', 'puppeteer'], { cwd: process.cwd(), timeout: 300000 }, (err) => {
+          if (err) reject(err); else resolve();
+        });
+      });
+      puppeteer = require('puppeteer');
     }
     await sock.sendMessage(jid, { text: `⏳ Passando pelo link...` }, { quoted: msg });
     const final = await bypassLink(url);
