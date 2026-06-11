@@ -580,6 +580,109 @@ function extractCountry(text) {
   return null;
 }
 
+const STATE_CAPITALS = {
+  'acre': { capital: 'Rio Branco', lat: -9.974, lon: -67.807 },
+  'alagoas': { capital: 'Maceió', lat: -9.649, lon: -35.709 },
+  'amapá': { capital: 'Macapá', lat: 0.035, lon: -51.07 },
+  'amazonas': { capital: 'Manaus', lat: -3.119, lon: -60.021 },
+  'bahia': { capital: 'Salvador', lat: -12.971, lon: -38.501 },
+  'ceará': { capital: 'Fortaleza', lat: -3.718, lon: -38.543 },
+  'distrito federal': { capital: 'Brasília', lat: -15.793, lon: -47.882 },
+  'espírito santo': { capital: 'Vitória', lat: -20.315, lon: -40.312 },
+  'goiás': { capital: 'Goiânia', lat: -16.686, lon: -49.264 },
+  'maranhão': { capital: 'São Luís', lat: -2.529, lon: -44.302 },
+  'mato grosso': { capital: 'Cuiabá', lat: -15.601, lon: -56.097 },
+  'mato grosso do sul': { capital: 'Campo Grande', lat: -20.469, lon: -54.620 },
+  'minas gerais': { capital: 'Belo Horizonte', lat: -19.917, lon: -43.934 },
+  'pará': { capital: 'Belém', lat: -1.455, lon: -48.504 },
+  'paraíba': { capital: 'João Pessoa', lat: -7.119, lon: -34.845 },
+  'paraná': { capital: 'Curitiba', lat: -25.429, lon: -49.267 },
+  'pernambuco': { capital: 'Recife', lat: -8.047, lon: -34.877 },
+  'piauí': { capital: 'Teresina', lat: -5.089, lon: -42.801 },
+  'rio de janeiro': { capital: 'Rio de Janeiro', lat: -22.906, lon: -43.172 },
+  'rio grande do norte': { capital: 'Natal', lat: -5.794, lon: -35.211 },
+  'rio grande do sul': { capital: 'Porto Alegre', lat: -30.034, lon: -51.217 },
+  'rondônia': { capital: 'Porto Velho', lat: -8.761, lon: -63.903 },
+  'roraima': { capital: 'Boa Vista', lat: 2.819, lon: -60.673 },
+  'santa catarina': { capital: 'Florianópolis', lat: -27.596, lon: -48.549 },
+  'são paulo': { capital: 'São Paulo', lat: -23.550, lon: -46.633 },
+  'sergipe': { capital: 'Aracaju', lat: -10.947, lon: -37.073 },
+  'tocantins': { capital: 'Palmas', lat: -10.249, lon: -48.324 },
+};
+
+function haversineKm(lat1, lon1, lat2, lon2) {
+  const R = 6371;
+  const dLat = (lat2 - lat1) * Math.PI / 180;
+  const dLon = (lon2 - lon1) * Math.PI / 180;
+  const a = Math.sin(dLat / 2) ** 2 +
+    Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
+    Math.sin(dLon / 2) ** 2;
+  return R * 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+}
+
+function findStateCapital(stateName, cityCoords) {
+  if (!stateName || !cityCoords) return null;
+  const clean = stateName.toLowerCase().replace(/\(.*?\)/g, '').trim();
+  for (const [key, val] of Object.entries(STATE_CAPITALS)) {
+    if (clean.includes(key) || key.includes(clean)) {
+      const dist = haversineKm(cityCoords.lat, cityCoords.lon, val.lat, val.lon);
+      return { capital: val.capital, distanceKm: Math.round(dist), state: key };
+    }
+  }
+  const stateWords = clean.split(/\s+/);
+  for (const [key, val] of Object.entries(STATE_CAPITALS)) {
+    const keyWords = key.split(/\s+/);
+    if (stateWords.some(w => w.length > 3 && keyWords.includes(w))) {
+      const dist = haversineKm(cityCoords.lat, cityCoords.lon, val.lat, val.lon);
+      return { capital: val.capital, distanceKm: Math.round(dist), state: key };
+    }
+  }
+  const common = [
+    ['sp', 'são paulo'], ['rj', 'rio de janeiro'], ['mg', 'minas gerais'],
+    ['ba', 'bahia'], ['rs', 'rio grande do sul'], ['pr', 'paraná'],
+    ['sc', 'santa catarina'], ['pe', 'pernambuco'], ['ce', 'ceará'],
+    ['pa', 'pará'], ['ma', 'maranhão'], ['go', 'goiás'],
+    ['pb', 'paraíba'], ['pi', 'piauí'], ['al', 'alagoas'],
+    ['rn', 'rio grande do norte'], ['es', 'espírito santo'],
+    ['mt', 'mato grosso'], ['ms', 'mato grosso do sul'],
+    ['to', 'tocantins'], ['ro', 'rondônia'], ['rr', 'roraima'],
+    ['ac', 'acre'], ['am', 'amazonas'], ['ap', 'amapá'],
+    ['se', 'sergipe'], ['df', 'distrito federal'],
+  ];
+  for (const [abbr, full] of common) {
+    if (clean === abbr || clean.includes(abbr)) {
+      const v = STATE_CAPITALS[full];
+      if (v) {
+        const dist = haversineKm(cityCoords.lat, cityCoords.lon, v.lat, v.lon);
+        return { capital: v.capital, distanceKm: Math.round(dist), state: full };
+      }
+    }
+  }
+  return null;
+}
+
+async function searchTopicImage(query) {
+  try {
+    const dq = await fetch('https://duckduckgo.com/?q=' + encodeURIComponent(query) + '&t=h_&ia=web', {
+      headers: { 'User-Agent': 'Mozilla/5.0' }, signal: AbortSignal.timeout(8000)
+    });
+    if (!dq.ok) return null;
+    const dt = await dq.text();
+    const vqdM = dt.match(/vqd=([\d-]+)&/);
+    if (!vqdM) return null;
+    const ij = await fetch('https://duckduckgo.com/i.js?q=' + encodeURIComponent(query) + '&o=json&vqd=' + vqdM[1], {
+      headers: { 'User-Agent': 'Mozilla/5.0', 'Referer': 'https://duckduckgo.com/' }, signal: AbortSignal.timeout(8000)
+    });
+    if (!ij.ok) return null;
+    const jd = await ij.json();
+    if (!jd.results?.length) return null;
+    for (const res of jd.results) {
+      if (res.image && /\.(jpg|jpeg|png|webp)/i.test(res.image)) return res.image;
+    }
+  } catch {}
+  return null;
+}
+
 async function handleCidade(sock, { jid, sender, args, msg }) {
   if (!args.length) {
     await sock.sendMessage(jid, { text: '❌ Use: !cidade <nome da cidade>\nExemplo: !cidade Paris' });
@@ -688,6 +791,15 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     }
     if (mayorName) report += `👤 Prefeito: ${mayorName}\n`;
 
+    if (wiki.coordinates && wd?.state) {
+      const capInfo = findStateCapital(wd.state, wiki.coordinates);
+      if (capInfo) {
+        report += `\n🚗 *DISTÂNCIA DA CAPITAL*\n`;
+        report += `📍 Capital: ${capInfo.capital}\n`;
+        report += `📏 Distância: ~${capInfo.distanceKm} km\n`;
+      }
+    }
+
     const clima = extractSectionText(sections, ['clima']);
     if (clima) report += `\n🌤️ *CLIMA*\n${clima}\n`;
 
@@ -697,17 +809,19 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     const culture = extractSectionText(sections, ['cultura']);
     if (culture) report += `\n🎭 *CULTURA*\n${culture}\n`;
 
+    let economyImgUrl = null;
     const economy = extractSectionText(sections, ['economia']);
     if (economy) report += `\n🏛️ *ECONOMIA*\n${economy}\n`;
+
+    const gastronomy = extractSectionText(sections, ['gastronomia', 'culinária', 'culinaria']);
+    if (gastronomy) report += `\n🍽️ *GASTRONOMIA*\n${gastronomy}\n`;
+    let foodImgUrl = null;
 
     const geography = extractSectionText(sections, ['geografia']);
     if (geography) report += `\n🌳 *GEOGRAFIA*\n${geography}\n`;
 
     const tourism = extractSectionText(sections, ['turismo', 'pontos turísticos', 'pontos turisticos', 'atrações', 'atracoes', 'locais de interesse', 'principais pontos']);
     if (tourism) report += `\n🗺️ *TURISMO*\n${tourism}\n`;
-
-    const gastronomy = extractSectionText(sections, ['gastronomia', 'culinária', 'culinaria']);
-    if (gastronomy) report += `\n🍽️ *GASTRONOMIA*\n${gastronomy}\n`;
 
     const education = extractSectionText(sections, ['educaçao', 'educação']);
     if (education) report += `\n🏫 *EDUCAÇÃO*\n${education}\n`;
@@ -757,7 +871,7 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
     report += `\n❌ *Erro ao processar:* ${erro}`;
   }
 
-  const toCache = { report, images, video: null, mayorImg: null, anthemAudio: null };
+  const toCache = { report, images, video: null, mayorImg: null, anthemAudio: null, economyImg: null, foodImg: null };
   cacheSet(cityName, toCache);
 
   const MAX = 4000;
@@ -789,6 +903,24 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
       }
     } catch {}
   }
+
+  // Imagem da economia
+  try {
+    const ecoUrl = await searchTopicImage(`${title} economia comércio indústria`);
+    if (ecoUrl) {
+      const r = await fetch(ecoUrl, { signal: AbortSignal.timeout(7000) });
+      if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '🏛️ Economia local' }, { quoted: msg });
+    }
+  } catch {}
+
+  // Imagem da comida típica
+  try {
+    const foodUrl = await searchTopicImage(`${title} comida típica prato culinária`);
+    if (foodUrl) {
+      const r = await fetch(foodUrl, { signal: AbortSignal.timeout(7000) });
+      if (r.ok) await sock.sendMessage(jid, { image: await r.buffer(), caption: '🍽️ Comida típica' }, { quoted: msg });
+    }
+  } catch {}
 
   // Imagens da cidade
   for (const img of images.slice(0, 4)) {

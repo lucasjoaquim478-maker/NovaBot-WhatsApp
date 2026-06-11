@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
+const { convertToMp4 } = require('../lib/utils');
 
 const YT_DLP = path.join(process.cwd(), 'bin', 'yt-dlp.exe');
 const FFMPEG = path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
@@ -24,7 +25,16 @@ async function downloadYtDlp(url, extraArgs = []) {
     await runYtDlp(args);
     for (const e of ['mp4', 'webm', 'mkv', 'jpg', 'png', 'jpeg', 'gif', 'webp']) {
       const p = `${outFile}.${e}`;
-      if (fs.existsSync(p)) { const data = fs.readFileSync(p); fs.unlinkSync(p); return { success: true, data, ext: e }; }
+      if (fs.existsSync(p)) {
+        let filePath = p;
+        if ((e === 'webm' || e === 'mkv') && fs.statSync(p).size > 1024) {
+          try { filePath = await convertToMp4(p); } catch {}
+        }
+        const data = fs.readFileSync(filePath);
+        const ext = filePath.endsWith('.mp4') ? 'mp4' : e;
+        fs.unlinkSync(filePath);
+        return { success: true, data, ext };
+      }
     }
     return { success: false, error: 'Nenhum arquivo gerado' };
   } catch (e) {

@@ -2,7 +2,7 @@ const yts = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { formatDuration, formatNumber } = require('../lib/utils');
+const { formatDuration, formatNumber, convertToMp4 } = require('../lib/utils');
 
 const YT_DLP = path.join(process.cwd(), 'bin', 'yt-dlp.exe');
 const FFMPEG = path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
@@ -43,6 +43,12 @@ async function downloadVideo(url) {
     }
 
     if (!videoFile) throw new Error('Video nao foi gerado');
+
+    if (videoFile.endsWith('.webm') || videoFile.endsWith('.mkv')) {
+      try {
+        videoFile = await convertToMp4(videoFile);
+      } catch {}
+    }
 
     const data = fs.readFileSync(videoFile);
     const size = data.length;

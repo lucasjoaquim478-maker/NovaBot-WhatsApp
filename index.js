@@ -41,6 +41,22 @@ const fs = require('fs');
 const path = require('path');
 const os = require('os');
 
+const lockFile = path.join(__dirname, '.bot.lock');
+try {
+  if (fs.existsSync(lockFile)) {
+    const pid = parseInt(fs.readFileSync(lockFile, 'utf-8'), 10);
+    try {
+      process.kill(pid, 0);
+      console.error(`[LOCK] Outra instância já está rodando (PID: ${pid}). Abortando.`);
+      process.exit(0);
+    } catch {
+      fs.unlinkSync(lockFile);
+    }
+  }
+  fs.writeFileSync(lockFile, String(process.pid));
+  process.on('exit', () => { try { fs.unlinkSync(lockFile); } catch {} });
+} catch {}
+
 const startTime = Date.now();
 global.startTime = startTime;
 setStartTime(startTime);
