@@ -810,7 +810,7 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
   // Vídeo drone/aéreo MP4 (mais recente primeiro)
   await sock.sendMessage(jid, { text: `🔍 Buscando vídeo aéreo de *${cityName}*...` }, { quoted: msg });
   let droneVids = (await ytSearch(`"${title}" vista aérea OR drone OR panorama OR sobrevoo`))?.videos || [];
-  droneVids = droneVids.filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'));
+  droneVids = droneVids.filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) <= 900 && !v.title.toLowerCase().includes('short'));
   droneVids.sort((a, b) => new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
   let droneVideoUrl = droneVids?.[0]?.url || '';
 
@@ -831,7 +831,7 @@ async function handleCidade(sock, { jid, sender, args, msg }) {
   } else {
     // Fallback: busca normal (mais recente primeiro)
     let fbVids = (await ytSearch(`"${title}" cidade turismo OR documentário OR guia`))?.videos || [];
-    fbVids = fbVids.filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) < 600 && !v.title.toLowerCase().includes('short'));
+    fbVids = fbVids.filter(v => v.url && v.title && parseInt(v.seconds) >= 10 && parseInt(v.seconds) <= 900 && !v.title.toLowerCase().includes('short'));
     fbVids.sort((a, b) => new Date(b.uploadDate || 0) - new Date(a.uploadDate || 0));
     const fbUrl = fbVids?.[0]?.url || '';
     if (fbUrl) {
