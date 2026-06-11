@@ -26,6 +26,7 @@ const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate'
 const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { handleAchar, acharCommands } = require('./commands/achar');
 const { handleCidade, cidadeCommands } = require('./commands/cidade');
+const { handleLink, linkCommands } = require('./commands/linkvertise');
 const { startAutoCheck, performUpdate } = require('./lib/updater');
 const fs = require('fs');
 const path = require('path');
@@ -69,6 +70,7 @@ function registerCommands() {
     { cmds: testeCommands, handler: handleTeste },
     { cmds: acharCommands, handler: handleAchar },
     { cmds: cidadeCommands, handler: handleCidade },
+    { cmds: linkCommands, handler: handleLink },
     { cmds: ['confirma'], handler: handleConfirma }
   ];
 
