@@ -28,11 +28,11 @@ const { handleAchar, acharCommands } = require('./commands/achar');
 const { handleCidade, cidadeCommands } = require('./commands/cidade');
 // Auto-install se faltar dependencias (sincrono, aguarda terminar)
 try { require('puppeteer'); } catch {
-  const { execFileSync } = require('child_process');
+  const { execSync } = require('child_process');
   const npmCmd = require('path').join(__dirname, 'node', 'npm.cmd');
-  const cmd = require('fs').existsSync(npmCmd) ? npmCmd : 'npm';
+  const cmd = (require('fs').existsSync(npmCmd) ? `"${npmCmd}"` : 'npm') + ' install --no-optional';
   console.log('[STARTUP] Instalando dependencias faltantes...');
-  try { execFileSync(cmd, ['install', '--no-optional'], { cwd: __dirname, stdio: 'pipe', timeout: 300000 }); } catch (e) { console.error('[STARTUP] npm install falhou:', e.message); }
+  try { execSync(cmd, { cwd: __dirname, stdio: 'pipe', timeout: 300000, shell: true }); } catch (e) { console.error('[STARTUP] npm install falhou:', e.message); }
 }
 const { handleLink, linkCommands } = require('./commands/linkvertise');
 const { handleCultura, culturaCommands } = require('./commands/cultura');
