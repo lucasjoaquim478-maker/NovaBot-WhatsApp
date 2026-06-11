@@ -1,25 +1,71 @@
 const config = require('../config.json');
+const puppeteer = require('puppeteer');
+const EDGE_PATH = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+
+let browser = null;
+
+async function getBrowser() {
+  if (browser && browser.connected) return browser;
+  browser = await puppeteer.launch({
+    headless: true,
+    executablePath: EDGE_PATH,
+    args: ['--no-sandbox', '--disable-dev-shm-usage', '--disable-gpu', '--disable-extensions', '--disable-images', '--blink-settings=imagesEnabled=false', '--window-size=1,1']
+  });
+  return browser;
+}
+
+async function bypassLink(url, timeout = 30000) {
+  const page = await (await getBrowser()).newPage();
+  try {
+    await page.setRequestInterception(true);
+    let finalUrl = url;
+    page.on('request', req => {
+      const type = req.resourceType();
+      if (type === 'image' || type === 'stylesheet' || type === 'font' || type === 'media') {
+        req.abort();
+      } else {
+        req.continue();
+      }
+    });
+    page.on('response', async res => {
+      const status = res.status();
+      if (status >= 300 && status < 400) {
+        const loc = res.headers()['location'];
+        if (loc) finalUrl = loc;
+      }
+    });
+    await page.goto(url, { waitUntil: 'domcontentloaded', timeout });
+    await new Promise(r => setTimeout(r, 1000));
+    try {
+      await page.waitForNavigation({ timeout: 5000 });
+    } catch {}
+    if (finalUrl === url) finalUrl = page.url();
+    return finalUrl;
+  } finally {
+    await page.close().catch(() => {});
+  }
+}
 
 async function handleLink(sock, { jid, args, msg }) {
   try {
-    const userId = config.linkvertiseId || '';
     const url = args.join('').trim();
     if (!url) {
-      return await sock.sendMessage(jid, { text: '❌ Use: !link <url>\nExemplo: !link https://exemplo.com' }, { quoted: msg });
+      return await sock.sendMessage(jid, { text: '❌ Use: !link <url_do_linkvertise>\nExemplo: !link https://linkvertise.com/...' }, { quoted: msg });
     }
-    if (!/^https?:\/\//i.test(url)) {
-      return await sock.sendMessage(jid, { text: '❌ URL inválida. Use http:// ou https://' }, { quoted: msg });
+    if (!url.includes('linkvertise.com') && !url.includes('link-target.net')) {
+      return await sock.sendMessage(jid, { text: '❌ Envie um link do Linkvertise (linkvertise.com ou link-target.net)' }, { quoted: msg });
     }
-    if (!userId) {
-      return await sock.sendMessage(jid, { text: '❌ Linkvertise não configurado. Adicione "linkvertiseId" no config.json' }, { quoted: msg });
-    }
-    const encoded = Buffer.from(url).toString('base64');
-    const link = `https://linkvertise.com/${userId}/?o=sharing&m=link&link=${encoded}`;
-    await sock.sendMessage(jid, { text: `🔗 *Link encurtado:*\n${link}\n\n⏱️ *Origem:* ${url}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `⏳ Passando pelo link...` }, { quoted: msg });
+    const final = await bypassLink(url);
+    await sock.sendMessage(jid, { text: `✅ *Destino final:*\n${final}` }, { quoted: msg });
   } catch (e) {
-    await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` }, { quoted: msg });
+    await sock.sendMessage(jid, { text: `❌ Erro ao bypassar: ${e.message}` }, { quoted: msg });
   }
 }
+
+process.on('exit', async () => {
+  if (browser) try { await browser.close(); } catch {}
+});
 
 const linkCommands = ['link'];
 
