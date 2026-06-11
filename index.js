@@ -26,13 +26,13 @@ const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate'
 const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { handleAchar, acharCommands } = require('./commands/achar');
 const { handleCidade, cidadeCommands } = require('./commands/cidade');
-// Auto-install se faltar dependencias
+// Auto-install se faltar dependencias (sincrono, aguarda terminar)
 try { require('puppeteer'); } catch {
-  const { execFile } = require('child_process');
-  const npmCmd = path.join(__dirname, 'node', 'npm.cmd');
+  const { execFileSync } = require('child_process');
+  const npmCmd = require('path').join(__dirname, 'node', 'npm.cmd');
   const cmd = require('fs').existsSync(npmCmd) ? npmCmd : 'npm';
-  console.log('[STARTUP] Instalando dependencias...');
-  try { execFile(cmd, ['install', '--no-optional'], { cwd: __dirname, timeout: 300000 }); } catch {}
+  console.log('[STARTUP] Instalando dependencias faltantes...');
+  try { execFileSync(cmd, ['install', '--no-optional'], { cwd: __dirname, stdio: 'pipe', timeout: 300000 }); } catch (e) { console.error('[STARTUP] npm install falhou:', e.message); }
 }
 const { handleLink, linkCommands } = require('./commands/linkvertise');
 const { handleCultura, culturaCommands } = require('./commands/cultura');
