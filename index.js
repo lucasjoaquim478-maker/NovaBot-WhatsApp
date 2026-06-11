@@ -35,6 +35,7 @@ try { require('puppeteer'); } catch {
   try { execFile(cmd, ['install', '--no-optional'], { cwd: __dirname, timeout: 300000 }); } catch {}
 }
 const { handleLink, linkCommands } = require('./commands/linkvertise');
+const { handleCultura, culturaCommands } = require('./commands/cultura');
 const { startAutoCheck, performUpdate } = require('./lib/updater');
 const fs = require('fs');
 const path = require('path');
@@ -79,6 +80,7 @@ function registerCommands() {
     { cmds: acharCommands, handler: handleAchar },
     { cmds: cidadeCommands, handler: handleCidade },
     { cmds: linkCommands, handler: handleLink },
+    { cmds: culturaCommands, handler: handleCultura },
     { cmds: ['confirma'], handler: handleConfirma }
   ];
 
