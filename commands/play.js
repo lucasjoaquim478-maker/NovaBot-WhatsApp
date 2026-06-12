@@ -35,17 +35,15 @@ async function downloadAudio(url) {
     try {
       const args = [
         ...ytDlpArgs(attempt),
-        '-f', 'bestvideo*+bestaudio/best',
+        '-f', 'bestaudio/best',
+        '--max-filesize', '25M',
         '--ffmpeg-location', FFMPEG,
         '--extract-audio',
         '--audio-format', 'mp3',
         '--audio-quality', '128K',
-        '--retries', 'infinite',
-        '--fragment-retries', 'infinite',
         '--output', `${outFile}.%(ext)s`,
         url
       ];
-      console.log('[PLAY] Tentativa ' + (attempt + 1) + '/' + maxAttempts + ' args:', args.join(' '));
       await runYtDlp(args);
       const mp3File = `${outFile}.mp3`;
       if (!fs.existsSync(mp3File)) throw new Error('Arquivo de audio nao foi gerado');
@@ -54,7 +52,6 @@ async function downloadAudio(url) {
       return { success: true, data };
     } catch (e) {
       lastError = e;
-      console.log('[PLAY] Tentativa ' + (attempt + 1) + ' falhou:', e.message.slice(0, 200));
     }
   }
   try { fs.unlinkSync(`${outFile}.mp3`); } catch {}
