@@ -242,22 +242,25 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
         if (!fs.existsSync(warpDir)) fs.mkdirSync(warpDir, { recursive: true });
         const warpBin = path.join(warpDir, 'warp-plus');
         if (!fs.existsSync(warpBin)) {
-          await sock.sendMessage(jid, { text: '⬇️ Baixando warp-plus via Node.js...' });
+          await sock.sendMessage(jid, { text: '⬇️ Baixando warp-plus...' });
           const tmpDir = path.join(warpDir, '.warp-dl');
           if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
           const tarball = path.join(tmpDir, 'warp.tar.gz');
           await new Promise((resolve, reject) => {
-            const url = 'https://github.com/bepass-org/warp-plus/releases/latest/download/warp-plus_linux-amd64.tar.gz';
-            const file = fs.createWriteStream(tarball);
-            https.get(url, (res) => {
-              if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                file.close(); fs.unlinkSync(tarball);
-                https.get(res.headers.location, (r2) => { r2.pipe(file); file.on('finish', resolve); });
-                return;
-              }
-              res.pipe(file);
-              file.on('finish', resolve);
-            }).on('error', (e) => { file.close(); fs.unlinkSync(tarball); reject(e); });
+            const githubUrl = 'https://github.com/bepass-org/warp-plus/releases/latest/download/warp-plus_linux-amd64.tar.gz';
+            const timeout = setTimeout(() => { reject(new Error('Download timeout (60s)')); }, 60000);
+            const dl = (u, dest) => {
+              const f = fs.createWriteStream(dest);
+              https.get(u, (res) => {
+                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                  f.close(); try { fs.unlinkSync(dest); } catch {}
+                  return dl(res.headers.location, dest);
+                }
+                res.pipe(f);
+                f.on('finish', () => { clearTimeout(timeout); f.close(resolve); });
+              }).on('error', (e) => { clearTimeout(timeout); try { f.close(); fs.unlinkSync(dest); } catch {} reject(e); });
+            };
+            dl(githubUrl, tarball);
           });
           if (!fs.existsSync(tarball)) throw new Error('Download falhou');
           await new Promise((resolve, reject) => {
