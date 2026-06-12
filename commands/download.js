@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
-const { convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpRetry } = require('../lib/utils');
+const { convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -22,10 +22,10 @@ async function downloadYtDlp(url, extraArgs = []) {
   const outFile = path.join(tempDir, `soc_${Date.now()}`);
 
   let lastError;
-  for (let attempt = 0; attempt < 3; attempt++) {
+  const maxAttempts = ytDlpAttempts();
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     try {
-      const extra = attempt > 0 ? ytDlpRetry(lastError, attempt) : [];
-      const args = [...ytDlpArgs(extra), '--max-filesize', '50M', '--ffmpeg-location', FFMPEG, '--output', `${outFile}.%(ext)s`, ...extraArgs, url];
+      const args = [...ytDlpArgs(attempt), '--max-filesize', '50M', '--ffmpeg-location', FFMPEG, '--output', `${outFile}.%(ext)s`, ...extraArgs, url];
       await runYtDlp(args);
       for (const e of ['mp4', 'webm', 'mkv', 'jpg', 'png', 'jpeg', 'gif', 'webp']) {
         const p = `${outFile}.${e}`;

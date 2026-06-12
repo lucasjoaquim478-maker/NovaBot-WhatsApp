@@ -3,7 +3,7 @@ const ytSearch = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpRetry } = require('../lib/utils');
+const { getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -397,12 +397,11 @@ async function fetchAnthemAudio(cityName) {
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
     const outFile = path.join(tempDir, `hino_${Date.now()}`);
 
-    let lastErr;
-    for (let attempt = 0; attempt < 3; attempt++) {
+    const maxAttempts = ytDlpAttempts();
+    for (let attempt = 0; attempt < maxAttempts; attempt++) {
       try {
-        const extra = attempt > 0 ? ytDlpRetry(lastErr, attempt) : [];
         const args = [
-          ...ytDlpArgs(extra),
+          ...ytDlpArgs(attempt),
           '-f', 'bestaudio[ext=m4a]/bestaudio',
           '--max-filesize', '15M',
           '--ffmpeg-location', FFMPEG,
@@ -422,7 +421,7 @@ async function fetchAnthemAudio(cityName) {
         fs.unlinkSync(mp3File);
         return { data, title: video.title };
       } catch (e) {
-        lastErr = e;
+        // continue to next strategy
       }
     }
     return null;
