@@ -35,7 +35,6 @@ async function downloadAudio(url) {
     try {
       const args = [
         ...ytDlpArgs(attempt),
-        '-f', 'ba/best',
         '--max-filesize', '25M',
         '--ffmpeg-location', FFMPEG,
         '--extract-audio',
