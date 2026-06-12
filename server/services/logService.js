@@ -35,12 +35,17 @@ class LogService {
     }
   }
 
-  add(type, message) {
+  add(type, message, source) {
     const map = { error: 'ERROR', warn: 'WARNING', info: 'INFO', debug: 'INFO', success: 'SUCCESS' };
+    if (!source) {
+      const m = message.match(/^\[(\w+)\]/);
+      source = m ? m[1].toLowerCase() : 'system';
+    }
     const entry = {
       id: `${Date.now()}-${Math.random().toString(36).slice(2, 6)}`,
       type: map[type] || 'INFO',
       message,
+      source,
       timestamp: new Date().toISOString()
     };
     monitor.logHistory.push(entry);

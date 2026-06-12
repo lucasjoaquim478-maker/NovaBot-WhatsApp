@@ -240,10 +240,9 @@ async function main() {
 
   registerCommands();
 
-  Logger.onLog = (level, msg) => {
-    const map = { error: 'ERROR', warn: 'WARNING', info: 'INFO', debug: 'INFO', success: 'SUCCESS' };
-    logService.add(map[level] || 'INFO', msg);
-  };
+  Logger.setOnLog((level, msg) => {
+    logService.add(level, msg);
+  });
 
   try {
     await webServer.start(config.webPort);

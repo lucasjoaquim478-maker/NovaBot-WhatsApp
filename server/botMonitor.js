@@ -1,4 +1,5 @@
 const EventEmitter = require('events');
+const path = require('path');
 
 class BotMonitor extends EventEmitter {
   constructor() {
@@ -6,6 +7,8 @@ class BotMonitor extends EventEmitter {
     this.state = { status: 'offline', connectedAt: null, user: null };
     this.logHistory = [];
     this.lastQR = null;
+    this.serverInfo = { platform: process.platform, nodeVersion: process.version };
+    try { this.serverInfo.version = require(path.join(__dirname, '..', 'package.json')).version; } catch {}
   }
 
   setOnline(user) {

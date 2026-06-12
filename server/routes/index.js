@@ -18,12 +18,17 @@ router.get('/stats', (req, res) => {
   const uptime = state.connectedAt
     ? Math.floor((Date.now() - new Date(state.connectedAt).getTime()) / 1000)
     : 0;
+  const phone = state.user
+    ? (state.user.id || '').split(':')[0]?.replace('@s.whatsapp.net', '')
+    : null;
   res.json({
     status: state.status,
     connectedAt: state.connectedAt,
     uptime,
     logCount: monitor.logHistory.length,
-    user: state.user ? { id: state.user.id?.split(':')[0] } : null
+    phone,
+    user: state.user ? { id: state.user.id?.split(':')[0] } : null,
+    server: monitor.serverInfo
   });
 });
 

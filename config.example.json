@@ -32,5 +32,6 @@
   "githubRepo": "lucasjoaquim478-maker/NovaBot-WhatsApp",
   "branch": "main",
   "checkInterval": 3600000,
+  "webPort": 3000,
   "logLevel": "info"
 }
