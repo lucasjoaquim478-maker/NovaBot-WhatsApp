@@ -2,6 +2,7 @@ const { backup } = require('../database/backup');
 const db = require('../database/index');
 const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
+const shardcloud = require('../lib/shardcloud');
 const fs = require('fs');
 const path = require('path');
 const ROOT = path.resolve(__dirname, '..');
@@ -31,7 +32,7 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
   switch (commandName) {
     case 'reiniciar': {
       await sock.sendMessage(jid, { text: '🔄 Reiniciando bot...' });
-      process.exit(1);
+      await shardcloud.safeRestart();
       break;
     }
     case 'shutdown': {

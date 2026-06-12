@@ -33,5 +33,7 @@
   "branch": "main",
   "checkInterval": 3600000,
   "webPort": 3000,
+  "shardcloudToken": "",
+  "shardcloudAppId": "f6439f96-f6ad-4ec5-9d08-ec39853041a4",
   "logLevel": "info"
 }

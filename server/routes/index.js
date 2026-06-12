@@ -3,6 +3,7 @@ const tokenService = require('../services/tokenService');
 const logService = require('../services/logService');
 const monitor = require('../botMonitor');
 const updater = require('../../lib/updater');
+const shardcloud = require('../../lib/shardcloud');
 
 const router = Router();
 
@@ -72,7 +73,7 @@ router.post('/tokens/:id/revoke', asyncWrap(async (req, res) => {
 router.post('/bot/restart', (req, res) => {
   logService.add('info', 'Reinício solicitado pelo painel');
   res.json({ ok: true });
-  setTimeout(() => process.exit(1), 1000);
+  setTimeout(() => shardcloud.safeRestart(), 1000);
 });
 
 /* ─── Update ─── */
@@ -92,7 +93,7 @@ router.post('/update/start', asyncWrap(async (req, res) => {
   }
   updater.performUpdate().then(result => {
     logService.add('info', `Atualização concluída: ${updater.getCurrentVersion()} -> ${result.targetVer}`);
-    setTimeout(() => process.exit(1), 3000);
+    setTimeout(() => shardcloud.safeRestart(), 3000);
   }).catch(err => {
     logService.add('error', `Falha na atualização: ${err.message}`);
   });
@@ -127,7 +128,7 @@ router.post('/update/rollback', asyncWrap(async (req, res) => {
   const result = await updater.rollback();
   logService.add('warn', `Rollback realizado: ${result.backup} (${result.files} arquivos)`);
   res.json(result);
-  setTimeout(() => process.exit(1), 3000);
+  setTimeout(() => shardcloud.safeRestart(), 3000);
 }));
 
 router.get('/update/backups', (req, res) => {
