@@ -245,9 +245,21 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           await sock.sendMessage(jid, { text: '📥 warp-cli nao encontrado. Tentando instalar...' });
           await new Promise((resolve, reject) => {
             execFile('sh', ['-c', `
-              curl -fsSL https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo | tee /etc/yum.repos.d/cloudflare-warp.repo;
-              dnf install -y cloudflare-warp 2>/dev/null || yum install -y cloudflare-warp 2>/dev/null || apt-get update -qq && apt-get install -y -qq cloudflare-warp 2>/dev/null;
-            `], { timeout: 120000 }, (err) => err ? reject(err) : resolve());
+              if command -v apt-get >/dev/null 2>&1; then
+                curl -fsSL https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo 2>/dev/null | tee /etc/apt/sources.list.d/cloudflare-warp.list 2>/dev/null || true;
+                apt-get update -qq 2>/dev/null || true;
+                apt-get install -y -qq cloudflare-warp 2>/dev/null || true;
+              elif command -v dnf >/dev/null 2>&1; then
+                mkdir -p /etc/yum.repos.d 2>/dev/null;
+                curl -fsSL https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo 2>/dev/null | tee /etc/yum.repos.d/cloudflare-warp.repo 2>/dev/null || true;
+                dnf install -y cloudflare-warp 2>/dev/null || true;
+              elif command -v yum >/dev/null 2>&1; then
+                mkdir -p /etc/yum.repos.d 2>/dev/null;
+                curl -fsSL https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo 2>/dev/null | tee /etc/yum.repos.d/cloudflare-warp.repo 2>/dev/null || true;
+                yum install -y cloudflare-warp 2>/dev/null || true;
+              fi
+              exit 0
+            `], { timeout: 120000 }, (err) => resolve());
           });
           const check = await verif();
           if (!check) {
