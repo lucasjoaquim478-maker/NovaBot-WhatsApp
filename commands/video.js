@@ -100,7 +100,7 @@ async function handleVideo(sock, { msg, jid, sender, args }) {
       const logService = require('../server/services/logService');
       logService.add('error', `Download video falhou: ${result.error}`);
       return await sock.sendMessage(jid, {
-        text: `⚠️ Nao foi possivel baixar.\n\n📹 Link direto:\n${video.url}\n\n💡 Tente um video mais curto.`
+        text: `⚠️ Nao foi possivel baixar.\n📹 Link: ${video.url}\n❌ Erro: ${result.error}\n💡 Tente um video mais curto.`
       });
     }
 

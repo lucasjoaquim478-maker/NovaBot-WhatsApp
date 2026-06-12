@@ -110,7 +110,7 @@ async function handlePlay(sock, { msg, jid, sender, args }) {
       const logService = require('../server/services/logService');
       logService.add('error', `Download audio falhou: ${result.error}`);
       return await sock.sendMessage(jid, {
-        text: `⚠️ Nao foi possivel baixar.\n\n📹 Link direto:\n${video.url}\n\n💡 Tente novamente ou use outro termo de busca.`
+        text: `⚠️ Nao foi possivel baixar.\n📹 Link: ${video.url}\n❌ Erro: ${result.error}\n💡 Tente novamente ou use outro termo de busca.`
       });
     }
 
