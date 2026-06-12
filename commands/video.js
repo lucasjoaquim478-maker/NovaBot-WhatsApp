@@ -11,10 +11,10 @@ const FFMPEG = path.join(ROOT, 'node_modules', '@ffmpeg-installer', 'win32-x64',
 function runYtDlp(args) {
   return new Promise((resolve, reject) => {
     const child = execFile(YT_DLP, args, { maxBuffer: 150 * 1024 * 1024 }, (err, stdout, stderr) => {
-      if (err) reject(new Error(stderr || err.message));
+      if (err) reject(new Error((stderr || err.message || '').slice(0, 500)));
       else resolve(stdout);
     });
-    child.on('error', reject);
+    child.on('error', (e) => reject(new Error(`yt-dlp: ${e.message}`)));
   });
 }
 
@@ -29,6 +29,7 @@ async function downloadVideo(url) {
       '--max-filesize', '50M',
       '--merge-output-format', 'mp4',
       '--ffmpeg-location', FFMPEG,
+      '--js-runtimes', 'node',
       '--no-warnings',
       '--no-playlist',
       '--output', `${outFile}.%(ext)s`,
@@ -96,6 +97,8 @@ async function handleVideo(sock, { msg, jid, sender, args }) {
     const result = await downloadVideo(video.url);
 
     if (!result.success) {
+      const logService = require('../server/services/logService');
+      logService.add('error', `Download video falhou: ${result.error}`);
       return await sock.sendMessage(jid, {
         text: `⚠️ Nao foi possivel baixar.\n\n📹 Link direto:\n${video.url}\n\n💡 Tente um video mais curto.`
       });

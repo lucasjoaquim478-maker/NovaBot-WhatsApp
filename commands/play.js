@@ -15,12 +15,13 @@ function runYtDlp(args) {
   return new Promise((resolve, reject) => {
     const child = execFile(YT_DLP, args, { maxBuffer: 100 * 1024 * 1024 }, (err, stdout, stderr) => {
       if (err) {
-        reject(new Error(stderr || err.message));
+        const msg = (stderr || err.message || '').slice(0, 500);
+        reject(new Error(msg));
       } else {
         resolve(stdout);
       }
     });
-    child.on('error', reject);
+    child.on('error', (e) => reject(new Error(`yt-dlp: ${e.message}`)));
   });
 }
 
@@ -34,6 +35,7 @@ async function downloadAudio(url) {
       '-f', 'bestaudio[ext=m4a]/bestaudio',
       '--max-filesize', '25M',
       '--ffmpeg-location', FFMPEG,
+      '--js-runtimes', 'node',
       '--extract-audio',
       '--audio-format', 'mp3',
       '--audio-quality', '128K',
@@ -105,6 +107,8 @@ async function handlePlay(sock, { msg, jid, sender, args }) {
     const result = await downloadAudio(video.url);
 
     if (!result.success) {
+      const logService = require('../server/services/logService');
+      logService.add('error', `Download audio falhou: ${result.error}`);
       return await sock.sendMessage(jid, {
         text: `⚠️ Nao foi possivel baixar.\n\n📹 Link direto:\n${video.url}\n\n💡 Tente novamente ou use outro termo de busca.`
       });
