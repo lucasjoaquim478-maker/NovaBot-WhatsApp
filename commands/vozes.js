@@ -3,8 +3,9 @@ const path = require('path');
 const { execFile } = require('child_process');
 const crypto = require('crypto');
 
-const FFMPEG = path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
-const TEMP_DIR = path.join(process.cwd(), 'temp');
+const ROOT = path.resolve(__dirname, '..');
+const FFMPEG = path.join(ROOT, 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
+const TEMP_DIR = path.join(ROOT, 'temp');
 const CACHE_DIR = path.join(TEMP_DIR, 'voz_cache');
 
 const MAX_CHARS = 250;

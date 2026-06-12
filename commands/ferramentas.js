@@ -1,6 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { downloadMedia, getMediaMessage } = require('../lib/utils');
+const ROOT = path.resolve(__dirname, '..');
 
 const heavyModules = {};
 function lazyLoad(name) {
@@ -62,7 +63,7 @@ async function handleFerramentas(sock, { msg, jid, sender, args, commandName }) 
       try {
         const gTTS = lazyLoad('gtts');
         const text = args.join(' ');
-        const tempDir = path.join(process.cwd(), 'temp');
+        const tempDir = path.join(ROOT, 'temp');
         if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
         const audioPath = path.join(tempDir, `tts-${Date.now()}.mp3`);
         await new Promise((resolve, reject) => {

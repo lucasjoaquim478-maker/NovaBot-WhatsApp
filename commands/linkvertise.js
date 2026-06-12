@@ -1,6 +1,7 @@
 const config = require('../config.json');
 const fs = require('fs');
 const path = require('path');
+const ROOT = path.resolve(__dirname, '..');
 let puppeteer = null;
 try {
   puppeteer = require('puppeteer');
@@ -63,10 +64,10 @@ async function handleLink(sock, { jid, args, msg }) {
     if (!puppeteer) {
       await sock.sendMessage(jid, { text: '📦 Instalando puppeteer (Chromium Edge)...' }, { quoted: msg });
       const { execFile } = require('child_process');
-      const npmCmd = path.join(process.cwd(), 'node', 'npm.cmd');
+      const npmCmd = path.join(ROOT, 'node', 'npm.cmd');
       const cmd = fs.existsSync(npmCmd) ? npmCmd : 'npm';
       await new Promise((resolve, reject) => {
-        execFile(cmd, ['install', 'puppeteer'], { cwd: process.cwd(), timeout: 300000 }, (err) => {
+        execFile(cmd, ['install', 'puppeteer'], { cwd: ROOT, timeout: 300000 }, (err) => {
           if (err) reject(err); else resolve();
         });
       });

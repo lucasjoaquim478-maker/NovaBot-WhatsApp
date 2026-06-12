@@ -4,6 +4,7 @@ const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
 const fs = require('fs');
 const path = require('path');
+const ROOT = path.resolve(__dirname, '..');
 const OWNERS_FILE = path.join(__dirname, '..', 'database', 'owners.json');
 
 function loadPersistedOwners() {
@@ -87,9 +88,9 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
       let removed = 0;
       let totalSize = 0;
       const dirs = [
-        path.join(process.cwd(), 'temp'),
-        path.join(process.cwd(), 'voz_cache'),
-        path.join(process.cwd(), 'downloads')
+        path.join(ROOT, 'temp'),
+        path.join(ROOT, 'voz_cache'),
+        path.join(ROOT, 'downloads')
       ];
       for (const dir of dirs) {
         if (!fs.existsSync(dir)) continue;
@@ -107,7 +108,7 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
         }
       }
       // Also remove old backups (>10 oldest in database/backups)
-      const backupDir = path.join(process.cwd(), 'database', 'backups');
+      const backupDir = path.join(ROOT, 'database', 'backups');
       if (fs.existsSync(backupDir)) {
         const backups = fs.readdirSync(backupDir).filter(f => f.startsWith('backup-')).sort();
         while (backups.length > 10) {

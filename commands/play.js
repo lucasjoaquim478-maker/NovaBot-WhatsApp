@@ -7,8 +7,9 @@ const { formatDuration, formatNumber } = require('../lib/utils');
 const searchCache = new Map();
 const CACHE_TTL = 3600000;
 
-const YT_DLP = path.join(process.cwd(), 'bin', 'yt-dlp.exe');
-const FFMPEG = path.join(process.cwd(), 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
+const ROOT = path.resolve(__dirname, '..');
+const YT_DLP = path.join(ROOT, 'bin', 'yt-dlp.exe');
+const FFMPEG = path.join(ROOT, 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
 
 function runYtDlp(args) {
   return new Promise((resolve, reject) => {
@@ -24,7 +25,7 @@ function runYtDlp(args) {
 }
 
 async function downloadAudio(url) {
-  const tempDir = path.join(process.cwd(), 'temp');
+  const tempDir = path.join(ROOT, 'temp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
   const outFile = path.join(tempDir, `audio_${Date.now()}`);
 
