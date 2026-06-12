@@ -1,7 +1,7 @@
 const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
 const updater = require('../lib/updater');
-const shardcloud = require('../lib/shardcloud');
+const { safeRestart } = require('../lib/restart');
 
 const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero'];
 
@@ -46,7 +46,7 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           await sock.sendMessage(jid, {
             text: `✅ *Atualização concluída!*\n\n📦 v${updater.getCurrentVersion()} → v${result.targetVer}\n📁 ${result.filesSuccess} atualizados\n❌ ${result.filesFailed} falhas\n\n🔄 Reiniciando...`
           });
-          setTimeout(() => shardcloud.safeRestart(), 3000);
+          setTimeout(() => safeRestart(), 3000);
         } catch (e) {
           await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
         }
@@ -79,7 +79,7 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
         await sock.sendMessage(jid, {
           text: `✅ *Rollback concluído!*\n\n💾 Backup: ${result.backup}\n📁 ${result.files} arquivos restaurados\n\n🔄 Reiniciando em 3 segundos...`
         });
-        setTimeout(() => shardcloud.safeRestart(), 3000);
+        setTimeout(() => safeRestart(), 3000);
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
       }

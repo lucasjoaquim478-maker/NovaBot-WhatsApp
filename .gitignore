@@ -20,5 +20,8 @@ database/backups/
 # Config (contem chaves de API)
 config.json
 
+# Restart flag
+.restarting
+
 # Shortcuts
 *.lnk
