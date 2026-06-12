@@ -34,8 +34,8 @@ const { handleTestUpdate, testUpdateCommands } = require('./commands/testupdate'
 const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { handleAchar, acharCommands } = require('./commands/achar');
 const { handleCidade, cidadeCommands } = require('./commands/cidade');
-// Auto-install se faltar dependencias (sincrono, aguarda terminar)
-try { require('puppeteer'); } catch {
+// Auto-install se faltar dependencias
+try { require('sharp'); } catch {
   const { execSync } = require('child_process');
   const npmCmd = require('path').join(__dirname, 'node', 'npm.cmd');
   const cmd = (require('fs').existsSync(npmCmd) ? `"${npmCmd}"` : 'npm') + ' install --no-optional';
