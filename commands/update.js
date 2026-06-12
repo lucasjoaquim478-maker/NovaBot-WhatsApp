@@ -323,14 +323,13 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           if (!fs.existsSync(warpBin)) throw new Error('Nao encontrou binario extraido');
           await sock.sendMessage(jid, { text: `✅ warp-plus baixado (${(fs.statSync(warpBin).size / 1024 / 1024).toFixed(1)} MB)` });
         }
-        await sock.sendMessage(jid, { text: '🔄 Iniciando WARP SOCKS5 na porta 40000 (30s para registrar)...' });
+        await sock.sendMessage(jid, { text: '🔄 Iniciando WARP SOCKS5 na porta 40000 (60s para registrar)...' });
         let warpOut = '';
         const proc = spawn(warpBin, ['--bind', '127.0.0.1:40000'], { stdio: ['ignore', 'pipe', 'pipe'], detached: true });
         proc.stdout.on('data', (d) => { warpOut += d.toString(); });
         proc.stderr.on('data', (d) => { warpOut += d.toString(); });
         proc.unref();
-        // Wait 30s for registration
-        for (let i = 0; i < 6; i++) {
+        for (let i = 0; i < 12; i++) {
           await new Promise((r) => setTimeout(r, 5000));
           const dead = (() => { try { return proc.exitCode !== null; } catch { return true; } })();
           if (dead) break;
@@ -339,9 +338,8 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
         if (!isRunning) {
           return await sock.sendMessage(jid, { text: `❌ warp-plus morreu:\n${warpOut.slice(0, 500)}` });
         }
-        // Clear stale identity if registration failed
-        if (warpOut.includes('failed to load identity') || warpOut.includes('failed to register')) {
-          const warpDir = path.join(os.homedir(), '.warp-plus');
+        if (warpOut.includes('failed to register')) {
+          const warpDir = path.join(os.homedir(), '.cache', 'warp-plus');
           try { fs.rmSync(warpDir, { recursive: true, force: true }); } catch {}
         }
         const cfgPath = path.join(__dirname, '..', 'config.json');
