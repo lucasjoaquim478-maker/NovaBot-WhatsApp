@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
-const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'setproxy', 'delproxy'];
+const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy'];
 
 async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
@@ -229,6 +229,55 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
         });
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro ao processar arquivo: ${e.message}` });
+      }
+      break;
+    }
+
+    case 'warp': {
+      try {
+        await sock.sendMessage(jid, { text: '🔄 Verificando Cloudflare WARP...' });
+        const { execFile } = require('child_process');
+        const verif = () => new Promise((res) => {
+          execFile('warp-cli', ['--version'], (err) => res(!err));
+        });
+        const installed = await verif();
+        if (!installed) {
+          await sock.sendMessage(jid, { text: '📥 warp-cli nao encontrado. Tentando instalar...' });
+          await new Promise((resolve, reject) => {
+            execFile('sh', ['-c', `
+              curl -fsSL https://pkg.cloudflareclient.com/cloudflare-warp-ascii.repo | tee /etc/yum.repos.d/cloudflare-warp.repo;
+              dnf install -y cloudflare-warp 2>/dev/null || yum install -y cloudflare-warp 2>/dev/null || apt-get update -qq && apt-get install -y -qq cloudflare-warp 2>/dev/null;
+            `], { timeout: 120000 }, (err) => err ? reject(err) : resolve());
+          });
+          const check = await verif();
+          if (!check) {
+            return await sock.sendMessage(jid, { text: '❌ Nao foi possivel instalar warp-cli. Solicite instalacao manual ao suporte PhanomCloud.' });
+          }
+          await sock.sendMessage(jid, { text: '✅ warp-cli instalado!' });
+        }
+        await sock.sendMessage(jid, { text: '🔄 Registrando no Cloudflare WARP...' });
+        await new Promise((resolve, reject) => {
+          execFile('warp-cli', ['register'], { timeout: 30000 }, (err) => err ? reject(err) : resolve());
+        });
+        await sock.sendMessage(jid, { text: '🔄 Configurando modo SOCKS5 proxy...' });
+        await new Promise((resolve, reject) => {
+          execFile('warp-cli', ['set-mode', 'proxy'], { timeout: 10000 }, (err) => err ? reject(err) : resolve());
+        });
+        await sock.sendMessage(jid, { text: '🔄 Conectando ao WARP...' });
+        await new Promise((resolve, reject) => {
+          execFile('warp-cli', ['connect'], { timeout: 15000 }, (err) => err ? reject(err) : resolve());
+        });
+        const cfgPath = path.join(__dirname, '..', 'config.json');
+        if (fs.existsSync(cfgPath)) {
+          const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+          cfg.youtubeProxy = 'socks5://127.0.0.1:40000';
+          fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+        }
+        await sock.sendMessage(jid, {
+          text: `✅ *Cloudflare WARP ativado!*\n\n🔗 Proxy SOCKS5: socks5://127.0.0.1:40000\n🔄 Configurei no config.json\n\nAgora teste com *!play* — seu IP agora e residencial (Cloudflare).`
+        });
+      } catch (e) {
+        await sock.sendMessage(jid, { text: `❌ Erro WARP: ${e.message}` });
       }
       break;
     }
