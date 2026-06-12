@@ -23,6 +23,7 @@ class Dashboard {
     socket.on('log', (entry) => { this.allLogs.push(entry); if (this.allLogs.length > 1000) this.allLogs.splice(0, this.allLogs.length - 1000); this.appendLive(entry); if (this.shouldShowLog(entry)) this.appendLogEntry(entry); this.updateCounts(); });
     socket.on('logsCleared', () => { this.allLogs = []; this.console.innerHTML = '<div class="console-placeholder">Aguardando logs...</div>'; this.logsConsole.innerHTML = '<div class="console-placeholder">Nenhum log registrado.</div>'; this.updateCounts(); });
     socket.on('tokens', (data) => this.renderTokens(data));
+    socket.on('qr', (qrUrl) => this.onQR(qrUrl));
   }
 
   initUI() {
@@ -169,6 +170,24 @@ class Dashboard {
     const d = document.createElement('div');
     d.textContent = str;
     return d.innerHTML;
+  }
+
+  onQR(qrUrl) {
+    const img = document.getElementById('qrImage');
+    const status = document.getElementById('qrStatus');
+    const placeholder = document.querySelector('.qr-placeholder');
+    if (qrUrl) {
+      img.src = qrUrl;
+      img.style.display = 'block';
+      if (placeholder) placeholder.style.display = 'none';
+      status.textContent = 'Escaneie o QR code com o WhatsApp';
+      status.style.color = 'var(--accent)';
+    } else {
+      img.style.display = 'none';
+      if (placeholder) placeholder.style.display = 'block';
+      status.textContent = 'Bot conectado!';
+      status.style.color = 'var(--green)';
+    }
   }
 
   updateCounts() {

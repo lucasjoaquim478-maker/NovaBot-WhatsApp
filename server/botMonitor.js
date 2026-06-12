@@ -5,12 +5,15 @@ class BotMonitor extends EventEmitter {
     super();
     this.state = { status: 'offline', connectedAt: null, user: null };
     this.logHistory = [];
+    this.lastQR = null;
   }
 
   setOnline(user) {
     this.state.status = 'online';
     this.state.connectedAt = new Date().toISOString();
     this.state.user = user;
+    this.lastQR = null;
+    this.emit('qr', null);
     this.emit('status', this.state);
   }
 
@@ -19,6 +22,11 @@ class BotMonitor extends EventEmitter {
     this.state.user = null;
     this.emit('status', this.state);
     this.addLog('INFO', `Bot offline: ${reason}`);
+  }
+
+  setQR(qr) {
+    this.lastQR = qr;
+    this.emit('qr', qr);
   }
 
   addLog(type, message) {

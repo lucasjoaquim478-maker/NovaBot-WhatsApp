@@ -297,6 +297,7 @@ async function main() {
   logger.info('[BOT] Conectando ao WhatsApp...');
 
   await start(setupEvents, {
+    onQR: (qr) => { monitor.setQR(qr); },
     onConnected: async (s) => {
       displayPanel(s);
       monitor.setOnline(s.user);
