@@ -35,7 +35,8 @@ async function downloadAudio(url) {
     try {
       const args = [
         ...ytDlpArgs(attempt),
-        '-f', 'bestaudio',
+        '-f', 'bestaudio/bestvideo+bestaudio/best',
+        '--max-filesize', '50M',
         '--ffmpeg-location', FFMPEG,
         '--extract-audio',
         '--audio-format', 'mp3',
@@ -51,6 +52,7 @@ async function downloadAudio(url) {
       return { success: true, data };
     } catch (e) {
       lastError = e;
+      console.log('[PLAY] Tentativa ' + attempt + ' falhou: ' + (e.message || '').slice(0, 150));
     }
   }
   try { fs.unlinkSync(`${outFile}.mp3`); } catch {}
