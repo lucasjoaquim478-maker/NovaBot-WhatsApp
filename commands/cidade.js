@@ -3,7 +3,7 @@ const ytSearch = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { getYtDlpPath, getFfmpegPath, ytDlpArgs } = require('../lib/utils');
+const { getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpRetry } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -396,26 +396,36 @@ async function fetchAnthemAudio(cityName) {
     const tempDir = path.join(__dirname, '..', 'temp');
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
     const outFile = path.join(tempDir, `hino_${Date.now()}`);
-    const args = [
-      ...ytDlpArgs(),
-      '-f', 'bestaudio[ext=m4a]/bestaudio',
-      '--max-filesize', '15M',
-      '--ffmpeg-location', FFMPEG,
-      '--extract-audio',
-      '--audio-format', 'mp3',
-      '--output', `${outFile}.%(ext)s`,
-      video.url
-    ];
-    await new Promise((resolve, reject) => {
-      execFile(YT_DLP, args, { timeout: 60000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
-        if (err) reject(err); else resolve();
-      });
-    });
-    const mp3File = `${outFile}.mp3`;
-    if (!fs.existsSync(mp3File)) return null;
-    const data = fs.readFileSync(mp3File);
-    fs.unlinkSync(mp3File);
-    return { data, title: video.title };
+
+    let lastErr;
+    for (let attempt = 0; attempt < 3; attempt++) {
+      try {
+        const extra = attempt > 0 ? ytDlpRetry(lastErr, attempt) : [];
+        const args = [
+          ...ytDlpArgs(extra),
+          '-f', 'bestaudio[ext=m4a]/bestaudio',
+          '--max-filesize', '15M',
+          '--ffmpeg-location', FFMPEG,
+          '--extract-audio',
+          '--audio-format', 'mp3',
+          '--output', `${outFile}.%(ext)s`,
+          video.url
+        ];
+        await new Promise((resolve, reject) => {
+          execFile(YT_DLP, args, { timeout: 60000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
+            if (err) reject(err); else resolve();
+          });
+        });
+        const mp3File = `${outFile}.mp3`;
+        if (!fs.existsSync(mp3File)) return null;
+        const data = fs.readFileSync(mp3File);
+        fs.unlinkSync(mp3File);
+        return { data, title: video.title };
+      } catch (e) {
+        lastErr = e;
+      }
+    }
+    return null;
   } catch { return null; }
 }
 

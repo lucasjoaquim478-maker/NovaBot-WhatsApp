@@ -2,7 +2,7 @@ const yts = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { formatDuration, formatNumber, convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs } = require('../lib/utils');
+const { formatDuration, formatNumber, convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpRetry } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -22,43 +22,41 @@ async function downloadVideo(url) {
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
   const outFile = path.join(tempDir, `vid_${Date.now()}`);
 
-  try {
-    const args = [
-      ...ytDlpArgs(),
-      '-f', 'best[height<=720]/best',
-      '--max-filesize', '50M',
-      '--merge-output-format', 'mp4',
-      '--ffmpeg-location', FFMPEG,
-      '--output', `${outFile}.%(ext)s`,
-      url
-    ];
-
-    await runYtDlp(args);
-
-    let videoFile = null;
-    for (const ext of ['mp4', 'webm', 'mkv']) {
-      const p = `${outFile}.${ext}`;
-      if (fs.existsSync(p)) { videoFile = p; break; }
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const extra = attempt > 0 ? ytDlpRetry(lastError, attempt) : [];
+      const args = [
+        ...ytDlpArgs(extra),
+        '-f', 'best[height<=720]/best',
+        '--max-filesize', '50M',
+        '--merge-output-format', 'mp4',
+        '--ffmpeg-location', FFMPEG,
+        '--output', `${outFile}.%(ext)s`,
+        url
+      ];
+      await runYtDlp(args);
+      let videoFile = null;
+      for (const ext of ['mp4', 'webm', 'mkv']) {
+        const p = `${outFile}.${ext}`;
+        if (fs.existsSync(p)) { videoFile = p; break; }
+      }
+      if (!videoFile) throw new Error('Video nao foi gerado');
+      if (videoFile.endsWith('.webm') || videoFile.endsWith('.mkv')) {
+        try { videoFile = await convertToMp4(videoFile); } catch {}
+      }
+      const data = fs.readFileSync(videoFile);
+      const size = data.length;
+      fs.unlinkSync(videoFile);
+      return { success: true, data, size };
+    } catch (e) {
+      lastError = e;
     }
-
-    if (!videoFile) throw new Error('Video nao foi gerado');
-
-    if (videoFile.endsWith('.webm') || videoFile.endsWith('.mkv')) {
-      try {
-        videoFile = await convertToMp4(videoFile);
-      } catch {}
-    }
-
-    const data = fs.readFileSync(videoFile);
-    const size = data.length;
-    fs.unlinkSync(videoFile);
-    return { success: true, data, size };
-  } catch (e) {
-    for (const ext of ['mp4', 'webm', 'mkv']) {
-      try { fs.unlinkSync(`${outFile}.${ext}`); } catch {}
-    }
-    return { success: false, error: e.message };
   }
+  for (const ext of ['mp4', 'webm', 'mkv']) {
+    try { fs.unlinkSync(`${outFile}.${ext}`); } catch {}
+  }
+  return { success: false, error: lastError.message };
 }
 
 async function searchVideo(query) {

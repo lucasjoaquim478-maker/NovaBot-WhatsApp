@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
-const { convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs } = require('../lib/utils');
+const { convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpRetry } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -20,29 +20,35 @@ async function downloadYtDlp(url, extraArgs = []) {
   const tempDir = path.join(__dirname, '..', 'temp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
   const outFile = path.join(tempDir, `soc_${Date.now()}`);
-  const args = [...ytDlpArgs(), '--max-filesize', '50M', '--ffmpeg-location', FFMPEG, '--output', `${outFile}.%(ext)s`, ...extraArgs, url];
-  try {
-    await runYtDlp(args);
-    for (const e of ['mp4', 'webm', 'mkv', 'jpg', 'png', 'jpeg', 'gif', 'webp']) {
-      const p = `${outFile}.${e}`;
-      if (fs.existsSync(p)) {
-        let filePath = p;
-        if ((e === 'webm' || e === 'mkv') && fs.statSync(p).size > 1024) {
-          try { filePath = await convertToMp4(p); } catch {}
+
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const extra = attempt > 0 ? ytDlpRetry(lastError, attempt) : [];
+      const args = [...ytDlpArgs(extra), '--max-filesize', '50M', '--ffmpeg-location', FFMPEG, '--output', `${outFile}.%(ext)s`, ...extraArgs, url];
+      await runYtDlp(args);
+      for (const e of ['mp4', 'webm', 'mkv', 'jpg', 'png', 'jpeg', 'gif', 'webp']) {
+        const p = `${outFile}.${e}`;
+        if (fs.existsSync(p)) {
+          let filePath = p;
+          if ((e === 'webm' || e === 'mkv') && fs.statSync(p).size > 1024) {
+            try { filePath = await convertToMp4(p); } catch {}
+          }
+          const data = fs.readFileSync(filePath);
+          const ext = filePath.endsWith('.mp4') ? 'mp4' : e;
+          fs.unlinkSync(filePath);
+          return { success: true, data, ext };
         }
-        const data = fs.readFileSync(filePath);
-        const ext = filePath.endsWith('.mp4') ? 'mp4' : e;
-        fs.unlinkSync(filePath);
-        return { success: true, data, ext };
       }
+      return { success: false, error: 'Nenhum arquivo gerado' };
+    } catch (e) {
+      lastError = e;
     }
-    return { success: false, error: 'Nenhum arquivo gerado' };
-  } catch (e) {
-    for (const e2 of ['mp4', 'webm', 'mkv', 'jpg', 'png', 'jpeg', 'gif', 'webp']) {
-      try { fs.unlinkSync(`${outFile}.${e2}`); } catch {}
-    }
-    return { success: false, error: e.message };
   }
+  for (const e2 of ['mp4', 'webm', 'mkv', 'jpg', 'png', 'jpeg', 'gif', 'webp']) {
+    try { fs.unlinkSync(`${outFile}.${e2}`); } catch {}
+  }
+  return { success: false, error: lastError.message };
 }
 
 function curlFetch(url) {

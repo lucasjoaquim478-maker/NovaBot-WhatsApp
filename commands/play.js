@@ -2,7 +2,7 @@ const yts = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { formatDuration, formatNumber, getYtDlpPath, getFfmpegPath, ytDlpArgs } = require('../lib/utils');
+const { formatDuration, formatNumber, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpRetry } = require('../lib/utils');
 
 const searchCache = new Map();
 const CACHE_TTL = 3600000;
@@ -29,35 +29,35 @@ async function downloadAudio(url) {
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
   const outFile = path.join(tempDir, `audio_${Date.now()}`);
 
-  try {
-    const args = [
-      ...ytDlpArgs(),
-      '-f', 'bestaudio[ext=m4a]/bestaudio',
-      '--max-filesize', '25M',
-      '--ffmpeg-location', FFMPEG,
-      '--extract-audio',
-      '--audio-format', 'mp3',
-      '--audio-quality', '128K',
-      '--output', `${outFile}.%(ext)s`,
-      url
-    ];
-
-    await runYtDlp(args);
-
-    const mp3File = `${outFile}.mp3`;
-    if (!fs.existsSync(mp3File)) {
-      throw new Error('Arquivo de audio nao foi gerado');
+  let lastError;
+  for (let attempt = 0; attempt < 3; attempt++) {
+    try {
+      const extra = attempt > 0 ? ytDlpRetry(lastError, attempt) : [];
+      const args = [
+        ...ytDlpArgs(extra),
+        '-f', 'bestaudio[ext=m4a]/bestaudio',
+        '--max-filesize', '25M',
+        '--ffmpeg-location', FFMPEG,
+        '--extract-audio',
+        '--audio-format', 'mp3',
+        '--audio-quality', '128K',
+        '--output', `${outFile}.%(ext)s`,
+        url
+      ];
+      await runYtDlp(args);
+      const mp3File = `${outFile}.mp3`;
+      if (!fs.existsSync(mp3File)) throw new Error('Arquivo de audio nao foi gerado');
+      const data = fs.readFileSync(mp3File);
+      fs.unlinkSync(mp3File);
+      return { success: true, data };
+    } catch (e) {
+      lastError = e;
     }
-
-    const data = fs.readFileSync(mp3File);
-    fs.unlinkSync(mp3File);
-    return { success: true, data };
-  } catch (e) {
-    try { fs.unlinkSync(`${outFile}.mp3`); } catch {}
-    try { fs.unlinkSync(`${outFile}.webm`); } catch {}
-    try { fs.unlinkSync(`${outFile}.m4a`); } catch {}
-    return { success: false, error: e.message };
   }
+  try { fs.unlinkSync(`${outFile}.mp3`); } catch {}
+  try { fs.unlinkSync(`${outFile}.webm`); } catch {}
+  try { fs.unlinkSync(`${outFile}.m4a`); } catch {}
+  return { success: false, error: lastError.message };
 }
 
 async function searchMusic(query) {
