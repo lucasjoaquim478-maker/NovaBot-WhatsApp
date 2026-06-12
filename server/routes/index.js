@@ -2,6 +2,7 @@ const { Router } = require('express');
 const tokenService = require('../services/tokenService');
 const logService = require('../services/logService');
 const monitor = require('../botMonitor');
+const updater = require('../../lib/updater');
 
 const router = Router();
 
@@ -72,6 +73,65 @@ router.post('/bot/restart', (req, res) => {
   logService.add('info', 'Reinício solicitado pelo painel');
   res.json({ ok: true });
   setTimeout(() => process.exit(0), 1000);
+});
+
+/* ─── Update ─── */
+
+router.get('/update/state', (req, res) => {
+  res.json(updater.getState());
+});
+
+router.get('/update/check', asyncWrap(async (req, res) => {
+  const result = await updater.checkForUpdates();
+  res.json(result);
+}));
+
+router.post('/update/start', asyncWrap(async (req, res) => {
+  if (updater.state === 'downloading' || updater.state === 'installing') {
+    return res.status(409).json({ error: 'Já existe uma atualização em andamento' });
+  }
+  updater.performUpdate().then(result => {
+    logService.add('info', `Atualização concluída: ${updater.getCurrentVersion()} -> ${result.targetVer}`);
+    setTimeout(() => process.exit(0), 3000);
+  }).catch(err => {
+    logService.add('error', `Falha na atualização: ${err.message}`);
+  });
+  res.json({ ok: true, message: 'Atualização iniciada em segundo plano' });
+}));
+
+router.post('/update/pause', (req, res) => {
+  const ok = updater.pause();
+  res.json({ ok });
+});
+
+router.post('/update/resume', (req, res) => {
+  const ok = updater.resume();
+  res.json({ ok });
+});
+
+router.post('/update/abort', (req, res) => {
+  const ok = updater.abort();
+  res.json({ ok });
+});
+
+router.get('/update/changelog', asyncWrap(async (req, res) => {
+  const changelog = await updater.getChangelog();
+  res.json({ changelog });
+}));
+
+router.get('/update/history', (req, res) => {
+  res.json(updater.getHistory());
+});
+
+router.post('/update/rollback', asyncWrap(async (req, res) => {
+  const result = await updater.rollback();
+  logService.add('warn', `Rollback realizado: ${result.backup} (${result.files} arquivos)`);
+  res.json(result);
+  setTimeout(() => process.exit(0), 3000);
+}));
+
+router.get('/update/backups', (req, res) => {
+  res.json(updater.listBackups());
 });
 
 router.use((err, req, res, next) => {

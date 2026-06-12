@@ -44,7 +44,7 @@ try { require('sharp'); } catch {
 }
 const { handleLink, linkCommands } = require('./commands/linkvertise');
 const { handleCultura, culturaCommands } = require('./commands/cultura');
-const { startAutoCheck, performUpdate } = require('./lib/updater');
+const updater = require('./lib/updater');
 const Logger = require('./lib/logger');
 const monitor = require('./server/botMonitor');
 const logService = require('./server/services/logService');
@@ -157,7 +157,15 @@ async function handleConfirma(sock, ctx) {
     return await sock.sendMessage(ctx.jid, { text: '❌ Apenas o dono pode usar este comando.' });
   }
   await sock.sendMessage(ctx.jid, { text: '⚡ Forçando atualização...' });
-  await performUpdate(sock, ctx.jid);
+  try {
+    const result = await updater.performUpdate();
+    await sock.sendMessage(ctx.jid, {
+      text: `✅ *Atualização concluída!*\n\n📦 v${updater.getCurrentVersion()} → v${result.targetVer}\n📁 ${result.filesSuccess} arquivos\n❌ ${result.filesFailed} falhas\n\n🔄 Reiniciando em 3 segundos...`
+    });
+    setTimeout(() => process.exit(0), 3000);
+  } catch (e) {
+    await sock.sendMessage(ctx.jid, { text: `❌ Falha na atualização: ${e.message}` });
+  }
 }
 
 async function handleCreateToken(sock, ctx) {
@@ -270,7 +278,7 @@ async function main() {
   }
 
   if (config.autoUpdate) {
-    startAutoCheck();
+    updater.startAutoCheck();
   } else {
     logger.info('[UPDATE] Auto-update desativado');
   }

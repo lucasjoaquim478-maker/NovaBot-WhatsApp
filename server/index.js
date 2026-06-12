@@ -6,6 +6,7 @@ const QRCode = require('qrcode');
 const monitor = require('./botMonitor');
 const logService = require('./services/logService');
 const routes = require('./routes');
+const updater = require('../lib/updater');
 
 const app = express();
 const server = http.createServer(app);
@@ -64,6 +65,11 @@ io.on('connection', (socket) => {
     monitor.removeListener('qr', onQR);
   });
 });
+
+/* ─── Updater Socket Events (broadcast to all) ─── */
+updater.on('state', (data) => io.emit('updateState', data));
+updater.on('progress', (data) => io.emit('updateProgress', data));
+updater.on('log', (data) => io.emit('updateLog', data));
 
 function start(port) {
   port = parseInt(process.env.PORT || port || 3000, 10);

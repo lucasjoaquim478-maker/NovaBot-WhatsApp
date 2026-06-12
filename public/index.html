@@ -32,6 +32,11 @@
         Tokens
         <span class="nav-badge" id="badge-tokens">0</span>
       </button>
+      <button class="nav-btn" data-tab="update">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Atualizações
+        <span class="nav-badge" id="badge-update" style="display:none">●</span>
+      </button>
     </nav>
     <div class="sidebar-footer">
       <div class="status-indicator" id="statusIndicator">
@@ -253,6 +258,107 @@
           <thead><tr><th>Token</th><th>Usado por</th><th>Data</th></tr></thead>
           <tbody></tbody>
         </table>
+      </div>
+    </section>
+
+    <section id="tab-update" class="tab-content">
+      <div class="tab-header">
+        <h2>Atualizações</h2>
+        <span class="tab-subtitle">Sistema de Auto-Update</span>
+      </div>
+
+      <div class="update-status-bar">
+        <div class="update-info-card">
+          <div class="update-info-label">Versão Atual</div>
+          <div class="update-info-value" id="updateCurrentVer">—</div>
+        </div>
+        <div class="update-info-card">
+          <div class="update-info-label">Versão Disponível</div>
+          <div class="update-info-value" id="updateLatestVer">—</div>
+        </div>
+        <div class="update-info-card">
+          <div class="update-info-label">Última Verificação</div>
+          <div class="update-info-value update-info-sm" id="updateLastCheck">—</div>
+        </div>
+        <div class="update-info-card">
+          <div class="update-info-label">Estado</div>
+          <div class="update-info-value" id="updateState">—</div>
+        </div>
+      </div>
+
+      <div class="update-actions">
+        <button id="updateCheckBtn" class="btn btn-primary">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Verificar Atualizações
+        </button>
+        <button id="updateStartBtn" class="btn btn-success" disabled>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Atualizar Agora
+        </button>
+        <button id="updatePauseBtn" class="btn btn-warning" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          Pausar
+        </button>
+        <button id="updateResumeBtn" class="btn btn-primary" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+          Continuar
+        </button>
+        <button id="updateAbortBtn" class="btn btn-danger" style="display:none">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          Cancelar
+        </button>
+        <button id="updateRollbackBtn" class="btn btn-outline">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"/></svg>
+          Restaurar Backup
+        </button>
+      </div>
+
+      <div id="updateProgressArea" style="display:none">
+        <div class="update-progress-header">
+          <span id="updateProgressFile">Preparando...</span>
+          <span id="updateProgressPct">0%</span>
+        </div>
+        <div class="update-progress-track">
+          <div class="update-progress-bar" id="updateProgressBar" style="width:0%"></div>
+        </div>
+        <div class="update-progress-info">
+          <span id="updateProgressCount">0 / 0</span>
+          <span id="updateProgressSpeed"></span>
+        </div>
+      </div>
+
+      <div class="update-grid">
+        <div class="panel panel-changelog">
+          <div class="panel-header">
+            <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg> Changelog</h3>
+          </div>
+          <div class="changelog-content" id="updateChangelog">
+            <div class="console-placeholder">Clique em "Verificar Atualizações" para carregar.</div>
+          </div>
+        </div>
+        <div class="panel panel-history">
+          <div class="panel-header">
+            <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg> Histórico de Atualizações</h3>
+          </div>
+          <div class="table-container" style="max-height:300px;overflow-y:auto">
+            <table id="updateHistoryTable">
+              <thead><tr><th>Data</th><th>Ação</th><th>Versão</th><th>Detalhes</th></tr></thead>
+              <tbody></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel panel-backups" style="margin-top:16px">
+        <div class="panel-header">
+          <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg> Backups Disponíveis</h3>
+        </div>
+        <div class="table-container" style="max-height:200px;overflow-y:auto">
+          <table id="updateBackupsTable">
+            <thead><tr><th>Backup</th><th>Data</th><th>Arquivos</th><th>Tamanho</th></tr></thead>
+            <tbody></tbody>
+          </table>
+        </div>
       </div>
     </section>
   </main>

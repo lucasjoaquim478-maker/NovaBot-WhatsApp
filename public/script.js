@@ -364,6 +364,7 @@ class Dashboard {
     this.bindUI();
     this.fetchStats();
     this.fetchTokens();
+    this.fetchUpdateState();
     this.logManager.onChange(() => this.updateUI());
   }
 
@@ -396,6 +397,27 @@ class Dashboard {
     socket.on('qr', (qrUrl) => this.onQR(qrUrl));
     socket.on('connect', () => this.updateConnectionStatus(true));
     socket.on('disconnect', () => this.updateConnectionStatus(false));
+
+    // Update socket events
+    socket.on('updateState', (data) => {
+      this._renderUpdateState(data);
+      if (data.state === 'idle') {
+        document.getElementById('updateProgressArea').style.display = 'none';
+        this.fetchUpdateHistory();
+        this.fetchUpdateBackups();
+      }
+    });
+    socket.on('updateProgress', (data) => {
+      document.getElementById('updateProgressArea').style.display = '';
+      document.getElementById('updateProgressBar').style.width = data.percent + '%';
+      document.getElementById('updateProgressPct').textContent = data.percent + '%';
+      document.getElementById('updateProgressCount').textContent = `${data.current} / ${data.total}`;
+      document.getElementById('updateProgressFile').textContent = data.file || 'Baixando...';
+      if (data.speed) document.getElementById('updateProgressSpeed').textContent = data.speed;
+    });
+    socket.on('updateLog', (data) => {
+      if (data.level === 'error') this.notifications.error('Update', data.message.substring(0, 120));
+    });
   }
 
   updateConnectionStatus(connected) {
@@ -530,6 +552,19 @@ class Dashboard {
     document.getElementById('tokenSearch').addEventListener('input', (e) => {
       this._tokenSearch = e.target.value.toLowerCase();
       this.renderTokens(this._lastTokenData);
+    });
+
+    // Update panel
+    document.getElementById('updateCheckBtn').addEventListener('click', () => this.handleUpdateCheck());
+    document.getElementById('updateStartBtn').addEventListener('click', () => this.handleUpdateStart());
+    document.getElementById('updatePauseBtn').addEventListener('click', () => this.handleUpdatePause());
+    document.getElementById('updateResumeBtn').addEventListener('click', () => this.handleUpdateResume());
+    document.getElementById('updateAbortBtn').addEventListener('click', () => this.handleUpdateAbort());
+    document.getElementById('updateRollbackBtn').addEventListener('click', () => this.handleUpdateRollback());
+    document.querySelector('[data-tab="update"]').addEventListener('click', () => {
+      this.fetchUpdateState();
+      this.fetchUpdateHistory();
+      this.fetchUpdateBackups();
     });
   }
 
@@ -767,6 +802,167 @@ class Dashboard {
       const res = await fetch(`/api/tokens/${id}/revoke`, { method: 'POST' });
       const d = await res.json();
       if (d.ok) this.fetchTokens();
+    } catch {}
+  }
+
+  /* ─── Update Panel ─── */
+  async fetchUpdateState() {
+    try {
+      const res = await fetch('/api/update/state');
+      const state = await res.json();
+      this._renderUpdateState(state);
+    } catch {}
+  }
+
+  _renderUpdateState(state) {
+    document.getElementById('updateCurrentVer').textContent = 'v' + state.localVersion;
+    document.getElementById('updateLatestVer').textContent = state.latestVersion !== state.localVersion ? 'v' + state.latestVersion : 'v' + state.localVersion + ' (atualizado)';
+    document.getElementById('updateState').textContent = state.state;
+    const checkBtn = document.getElementById('updateCheckBtn');
+    const startBtn = document.getElementById('updateStartBtn');
+    const pauseBtn = document.getElementById('updatePauseBtn');
+    const resumeBtn = document.getElementById('updateResumeBtn');
+    const abortBtn = document.getElementById('updateAbortBtn');
+    const badge = document.getElementById('badge-update');
+
+    if (state.state === 'idle') {
+      checkBtn.disabled = false;
+      startBtn.disabled = state.latestVersion === state.localVersion;
+      pauseBtn.style.display = 'none';
+      resumeBtn.style.display = 'none';
+      abortBtn.style.display = 'none';
+      document.getElementById('updateProgressArea').style.display = 'none';
+    } else if (state.state === 'checking') {
+      checkBtn.disabled = true;
+      startBtn.disabled = true;
+    } else if (state.state === 'downloading') {
+      checkBtn.disabled = true;
+      startBtn.disabled = true;
+      pauseBtn.style.display = '';
+      resumeBtn.style.display = 'none';
+      abortBtn.style.display = '';
+      document.getElementById('updateProgressArea').style.display = '';
+    } else if (state.state === 'paused') {
+      pauseBtn.style.display = 'none';
+      resumeBtn.style.display = '';
+      abortBtn.style.display = '';
+      document.getElementById('updateProgressArea').style.display = '';
+    }
+
+    if (state.latestVersion !== state.localVersion && state.state === 'idle') {
+      badge.style.display = '';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  async handleUpdateCheck() {
+    const btn = document.getElementById('updateCheckBtn');
+    btn.disabled = true;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="4.93" y1="4.93" x2="7.76" y2="7.76"/><line x1="16.24" y1="16.24" x2="19.07" y2="19.07"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/><line x1="4.93" y1="19.07" x2="7.76" y2="16.24"/><line x1="16.24" y1="7.76" x2="19.07" y2="4.93"/></svg> Verificando...';
+    try {
+      const res = await fetch('/api/update/check');
+      const data = await res.json();
+      document.getElementById('updateLastCheck').textContent = new Date().toLocaleString();
+      if (data.hasUpdate) {
+        document.getElementById('updateLatestVer').textContent = 'v' + data.version;
+        document.getElementById('updateStartBtn').disabled = false;
+        document.getElementById('badge-update').style.display = '';
+        this._toast(`Nova versão disponível: v${data.version}`);
+      } else if (data.error) {
+        this._toast('Erro ao verificar: ' + data.error);
+      } else {
+        document.getElementById('updateLatestVer').textContent = 'v' + data.version + ' (atualizado)';
+      }
+      if (data.body) {
+        document.getElementById('updateChangelog').innerHTML = '<pre style="white-space:pre-wrap;font-size:13px;line-height:1.6">' + this._esc(data.body) + '</pre>';
+      } else {
+        document.getElementById('updateChangelog').innerHTML = '<div class="console-placeholder">Nenhum changelog disponível.</div>';
+      }
+    } catch (e) {
+      this._toast('Erro: ' + e.message);
+    }
+    btn.disabled = false;
+    btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> Verificar Atualizações';
+  }
+
+  async handleUpdateStart() {
+    if (!confirm('Iniciar atualização? O bot será reiniciado após a conclusão.')) return;
+    const btn = document.getElementById('updateStartBtn');
+    btn.disabled = true;
+    btn.textContent = 'Iniciando...';
+    try {
+      await fetch('/api/update/start', { method: 'POST' });
+      this._toast('Atualização iniciada em segundo plano');
+    } catch (e) {
+      this._toast('Erro: ' + e.message);
+      btn.disabled = false;
+      btn.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg> Atualizar Agora';
+    }
+  }
+
+  handleUpdatePause() {
+    fetch('/api/update/pause', { method: 'POST' }).then(r => r.json()).then(d => {
+      if (d.ok) this._toast('Download pausado');
+    });
+  }
+
+  handleUpdateResume() {
+    fetch('/api/update/resume', { method: 'POST' }).then(r => r.json()).then(d => {
+      if (d.ok) this._toast('Download retomado');
+    });
+  }
+
+  handleUpdateAbort() {
+    if (!confirm('Cancelar atualização?')) return;
+    fetch('/api/update/abort', { method: 'POST' }).then(r => r.json()).then(d => {
+      if (d.ok) this._toast('Atualização cancelada');
+    });
+  }
+
+  async handleUpdateRollback() {
+    if (!confirm('Restaurar o backup mais recente? O bot será reiniciado.')) return;
+    try {
+      const res = await fetch('/api/update/rollback', { method: 'POST' });
+      const data = await res.json();
+      this._toast(`Backup ${data.backup} restaurado (${data.files} arquivos)`);
+    } catch (e) {
+      this._toast('Erro: ' + e.message);
+    }
+  }
+
+  async fetchUpdateHistory() {
+    try {
+      const res = await fetch('/api/update/history');
+      const history = await res.json();
+      const tbody = document.querySelector('#updateHistoryTable tbody');
+      if (!history.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum registro.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = history.map(h => {
+        const actionMap = { check: 'Verificação', start: 'Início', completed: 'Concluído', error: 'Erro', rollback: 'Rollback' };
+        const action = actionMap[h.action] || h.action;
+        const ver = h.to || h.version || '—';
+        const detail = h.error ? `❌ ${h.error}` : h.files_success ? `${h.files_success} arquivos` : h.hasUpdate === false ? 'Atualizado' : '';
+        return `<tr><td>${new Date(h.timestamp).toLocaleString()}</td><td>${action}</td><td>v${ver}</td><td>${detail}</td></tr>`;
+      }).join('');
+    } catch {}
+  }
+
+  async fetchUpdateBackups() {
+    try {
+      const res = await fetch('/api/update/backups');
+      const backups = await res.json();
+      const tbody = document.querySelector('#updateBackupsTable tbody');
+      if (!backups.length) {
+        tbody.innerHTML = '<tr class="empty-row"><td colspan="4">Nenhum backup.</td></tr>';
+        return;
+      }
+      tbody.innerHTML = backups.map(b => {
+        const size = b.size > 1024 * 1024 ? (b.size / 1024 / 1024).toFixed(1) + ' MB' : (b.size / 1024).toFixed(1) + ' KB';
+        return `<tr><td>${this._esc(b.name)}</td><td>${new Date(b.date).toLocaleString()}</td><td>${b.files}</td><td>${size}</td></tr>`;
+      }).join('');
     } catch {}
   }
 

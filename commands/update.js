@@ -1,13 +1,6 @@
 const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
-const {
-  checkForUpdates,
-  performUpdate,
-  rollback,
-  getChangelog,
-  getCurrentVersion,
-  getLatestVersion,
-} = require('../lib/updater');
+const updater = require('../lib/updater');
 
 const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero'];
 
@@ -32,12 +25,12 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
 
   switch (commandName) {
     case 'versão': {
-      const local = getCurrentVersion();
-      const latest = getLatestVersion();
+      const local = updater.getCurrentVersion();
+      const latest = updater.getLatestVersion();
       let txt = `📦 *Versão atual:* v${local}\n`;
       if (latest !== local) txt += `🎯 *Última disponível:* v${latest}\n`;
       else txt += `✅ *Última versão disponível:* v${latest}\n`;
-      const changelog = await getChangelog();
+      const changelog = await updater.getChangelog();
       if (changelog) txt += `\n📋 *Changelog:*\n${changelog.slice(0, 1500)}`;
       await sock.sendMessage(jid, { text: txt });
       break;
@@ -46,25 +39,33 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
     case 'update': {
       const force = args[0]?.toLowerCase() === 'force';
       if (force) {
-        await sock.sendMessage(jid, { text: '⚡ Forçando atualização...' });
-        await performUpdate(sock, jid);
+        await sock.sendMessage(jid, { text: '⚡ Atualizando... Acompanhe o progresso no painel web.' });
+        try {
+          const result = await updater.performUpdate();
+          await sock.sendMessage(jid, {
+            text: `✅ *Atualização concluída!*\n\n📦 v${updater.getCurrentVersion()} → v${result.targetVer}\n📁 ${result.filesSuccess} atualizados\n❌ ${result.filesFailed} falhas\n\n🔄 Reiniciando...`
+          });
+          setTimeout(() => process.exit(0), 3000);
+        } catch (e) {
+          await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+        }
         return;
       }
-      const result = await checkForUpdates();
-      if (!result) {
-        await sock.sendMessage(jid, { text: '❌ Nao foi possivel verificar atualizações. Verifique sua configuração (githubRepo).' });
+      const result = await updater.checkForUpdates();
+      if (!result || result.error) {
+        await sock.sendMessage(jid, { text: `❌ ${result?.error || 'Erro ao verificar'}` });
         return;
       }
       if (result.current) {
-        await sock.sendMessage(jid, { text: `✅ Você já está na versão mais recente: v${getCurrentVersion()}` });
+        await sock.sendMessage(jid, { text: `✅ Você já está na versão mais recente: v${updater.getCurrentVersion()}` });
         return;
       }
       if (result.hasUpdate) {
         await sock.sendMessage(jid, {
           text: `🔄 *Nova versão disponível!*\n\n` +
-                `📦 Atual: v${getCurrentVersion()}\n` +
+                `📦 Atual: v${updater.getCurrentVersion()}\n` +
                 `🎯 Nova: v${result.version}\n` +
-                `📝 Changelog: ${result.release?.html_url || 'N/A'}\n\n` +
+                `📝 Changelog: ${result.html_url || 'N/A'}\n\n` +
                 `Deseja atualizar? Use \`!update force\` para confirmar.`
         });
       }
@@ -72,7 +73,15 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
     }
 
     case 'rollback': {
-      await rollback(sock, jid);
+      try {
+        const result = await updater.rollback();
+        await sock.sendMessage(jid, {
+          text: `✅ *Rollback concluído!*\n\n💾 Backup: ${result.backup}\n📁 ${result.files} arquivos restaurados\n\n🔄 Reiniciando em 3 segundos...`
+        });
+        setTimeout(() => process.exit(0), 3000);
+      } catch (e) {
+        await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+      }
       break;
     }
   }
