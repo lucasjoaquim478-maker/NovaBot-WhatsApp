@@ -67,11 +67,23 @@ io.on('connection', (socket) => {
 
 function start(port) {
   port = parseInt(process.env.PORT || port || 3000, 10);
-  return new Promise((resolve) => {
-    server.listen(port, '0.0.0.0', () => {
-      logService.add('info', `Painel web: http://0.0.0.0:${port}`);
-      resolve(server);
-    });
+  return new Promise((resolve, reject) => {
+    function tryListen(retries) {
+      server.listen(port, '0.0.0.0', () => {
+        logService.add('info', `Painel web: http://0.0.0.0:${port}`);
+        resolve(server);
+      });
+      server.once('error', (err) => {
+        if (err.code === 'EADDRINUSE' && retries > 0) {
+          logService.add('warn', `Porta ${port} ocupada, tentando novamente em 3s...`);
+          server.close();
+          setTimeout(() => tryListen(retries - 1), 3000);
+        } else {
+          reject(err);
+        }
+      });
+    }
+    tryListen(3);
   });
 }
 
