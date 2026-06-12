@@ -1,6 +1,6 @@
 {
   "name": "novabot-whatsapp",
-  "version": "5.4.2",
+  "version": "5.4.3",
   "description": "WhatsApp Bot Premium com Node.js + Baileys",
   "main": "index.js",
   "type": "commonjs",
