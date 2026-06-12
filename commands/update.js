@@ -236,37 +236,55 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
     case 'warp': {
       try {
         await sock.sendMessage(jid, { text: '🔄 Baixando Cloudflare WARP (warp-plus)...' });
-        const { execFile } = require('child_process');
+        const { execFile, spawn } = require('child_process');
+        const https = require('https');
         const warpDir = path.join(__dirname, '..', 'bin');
         if (!fs.existsSync(warpDir)) fs.mkdirSync(warpDir, { recursive: true });
         const warpBin = path.join(warpDir, 'warp-plus');
         if (!fs.existsSync(warpBin)) {
-          await sock.sendMessage(jid, { text: '⬇️ Baixando warp-plus...' });
+          await sock.sendMessage(jid, { text: '⬇️ Baixando warp-plus via Node.js...' });
+          const tmpDir = path.join(warpDir, '.warp-dl');
+          if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
+          const tarball = path.join(tmpDir, 'warp.tar.gz');
           await new Promise((resolve, reject) => {
-            execFile('sh', ['-c', `
-              mkdir -p /tmp/warp-extract 2>/dev/null;
-              curl -fsSL https://github.com/bepass-org/warp-plus/releases/latest/download/warp-plus_linux-amd64.zip -o /tmp/warp.zip 2>/dev/null;
-              if [ -f /tmp/warp.zip ] && [ -s /tmp/warp.zip ]; then
-                unzip -o /tmp/warp.zip -d /tmp/warp-extract 2>/dev/null || true;
-              else
-                curl -fsSL https://github.com/bepass-org/warp-plus/releases/latest/download/warp-plus_linux-amd64.tar.gz -o /tmp/warp.tar.gz 2>/dev/null;
-                tar -xzf /tmp/warp.tar.gz -C /tmp/warp-extract 2>/dev/null || true;
-              fi;
-              find /tmp/warp-extract -type f -executable | head -1 | xargs -I{} cp {} '"${warpBin}"' 2>/dev/null || true;
-              chmod +x '"${warpBin}"' 2>/dev/null;
-              rm -rf /tmp/warp.zip /tmp/warp.tar.gz /tmp/warp-extract 2>/dev/null
-            `], { timeout: 60000 }, (err) => resolve());
+            const url = 'https://github.com/bepass-org/warp-plus/releases/latest/download/warp-plus_linux-amd64.tar.gz';
+            const file = fs.createWriteStream(tarball);
+            https.get(url, (res) => {
+              if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+                file.close(); fs.unlinkSync(tarball);
+                https.get(res.headers.location, (r2) => { r2.pipe(file); file.on('finish', resolve); });
+                return;
+              }
+              res.pipe(file);
+              file.on('finish', resolve);
+            }).on('error', (e) => { file.close(); fs.unlinkSync(tarball); reject(e); });
           });
-          if (!fs.existsSync(warpBin)) {
-            return await sock.sendMessage(jid, { text: '❌ Nao foi possivel baixar warp-plus. Verifique se curl e unzip estao disponiveis.' });
+          if (!fs.existsSync(tarball)) throw new Error('Download falhou');
+          await new Promise((resolve, reject) => {
+            execFile('tar', ['-xzf', tarball, '-C', tmpDir], { timeout: 15000 }, (err) => err ? reject(err) : resolve());
+          });
+          const files = fs.readdirSync(tmpDir).filter(f => f !== 'warp.tar.gz' && !f.startsWith('.'));
+          let found = false;
+          for (const f of files) {
+            const fp = path.join(tmpDir, f);
+            if (fs.statSync(fp).isFile() && (fs.statSync(fp).mode & 0o111)) {
+              fs.copyFileSync(fp, warpBin);
+              fs.chmodSync(warpBin, 0o755);
+              found = true;
+              break;
+            }
           }
+          if (!found && files.length) {
+            fs.copyFileSync(path.join(tmpDir, files[0]), warpBin);
+            fs.chmodSync(warpBin, 0o755);
+            found = true;
+          }
+          try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
+          if (!fs.existsSync(warpBin)) throw new Error('Nao encontrou binario extraido');
+          await sock.sendMessage(jid, { text: `✅ warp-plus baixado (${(fs.statSync(warpBin).size / 1024 / 1024).toFixed(1)} MB)` });
         }
         await sock.sendMessage(jid, { text: '🔄 Iniciando WARP SOCKS5 na porta 40000...' });
-        const { spawn } = require('child_process');
-        const proc = spawn(warpBin, ['--bind', '127.0.0.1:40000'], {
-          stdio: 'ignore',
-          detached: true
-        });
+        const proc = spawn(warpBin, ['--bind', '127.0.0.1:40000'], { stdio: 'ignore', detached: true });
         proc.unref();
         await new Promise((r) => setTimeout(r, 3000));
         const cfgPath = path.join(__dirname, '..', 'config.json');
