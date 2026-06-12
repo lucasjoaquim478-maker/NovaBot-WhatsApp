@@ -57,13 +57,14 @@ const lockFile = path.join(__dirname, '.bot.lock');
 try {
   if (fs.existsSync(lockFile)) {
     const pid = parseInt(fs.readFileSync(lockFile, 'utf-8'), 10);
-    try {
-      process.kill(pid, 0);
-      console.error(`[LOCK] Outra instância já está rodando (PID: ${pid}). Abortando.`);
-      process.exit(0);
-    } catch {
-      fs.unlinkSync(lockFile);
+    if (pid !== process.pid) {
+      try {
+        process.kill(pid, 0);
+        console.error(`[LOCK] Outra instância já está rodando (PID: ${pid}). Abortando.`);
+        process.exit(0);
+      } catch {}
     }
+    fs.unlinkSync(lockFile);
   }
   fs.writeFileSync(lockFile, String(process.pid));
   process.on('exit', () => { try { fs.unlinkSync(lockFile); } catch {} });
