@@ -247,25 +247,61 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
           const tarball = path.join(tmpDir, 'warp.tar.gz');
           await new Promise((resolve, reject) => {
-            const githubUrl = 'https://github.com/bepass-org/warp-plus/releases/latest/download/warp-plus_linux-amd64.tar.gz';
-            const timeout = setTimeout(() => { reject(new Error('Download timeout (60s)')); }, 60000);
-            const dl = (u, dest) => {
-              const f = fs.createWriteStream(dest);
-              https.get(u, (res) => {
-                if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
-                  f.close(); try { fs.unlinkSync(dest); } catch {}
-                  return dl(res.headers.location, dest);
-                }
-                res.pipe(f);
-                f.on('finish', () => { clearTimeout(timeout); f.close(resolve); });
-              }).on('error', (e) => { clearTimeout(timeout); try { f.close(); fs.unlinkSync(dest); } catch {} reject(e); });
-            };
-            dl(githubUrl, tarball);
+            const timeout = setTimeout(() => reject(new Error('Download timeout (60s)')), 60000);
+            // First, find the actual asset URL from GitHub API
+            https.get('https://api.github.com/repos/bepass-org/warp-plus/releases/latest', { headers: { 'User-Agent': 'NovaBot' } }, (res) => {
+              let body = '';
+              res.on('data', (c) => body += c);
+              res.on('end', () => {
+                try {
+                  const data = JSON.parse(body);
+                  const assets = data.assets || [];
+                  let assetUrl = null;
+                  for (const a of assets) {
+                    if (a.name && a.name.includes('linux-amd64') && a.name.endsWith('.tar.gz')) { assetUrl = a.browser_download_url; break; }
+                  }
+                  if (!assetUrl) {
+                    for (const a of assets) {
+                      if (a.name && a.name.includes('linux-amd64') && a.name.endsWith('.zip')) { assetUrl = a.browser_download_url; break; }
+                    }
+                  }
+                  if (!assetUrl && assets.length) assetUrl = assets[0].browser_download_url;
+                  if (!assetUrl) { clearTimeout(timeout); reject(new Error('Nenhum asset encontrado')); return; }
+                  const isZip = assetUrl.endsWith('.zip');
+                  const dl = (u, dest) => {
+                    const f = fs.createWriteStream(dest);
+                    https.get(u, (r) => {
+                      if (r.statusCode >= 300 && r.statusCode < 400 && r.headers.location) {
+                        f.close(); try { fs.unlinkSync(dest); } catch {}
+                        return dl(r.headers.location, dest);
+                      }
+                      r.pipe(f);
+                      f.on('finish', () => { clearTimeout(timeout); f.close(resolve); });
+                    }).on('error', (e) => { clearTimeout(timeout); try { f.close(); fs.unlinkSync(dest); } catch {} reject(e); });
+                  };
+                  dl(assetUrl, tarball); // tarball might be a zip now
+                } catch (e) { clearTimeout(timeout); reject(e); }
+              });
+            }).on('error', (e) => { clearTimeout(timeout); reject(e); });
           });
           if (!fs.existsSync(tarball)) throw new Error('Download falhou');
-          await new Promise((resolve, reject) => {
-            execFile('tar', ['-xzf', tarball, '-C', tmpDir], { timeout: 15000 }, (err) => err ? reject(err) : resolve());
-          });
+          // Try tar.gz first, then zip, then raw binary
+          const isZip = (() => { try { const buf = Buffer.alloc(2); const fd = fs.openSync(tarball, 'r'); fs.readSync(fd, buf, 0, 2, 0); fs.closeSync(fd); return buf[0] === 0x50 && buf[1] === 0x4b; } catch { return false; } })();
+          const isGz = (() => { try { const buf = Buffer.alloc(2); const fd = fs.openSync(tarball, 'r'); fs.readSync(fd, buf, 0, 2, 0); fs.closeSync(fd); return buf[0] === 0x1f && buf[1] === 0x8b; } catch { return false; } })();
+          if (isGz) {
+            await new Promise((resolve, reject) => {
+              execFile('tar', ['-xzf', tarball, '-C', tmpDir], { timeout: 15000 }, (err) => err ? reject(err) : resolve());
+            });
+          } else if (isZip) {
+            await new Promise((resolve, reject) => {
+              execFile('unzip', ['-o', tarball, '-d', tmpDir], { timeout: 15000 }, (err) => err ? reject(err) : resolve());
+            });
+          } else {
+            // Maybe it's a raw binary already (not compressed)
+            const destName = path.join(tmpDir, 'warp-plus');
+            fs.copyFileSync(tarball, destName);
+            fs.chmodSync(destName, 0o755);
+          }
           const files = fs.readdirSync(tmpDir).filter(f => f !== 'warp.tar.gz' && !f.startsWith('.'));
           let found = false;
           for (const f of files) {
