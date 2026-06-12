@@ -8,7 +8,13 @@ const TOKEN_HASH_ALGO = 'sha256';
 
 function load() {
   try {
-    if (fs.existsSync(DATA_FILE)) return JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+    if (fs.existsSync(DATA_FILE)) {
+      const data = JSON.parse(fs.readFileSync(DATA_FILE, 'utf-8'));
+      if (!Array.isArray(data.tokens)) data.tokens = [];
+      if (!Array.isArray(data.used)) data.used = [];
+      if (!Array.isArray(data.logs)) data.logs = [];
+      return data;
+    }
   } catch {}
   return { tokens: [], used: [], logs: [] };
 }
