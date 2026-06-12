@@ -23,5 +23,10 @@ config.json
 # Restart flag
 .restarting
 
+# YouTube cookies (contem dados de login)
+cookies.txt
+
+
+
 # Shortcuts
 *.lnk
