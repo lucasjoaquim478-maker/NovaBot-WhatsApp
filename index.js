@@ -1,3 +1,11 @@
+const fs = require('fs');
+const path = require('path');
+const cfgPath = path.join(__dirname, 'config.json');
+const cfgExamplePath = path.join(__dirname, 'config.example.json');
+if (!fs.existsSync(cfgPath) && fs.existsSync(cfgExamplePath)) {
+  fs.copyFileSync(cfgExamplePath, cfgPath);
+  console.log('[SETUP] config.json criado a partir de config.example.json');
+}
 const config = require('./config.json');
 const { start, getSock, logger } = require('./lib/baileys');
 const db = require('./database/index');
@@ -42,8 +50,6 @@ const monitor = require('./server/botMonitor');
 const logService = require('./server/services/logService');
 const tokenManager = require('./server/services/tokenService');
 const webServer = require('./server/index');
-const fs = require('fs');
-const path = require('path');
 const os = require('os');
 
 const lockFile = path.join(__dirname, '.bot.lock');
