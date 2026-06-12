@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
-const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo'];
+const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'setproxy', 'delproxy'];
 
 async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
@@ -197,6 +197,75 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
               `*Variavel:* YOUTUBE_COOKIES_B64\n\n` +
               `\`\`\`${b64}\`\`\``
       });
+      break;
+    }
+
+    case 'cookie': {
+      const docMsg = msg.message?.documentMessage;
+      if (!docMsg) {
+        return await sock.sendMessage(jid, {
+          text: `📋 *Enviar cookies como arquivo*\n\n1. Exporte os cookies do YouTube com extensao "Get cookies.txt LOCALLY"\n2. Envie o arquivo *cookies.txt* com a legenda *!cookie*\n\nO bot vai salvar o arquivo automaticamente.`
+        });
+      }
+      try {
+        const { downloadContentFromMessage } = require('@whiskeysockets/baileys');
+        const stream = await downloadContentFromMessage(docMsg, 'document');
+        const chunks = [];
+        for await (const chunk of stream) chunks.push(chunk);
+        const buffer = Buffer.concat(chunks);
+        fs.writeFileSync(COOKIE_PATH, buffer);
+        const b64 = buffer.toString('base64');
+        const cfgPath = path.join(__dirname, '..', 'config.json');
+        if (fs.existsSync(cfgPath)) {
+          const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+          cfg.cookiesPath = 'cookies.txt';
+          cfg.cookieBase64 = b64;
+          fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+        }
+        const size = buffer.length;
+        const hasLogin = buffer.toString('utf-8').includes('LOGIN_INFO');
+        await sock.sendMessage(jid, {
+          text: `✅ *Cookies salvos do arquivo!*\n\n📁 Tamanho: ${size} bytes\n🔑 LOGIN_INFO: ${hasLogin ? 'PRESENTE' : 'AUSENTE'}\n\n🔄 Reinicie com *!reiniciar* para aplicar`
+        });
+      } catch (e) {
+        await sock.sendMessage(jid, { text: `❌ Erro ao processar arquivo: ${e.message}` });
+      }
+      break;
+    }
+
+    case 'setproxy': {
+      const proxyUrl = args.join(' ').trim();
+      if (!proxyUrl) {
+        return await sock.sendMessage(jid, {
+          text: `📋 *Configurar proxy para YouTube*\n\nEnvie: *setproxy* <url>\n\nExemplos:\n• HTTP: http://user:pass@host:port\n• SOCKS5: socks5://host:1080\n\nPara remover: *delproxy*`
+        });
+      }
+      try {
+        const cfgPath = path.join(__dirname, '..', 'config.json');
+        if (fs.existsSync(cfgPath)) {
+          const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+          cfg.youtubeProxy = proxyUrl;
+          fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+        }
+        await sock.sendMessage(jid, { text: `✅ Proxy configurado: ${proxyUrl}\n\n🔄 Reinicie com *!reiniciar* para aplicar` });
+      } catch (e) {
+        await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+      }
+      break;
+    }
+
+    case 'delproxy': {
+      try {
+        const cfgPath = path.join(__dirname, '..', 'config.json');
+        if (fs.existsSync(cfgPath)) {
+          const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+          delete cfg.youtubeProxy;
+          fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+        }
+        await sock.sendMessage(jid, { text: '✅ Proxy removido' });
+      } catch (e) {
+        await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+      }
       break;
     }
   }
