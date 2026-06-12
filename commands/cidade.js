@@ -3,11 +3,11 @@ const ytSearch = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
+const { getYtDlpPath, getFfmpegPath } = require('../lib/utils');
 
-const ROOT = path.resolve(__dirname, '..');
-const YT_DLP = path.join(ROOT, 'bin', 'yt-dlp.exe');
-const FFMPEG = path.join(ROOT, 'node_modules', '@ffmpeg-installer', 'win32-x64', 'ffmpeg.exe');
-const TEMP_DIR = path.join(ROOT, 'temp');
+const YT_DLP = getYtDlpPath();
+const FFMPEG = getFfmpegPath();
+const TEMP_DIR = path.join(__dirname, '..', 'temp');
 
 const cidadeCommands = ['cidade'];
 const cache = new Map();
@@ -393,7 +393,7 @@ async function fetchAnthemAudio(cityName) {
       return parseInt(v.seconds) < 600 && !t.includes('short');
     })[0];
     if (!video) return null;
-    const tempDir = path.join(ROOT, 'temp');
+    const tempDir = path.join(__dirname, '..', 'temp');
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
     const outFile = path.join(tempDir, `hino_${Date.now()}`);
     const args = [
