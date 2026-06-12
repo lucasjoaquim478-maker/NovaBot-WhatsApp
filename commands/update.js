@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
-const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie'];
+const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64'];
 
 async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
@@ -100,14 +100,19 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
         return await sock.sendMessage(jid, { text: '❌ Conteudo muito curto. Copie todo o conteudo do cookies.txt' });
       }
       try {
+        const b64 = Buffer.from(input, 'utf-8').toString('base64');
         fs.writeFileSync(COOKIE_PATH, input, 'utf-8');
         const cfgPath = path.join(__dirname, '..', 'config.json');
         if (fs.existsSync(cfgPath)) {
           const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
           cfg.cookiesPath = 'cookies.txt';
+          cfg.cookieBase64 = b64;
           fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
         }
-        await sock.sendMessage(jid, { text: `✅ Cookies salvos! Reinicie o bot com *!reiniciar*` });
+        await sock.sendMessage(jid, {
+          text: `✅ Cookies salvos! Reinicie com *!reiniciar*\n\n` +
+                `💡 *Para o cookie sobreviver a qualquer restart:* use *!cookieb64* + o conteudo, e cole o base64 gerado no painel PhanomCloud como *YOUTUBE_COOKIES_B64*`
+        });
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro ao salvar: ${e.message}` });
       }
@@ -117,10 +122,36 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
     case 'delcookie': {
       try {
         if (fs.existsSync(COOKIE_PATH)) fs.unlinkSync(COOKIE_PATH);
+        const cfgPath = path.join(__dirname, '..', 'config.json');
+        if (fs.existsSync(cfgPath)) {
+          const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+          delete cfg.cookieBase64;
+          fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+        }
         await sock.sendMessage(jid, { text: '✅ Cookies removidos' });
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
       }
+      break;
+    }
+
+    case 'cookieb64': {
+      if (!args.length) {
+        return await sock.sendMessage(jid, {
+          text: `📋 *Gerar base64 dos cookies*\n\nEnvie: *cookieb64* + o conteudo do cookies.txt\n\nO base64 gerado voce cola no painel PhanomCloud como a variavel *YOUTUBE_COOKIES_B64*`
+        });
+      }
+      const input = args.join(' ');
+      if (input.length < 50) {
+        return await sock.sendMessage(jid, { text: '❌ Conteudo muito curto. Cole todo o conteudo do cookies.txt' });
+      }
+      const b64 = Buffer.from(input, 'utf-8').toString('base64');
+      await sock.sendMessage(jid, {
+        text: `✅ *Base64 gerado!*\n\n` +
+              `Copie o valor abaixo e cole no painel PhanomCloud:\n` +
+              `*Variavel:* YOUTUBE_COOKIES_B64\n\n` +
+              `\`\`\`${b64}\`\`\``
+      });
       break;
     }
   }
