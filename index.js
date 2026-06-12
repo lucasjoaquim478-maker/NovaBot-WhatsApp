@@ -39,7 +39,8 @@ const { handleCultura, culturaCommands } = require('./commands/cultura');
 const { startAutoCheck, performUpdate } = require('./lib/updater');
 const Logger = require('./lib/logger');
 const monitor = require('./server/botMonitor');
-const tokenManager = require('./server/tokenManager');
+const logService = require('./server/services/logService');
+const tokenManager = require('./server/services/tokenService');
 const webServer = require('./server/index');
 const fs = require('fs');
 const path = require('path');
@@ -162,7 +163,7 @@ async function handleCreateToken(sock, ctx) {
   }
   const singleUse = ctx.args.includes('--single-use') || ctx.args.includes('-s');
   const token = tokenManager.generate({ singleUse });
-  monitor.info(`Token criado por ${ctx.sender.split('@')[0]}`);
+  logService.add('info', `Token criado por ${ctx.sender.split('@')[0]}`);
   const msg = `🔑 *Token gerado!*\n\n` +
     `\`${token.raw}\`\n\n` +
     `📝 Uso único: ${singleUse ? '✅ Sim' : '❌ Não'}\n` +
@@ -177,11 +178,11 @@ async function handleToken(sock, ctx) {
   }
   const result = tokenManager.validate(input);
   if (!result) {
-    monitor.warn(`Token inválido tentado por ${ctx.sender.split('@')[0]}`);
+    logService.add('warn', `Token inválido tentado por ${ctx.sender.split('@')[0]}`);
     return await sock.sendMessage(ctx.jid, { text: '❌ Token inválido ou revogado.' });
   }
   if (result.error) {
-    monitor.warn(`Token expirado por ${ctx.sender.split('@')[0]}: ${result.error}`);
+    logService.add('warn', `Token expirado por ${ctx.sender.split('@')[0]}: ${result.error}`);
     return await sock.sendMessage(ctx.jid, { text: `❌ ${result.error}.` });
   }
   tokenManager.use(input, ctx.sender);
@@ -196,7 +197,7 @@ async function handleToken(sock, ctx) {
       fs.writeFileSync(ownersFile, JSON.stringify(owners, null, 2));
     }
   } catch {}
-  monitor.info(`Token validado! ${ctx.sender.split('@')[0]} agora é admin`);
+  logService.add('success', `Token validado! ${ctx.sender.split('@')[0]} agora é admin`);
   await sock.sendMessage(ctx.jid, {
     text: `✅ *Token válido!*\n\nAgora você tem acesso administrativo ao bot.\nUse ${ctx.prefix}help para ver os comandos.`
   });
@@ -234,8 +235,8 @@ async function main() {
   registerCommands();
 
   Logger.onLog = (level, msg) => {
-    const map = { error: 'ERROR', warn: 'WARNING', info: 'INFO', debug: 'INFO' };
-    monitor.addLog(map[level] || 'INFO', msg);
+    const map = { error: 'ERROR', warn: 'WARNING', info: 'INFO', debug: 'INFO', success: 'SUCCESS' };
+    logService.add(map[level] || 'INFO', msg);
   };
 
   try {
