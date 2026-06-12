@@ -9,7 +9,7 @@ const os = require('os');
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
 const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy'];
 
-async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
+async function handleUpdate(sock, { jid, sender, text, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
     await sock.sendMessage(jid, {
       text: `📱 *Seu JID:* ${sender}\n👤 *Nome:* ${msg.pushName || 'N/A'}\n🔍 *No config:* ${config.ownerNumbers.some(n => sender.startsWith(n.split('@')[0])) ? 'SIM' : 'NAO'}\n👑 *isOwner:* ${await isOwner(sender, sock) ? 'SIM' : 'NAO'}`
@@ -141,7 +141,7 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           text: `📋 *Configurar cookies do YouTube*\n\n1. Instale "Get cookies.txt LOCALLY" no Chrome\n2. Acesse youtube.com, faca login\n3. Clique na extensao > Exportar\n4. Copie TODO o conteudo\n5. Envie: *addcookie* + o conteudo dos cookies`
         });
       }
-      const input = args.join(' ');
+      const input = text.slice(prefix.length + commandName.length).trim();
       if (input.length < 50) {
         return await sock.sendMessage(jid, { text: '❌ Conteudo muito curto. Copie todo o conteudo do cookies.txt' });
       }
@@ -187,7 +187,7 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           text: `📋 *Gerar base64 dos cookies*\n\nEnvie: *cookieb64* + o conteudo do cookies.txt\n\nO base64 gerado voce cola no painel PhanomCloud como a variavel *YOUTUBE_COOKIES_B64*`
         });
       }
-      const input = args.join(' ');
+      const input = text.slice(prefix.length + commandName.length).trim();
       if (input.length < 50) {
         return await sock.sendMessage(jid, { text: '❌ Conteudo muito curto. Cole todo o conteudo do cookies.txt' });
       }
