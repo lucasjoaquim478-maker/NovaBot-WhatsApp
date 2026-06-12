@@ -162,7 +162,7 @@ async function handleConfirma(sock, ctx) {
     await sock.sendMessage(ctx.jid, {
       text: `✅ *Atualização concluída!*\n\n📦 v${updater.getCurrentVersion()} → v${result.targetVer}\n📁 ${result.filesSuccess} arquivos\n❌ ${result.filesFailed} falhas\n\n🔄 Reiniciando em 3 segundos...`
     });
-    setTimeout(() => process.exit(0), 3000);
+    setTimeout(() => process.exit(1), 3000);
   } catch (e) {
     await sock.sendMessage(ctx.jid, { text: `❌ Falha na atualização: ${e.message}` });
   }

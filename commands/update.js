@@ -45,7 +45,7 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           await sock.sendMessage(jid, {
             text: `✅ *Atualização concluída!*\n\n📦 v${updater.getCurrentVersion()} → v${result.targetVer}\n📁 ${result.filesSuccess} atualizados\n❌ ${result.filesFailed} falhas\n\n🔄 Reiniciando...`
           });
-          setTimeout(() => process.exit(0), 3000);
+          setTimeout(() => process.exit(1), 3000);
         } catch (e) {
           await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
         }
@@ -78,7 +78,7 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
         await sock.sendMessage(jid, {
           text: `✅ *Rollback concluído!*\n\n💾 Backup: ${result.backup}\n📁 ${result.files} arquivos restaurados\n\n🔄 Reiniciando em 3 segundos...`
         });
-        setTimeout(() => process.exit(0), 3000);
+        setTimeout(() => process.exit(1), 3000);
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
       }

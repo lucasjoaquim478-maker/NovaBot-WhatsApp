@@ -31,12 +31,12 @@ async function handleOwner(sock, { msg, jid, sender, args, commandName }) {
   switch (commandName) {
     case 'reiniciar': {
       await sock.sendMessage(jid, { text: '🔄 Reiniciando bot...' });
-      process.exit(0);
+      process.exit(1);
       break;
     }
     case 'shutdown': {
       await sock.sendMessage(jid, { text: '🛑 Desligando bot...' });
-      process.exit(1);
+      process.exit(0);
       break;
     }
     case 'broadcast': {
