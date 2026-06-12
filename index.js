@@ -246,8 +246,8 @@ async function main() {
   };
 
   try {
-    await webServer.start(config.webPort || 3000);
-    logger.info(`[WEB] Painel em http://localhost:${config.webPort || 3000}`);
+    await webServer.start(config.webPort);
+    logger.info('[WEB] Painel web iniciado');
   } catch (e) {
     logger.warn(`[WEB] Erro ao iniciar servidor: ${e.message}`);
   }

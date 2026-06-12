@@ -66,7 +66,7 @@ io.on('connection', (socket) => {
 });
 
 function start(port) {
-  port = parseInt(port || process.env.PORT || 3000, 10);
+  port = parseInt(process.env.PORT || port || 3000, 10);
   return new Promise((resolve) => {
     server.listen(port, '0.0.0.0', () => {
       logService.add('info', `Painel web: http://0.0.0.0:${port}`);
