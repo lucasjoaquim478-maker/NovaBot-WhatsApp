@@ -43,6 +43,7 @@ try { require('sharp'); } catch {
   try { execSync(cmd, { cwd: __dirname, stdio: 'pipe', timeout: 300000, shell: true }); } catch (e) { console.error('[STARTUP] npm install falhou:', e.message); }
 }
 const { handleLink, linkCommands } = require('./commands/linkvertise');
+const { handleCookieSetup, cookieCommands } = require('./commands/cookiesetup');
 const { handleCultura, culturaCommands } = require('./commands/cultura');
 const updater = require('./lib/updater');
 const Logger = require('./lib/logger');
@@ -108,6 +109,7 @@ function registerCommands() {
     { cmds: cidadeCommands, handler: handleCidade },
     { cmds: linkCommands, handler: handleLink },
     { cmds: culturaCommands, handler: handleCultura },
+    { cmds: cookieCommands, handler: handleCookieSetup },
     { cmds: ['confirma'], handler: handleConfirma },
     { cmds: ['create token'], handler: handleCreateToken },
     { cmds: ['token'], handler: handleToken }
