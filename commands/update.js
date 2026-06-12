@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
-const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo'];
+const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo'];
 
 async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
@@ -72,6 +72,29 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
                 `📝 Changelog: ${result.html_url || 'N/A'}\n\n` +
                 `Deseja atualizar? Use \`!update force\` para confirmar.`
         });
+      }
+      break;
+    }
+
+    case 'updateytdlp':
+    case 'upgrade': {
+      await sock.sendMessage(jid, { text: '⚡ Atualizando yt-dlp para última versão nightly...' });
+      try {
+        const { execFile } = require('child_process');
+        const ytDlpPath = path.join(__dirname, '..', 'bin', 'yt-dlp');
+        const result = await new Promise((resolve, reject) => {
+          const child = execFile(ytDlpPath, ['--update-to', 'nightly'], { timeout: 120000 }, (err, stdout, stderr) => {
+            if (err) reject(new Error(stderr || err.message));
+            else resolve(stdout);
+          });
+          child.on('error', reject);
+        });
+        await sock.sendMessage(jid, {
+          text: `✅ *yt-dlp atualizado!*\n\n${result.slice(0, 500)}\n\n🔄 Reiniciando...`
+        });
+        setTimeout(() => safeRestart(), 3000);
+      } catch (e) {
+        await sock.sendMessage(jid, { text: `❌ Erro ao atualizar yt-dlp: ${e.message}` });
       }
       break;
     }
