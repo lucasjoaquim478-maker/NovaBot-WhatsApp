@@ -6,7 +6,7 @@ const fs = require('fs');
 const path = require('path');
 
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
-const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64'];
+const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo'];
 
 async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
@@ -86,6 +86,28 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
       }
+      break;
+    }
+
+    case 'cookieinfo': {
+      const p = path.resolve(__dirname, '..');
+      const cookieExists = fs.existsSync(COOKIE_PATH);
+      const cookieSize = cookieExists ? fs.statSync(COOKIE_PATH).size : 0;
+      const cfgPath = path.join(__dirname, '..', 'config.json');
+      let cfgObj = {};
+      try { cfgObj = JSON.parse(fs.readFileSync(cfgPath, 'utf-8')); } catch {}
+      const hasB64 = !!cfgObj.cookieBase64;
+      const envSet = !!process.env.YOUTUBE_COOKIES_B64;
+      const loginfo = cookieExists ? fs.readFileSync(COOKIE_PATH, 'utf-8').includes('LOGIN_INFO') : false;
+      await sock.sendMessage(jid, {
+        text: `📋 *Diagnostico de Cookies*\n\n` +
+              `📁 *cookies.txt:* ${cookieExists ? 'EXISTE' : 'NAO EXISTE'} (${cookieSize} bytes)\n` +
+              `🔑 *LOGIN_INFO:* ${loginfo ? 'PRESENTE' : 'AUSENTE'}\n` +
+              `⚙️ *cookiesPath config:* ${cfgObj.cookiesPath || '(vazio)'}\n` +
+              `💾 *cookieBase64 config:* ${hasB64 ? 'PRESENTE' : 'AUSENTE'}\n` +
+              `🌍 *YOUTUBE_COOKIES_B64 env:* ${envSet ? 'SETADA' : 'NAO SETADA'}\n` +
+              `📂 *ROOT:* ${p}`
+      });
       break;
     }
 
