@@ -43,8 +43,7 @@ try { require('sharp'); } catch {
   try { execSync(cmd, { cwd: __dirname, stdio: 'pipe', timeout: 300000, shell: true }); } catch (e) { console.error('[STARTUP] npm install falhou:', e.message); }
 }
 const { handleLink, linkCommands } = require('./commands/linkvertise');
-let handleCookieSetup = null, cookieCommands = [];
-try { const m = require('./commands/cookiesetup'); handleCookieSetup = m.handleCookieSetup; cookieCommands = m.cookieCommands; } catch {};
+
 const { handleCultura, culturaCommands } = require('./commands/cultura');
 const updater = require('./lib/updater');
 const Logger = require('./lib/logger');
@@ -120,9 +119,7 @@ function registerCommands() {
       commandMap.set(cmd, reg.handler);
     }
   }
-  if (handleCookieSetup) {
-    for (const cmd of cookieCommands) commandMap.set(cmd, handleCookieSetup);
-  }
+
 
   logger.info(`[COMANDOS] ${commandMap.size} comandos registrados`);
 }

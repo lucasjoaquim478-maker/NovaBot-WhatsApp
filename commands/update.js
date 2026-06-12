@@ -2,8 +2,11 @@ const config = require('../config.json');
 const { isOwner } = require('../lib/utils');
 const updater = require('../lib/updater');
 const { safeRestart } = require('../lib/restart');
+const fs = require('fs');
+const path = require('path');
 
-const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero'];
+const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
+const updateCommands = ['update', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie'];
 
 async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
@@ -80,6 +83,41 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           text: `✅ *Rollback concluído!*\n\n💾 Backup: ${result.backup}\n📁 ${result.files} arquivos restaurados\n\n🔄 Reiniciando em 3 segundos...`
         });
         setTimeout(() => safeRestart(), 3000);
+      } catch (e) {
+        await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+      }
+      break;
+    }
+
+    case 'addcookie': {
+      if (!args.length) {
+        return await sock.sendMessage(jid, {
+          text: `📋 *Configurar cookies do YouTube*\n\n1. Instale "Get cookies.txt LOCALLY" no Chrome\n2. Acesse youtube.com, faca login\n3. Clique na extensao > Exportar\n4. Copie TODO o conteudo\n5. Envie: *addcookie* + o conteudo dos cookies`
+        });
+      }
+      const input = args.join(' ');
+      if (input.length < 50) {
+        return await sock.sendMessage(jid, { text: '❌ Conteudo muito curto. Copie todo o conteudo do cookies.txt' });
+      }
+      try {
+        fs.writeFileSync(COOKIE_PATH, input, 'utf-8');
+        const cfgPath = path.join(__dirname, '..', 'config.json');
+        if (fs.existsSync(cfgPath)) {
+          const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+          cfg.cookiesPath = 'cookies.txt';
+          fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+        }
+        await sock.sendMessage(jid, { text: `✅ Cookies salvos! Reinicie o bot com *!reiniciar*` });
+      } catch (e) {
+        await sock.sendMessage(jid, { text: `❌ Erro ao salvar: ${e.message}` });
+      }
+      break;
+    }
+
+    case 'delcookie': {
+      try {
+        if (fs.existsSync(COOKIE_PATH)) fs.unlinkSync(COOKIE_PATH);
+        await sock.sendMessage(jid, { text: '✅ Cookies removidos' });
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
       }
