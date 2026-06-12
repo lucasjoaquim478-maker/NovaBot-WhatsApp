@@ -3,7 +3,7 @@ const ytSearch = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { getYtDlpPath, getFfmpegPath } = require('../lib/utils');
+const { getYtDlpPath, getFfmpegPath, ytDlpArgs } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -397,14 +397,13 @@ async function fetchAnthemAudio(cityName) {
     if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
     const outFile = path.join(tempDir, `hino_${Date.now()}`);
     const args = [
+      ...ytDlpArgs(),
       '-f', 'bestaudio[ext=m4a]/bestaudio',
       '--max-filesize', '15M',
       '--ffmpeg-location', FFMPEG,
       '--extract-audio',
       '--audio-format', 'mp3',
       '--output', `${outFile}.%(ext)s`,
-      '--no-warnings',
-      '--no-playlist',
       video.url
     ];
     await new Promise((resolve, reject) => {
@@ -513,13 +512,14 @@ function downloadVideoClip(url) {
     if (!fs.existsSync(TEMP_DIR)) fs.mkdirSync(TEMP_DIR, { recursive: true });
     const outFile = path.join(TEMP_DIR, `cidade_${Date.now()}`);
     const child = execFile(YT_DLP, [
+      ...ytDlpArgs(),
       url, '-f', 'bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/bestvideo[height<=1080][ext=mp4]+bestaudio/best[height<=1080][ext=mp4]/best[height<=1080]/bestvideo[height<=720][ext=mp4]+bestaudio/best[height<=720][ext=mp4]/bestvideo+bestaudio/best',
       '--max-filesize', '100M',
       '--merge-output-format', 'mp4',
       '--embed-thumbnail',
       '--ffmpeg-location', FFMPEG,
       '--output', `${outFile}.%(ext)s`,
-      '--no-playlist', '--no-warnings', '--no-progress',
+      '--no-progress',
       '--no-check-certificate'
     ], { timeout: 180000, maxBuffer: 50 * 1024 * 1024 }, (err) => {
       if (err) { resolve(null); return; }

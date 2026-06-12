@@ -1,7 +1,7 @@
 const fs = require('fs');
 const path = require('path');
 const { execFile } = require('child_process');
-const { convertToMp4, getYtDlpPath, getFfmpegPath } = require('../lib/utils');
+const { convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -20,7 +20,7 @@ async function downloadYtDlp(url, extraArgs = []) {
   const tempDir = path.join(__dirname, '..', 'temp');
   if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
   const outFile = path.join(tempDir, `soc_${Date.now()}`);
-  const args = ['--no-warnings', '--no-playlist', '--max-filesize', '50M', '--ffmpeg-location', FFMPEG, '--output', `${outFile}.%(ext)s`, ...extraArgs, url];
+  const args = [...ytDlpArgs(), '--max-filesize', '50M', '--ffmpeg-location', FFMPEG, '--output', `${outFile}.%(ext)s`, ...extraArgs, url];
   try {
     await runYtDlp(args);
     for (const e of ['mp4', 'webm', 'mkv', 'jpg', 'png', 'jpeg', 'gif', 'webp']) {

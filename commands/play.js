@@ -2,7 +2,7 @@ const yts = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { formatDuration, formatNumber, getYtDlpPath, getFfmpegPath } = require('../lib/utils');
+const { formatDuration, formatNumber, getYtDlpPath, getFfmpegPath, ytDlpArgs } = require('../lib/utils');
 
 const searchCache = new Map();
 const CACHE_TTL = 3600000;
@@ -31,16 +31,14 @@ async function downloadAudio(url) {
 
   try {
     const args = [
+      ...ytDlpArgs(),
       '-f', 'bestaudio[ext=m4a]/bestaudio',
       '--max-filesize', '25M',
       '--ffmpeg-location', FFMPEG,
-      '--js-runtimes', 'node',
       '--extract-audio',
       '--audio-format', 'mp3',
       '--audio-quality', '128K',
       '--output', `${outFile}.%(ext)s`,
-      '--no-warnings',
-      '--no-playlist',
       url
     ];
 
