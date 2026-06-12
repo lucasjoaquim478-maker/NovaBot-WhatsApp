@@ -33,6 +33,6 @@
   "branch": "main",
   "checkInterval": 3600000,
   "webPort": 3000,
-  "cookiesPath": "",
+  "cookiesPath": "cookies.txt",
   "logLevel": "info"
 }
