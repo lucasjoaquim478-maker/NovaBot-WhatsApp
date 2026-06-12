@@ -1,32 +1,414 @@
 const socket = io();
 
-class Dashboard {
+/* ─── Log Exporter ─── */
+class LogExporter {
+  static toTXT(logs) {
+    return logs.map(e => `[${new Date(e.timestamp).toISOString()}] [${e.type}] [${e.source || 'system'}] ${e.message}`).join('\n');
+  }
+  static toJSON(logs) {
+    return JSON.stringify(logs, null, 2);
+  }
+  static toCSV(logs) {
+    const header = 'timestamp,type,source,message';
+    const rows = logs.map(e => {
+      const msg = '"' + e.message.replace(/"/g, '""') + '"';
+      return `${new Date(e.timestamp).toISOString()},${e.type},${e.source || 'system'},${msg}`;
+    });
+    return header + '\n' + rows.join('\n');
+  }
+  static download(content, filename, mime) {
+    const blob = new Blob([content], { type: mime });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+    URL.revokeObjectURL(a.href);
+  }
+}
+
+/* ─── Notification Manager ─── */
+class NotificationManager {
+  constructor() {
+    this.container = document.getElementById('notificationArea');
+  }
+  show(type, title, message, duration) {
+    const icons = { error: '✕', warning: '⚠', info: 'ℹ', success: '✓' };
+    const el = document.createElement('div');
+    el.className = `notification notification-${type}`;
+    el.innerHTML = `
+      <span class="notif-icon">${icons[type] || 'ℹ'}</span>
+      <div class="notif-body">
+        <div class="notif-title">${this._esc(title)}</div>
+        <div class="notif-msg">${this._esc(message)}</div>
+      </div>
+      <button class="notif-close">&times;</button>`;
+    el.querySelector('.notif-close').onclick = () => el.remove();
+    this.container.appendChild(el);
+    if (duration !== Infinity) setTimeout(() => { if (el.parentNode) el.remove(); }, duration || 5000);
+  }
+  error(title, msg) { this.show('error', title, msg, 8000); }
+  warn(title, msg) { this.show('warning', title, msg, 5000); }
+  info(title, msg) { this.show('info', title, msg, 4000); }
+  _esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+}
+
+/* ─── Log Chart ─── */
+class LogChart {
+  constructor(canvasId) {
+    this.canvas = document.getElementById(canvasId);
+    if (!this.canvas) return;
+    this.ctx = this.canvas.getContext('2d');
+    this.data = []; // { timestamp, count }
+    this.maxPoints = 60;
+    this.animId = null;
+    this.resize();
+    window.addEventListener('resize', () => this.resize());
+  }
+  resize() {
+    const rect = this.canvas.parentNode.getBoundingClientRect();
+    this.canvas.width = rect.width * 2;
+    this.canvas.height = 80 * 2;
+    this.ctx.scale(2, 2);
+    this.draw();
+  }
+  push(timestamp) {
+    const key = Math.floor(timestamp / 1000);
+    if (this.data.length && this.data[this.data.length - 1].key === key) {
+      this.data[this.data.length - 1].count++;
+    } else {
+      this.data.push({ key, count: 1, time: timestamp });
+    }
+    if (this.data.length > this.maxPoints) this.data.shift();
+    this.draw();
+  }
+  draw() {
+    const ctx = this.ctx;
+    const w = this.canvas.width / 2;
+    const h = this.canvas.height / 2;
+    if (!ctx || !w) return;
+
+    ctx.clearRect(0, 0, w, h);
+
+    if (this.data.length < 2) {
+      ctx.fillStyle = '#6e7681';
+      ctx.font = '11px sans-serif';
+      ctx.textAlign = 'center';
+      ctx.fillText('Aguardando atividade...', w / 2, h / 2 + 4);
+      return;
+    }
+
+    const max = Math.max(1, ...this.data.map(d => d.count));
+    const pad = 4;
+    const barW = Math.max(2, (w - pad * 2) / this.data.length - 1);
+    const grad = ctx.createLinearGradient(0, h, 0, pad);
+    grad.addColorStop(0, 'rgba(88, 166, 255, 0)');
+    grad.addColorStop(0.3, 'rgba(88, 166, 255, 0.3)');
+    grad.addColorStop(0.7, 'rgba(88, 166, 255, 0.6)');
+    grad.addColorStop(1, 'rgba(88, 166, 255, 0.9)');
+
+    ctx.beginPath();
+    this.data.forEach((d, i) => {
+      const x = pad + i * (barW + 1);
+      const bh = (d.count / max) * (h - pad * 2);
+      ctx.rect(x, h - pad - bh, barW, bh);
+    });
+    ctx.fillStyle = grad;
+    ctx.fill();
+  }
+}
+
+/* ─── Log Manager ─── */
+class LogManager {
   constructor() {
     this.allLogs = [];
-    this.currentFilter = 'all';
+    this.filterType = 'all';
     this.searchQuery = '';
-    this.autoScroll = true;
-    this.uptimeInterval = null;
+    this.sourceQuery = '';
+    this.maxLogs = 2000;
+    this.listeners = [];
+  }
+  addLogs(logs) {
+    for (const l of logs) this._add(l);
+    this._notify();
+  }
+  addLog(entry) {
+    this._add(entry);
+    this._notify();
+  }
+  _add(entry) {
+    if (!entry.source) {
+      const m = entry.message.match(/^\[(\w+)\]/);
+      entry.source = m ? m[1].toLowerCase() : 'system';
+    }
+    this.allLogs.push(entry);
+    if (this.allLogs.length > this.maxLogs) {
+      this.allLogs.splice(0, this.allLogs.length - this.maxLogs);
+    }
+  }
+  clear() {
+    this.allLogs = [];
+    this._notify();
+  }
+  getFiltered() {
+    return this.allLogs.filter(e => {
+      if (this.filterType !== 'all' && e.type !== this.filterType) return false;
+      if (this.searchQuery && !e.message.toLowerCase().includes(this.searchQuery)) return false;
+      if (this.sourceQuery && (!e.source || !e.source.toLowerCase().includes(this.sourceQuery))) return false;
+      return true;
+    });
+  }
+  getStats() {
+    const s = { total: this.allLogs.length, SUCCESS: 0, INFO: 0, WARNING: 0, ERROR: 0, DEBUG: 0 };
+    for (const l of this.allLogs) { if (s.hasOwnProperty(l.type)) s[l.type]++; }
+    return s;
+  }
+  onChange(fn) { this.listeners.push(fn); }
+  _notify() { for (const fn of this.listeners) fn(); }
+}
 
-    this.console = document.getElementById('liveConsole');
-    this.logsConsole = document.getElementById('logsConsole');
+/* ─── Log Renderer (Virtual Scrolling) ─── */
+class LogRenderer {
+  constructor(containerId, manager) {
+    this.container = document.getElementById(containerId);
+    this.manager = manager;
+    this.placeholder = this.container.querySelector('.console-placeholder');
+    this.virtualizer = document.getElementById('logVirtualizer');
+    this.rowHeight = 22;
+    this.buffer = 10;
+    this.rendered = [];
+    this.expanded = new Set();
+
+    this.container.addEventListener('scroll', () => this._onScroll());
+    this.container.addEventListener('click', (e) => this._onClick(e));
+    manager.onChange(() => this.scheduleRender());
+  }
+
+  scheduleRender() {
+    if (this._pendingRender) return;
+    this._pendingRender = requestAnimationFrame(() => {
+      this._pendingRender = null;
+      this.render();
+    });
+  }
+
+  render() {
+    const items = this.manager.getFiltered();
+    const ct = this.container;
+    const st = ct.scrollTop || 0;
+    const vh = ct.clientHeight || 400;
+
+    if (!items.length) {
+      this.virtualizer.innerHTML = '';
+      this.virtualizer.style.height = 'auto';
+      if (this.placeholder) this.placeholder.style.display = 'block';
+      return;
+    }
+    if (this.placeholder) this.placeholder.style.display = 'none';
+
+    const totalH = items.length * this.rowHeight;
+    this.virtualizer.style.height = totalH + 'px';
+    this.virtualizer.style.position = 'relative';
+
+    const startIdx = Math.max(0, Math.floor(st / this.rowHeight) - this.buffer);
+    const endIdx = Math.min(items.length, Math.ceil((st + vh) / this.rowHeight) + this.buffer);
+
+    const visible = new Set();
+    const frag = document.createDocumentFragment();
+    let lastEl = null;
+
+    for (let i = startIdx; i < endIdx; i++) {
+      visible.add(i);
+      const item = items[i];
+      const key = item.id || i;
+      const existing = this.virtualizer.querySelector(`[data-idx="${i}"]`);
+
+      if (existing) {
+        lastEl = existing;
+        continue;
+      }
+
+      const el = this._createRow(item, i);
+      el.dataset.idx = i;
+      if (lastEl) {
+        lastEl.insertAdjacentElement('afterend', el);
+      } else {
+        this.virtualizer.prepend(el);
+      }
+      lastEl = el;
+    }
+
+    // Remove non-visible rows
+    const children = this.virtualizer.children;
+    for (let ci = children.length - 1; ci >= 0; ci--) {
+      const child = children[ci];
+      if (child.dataset.idx === undefined) continue;
+      const idx = parseInt(child.dataset.idx);
+      if (!visible.has(idx)) {
+        // Detach but keep reference for fast re-add
+        child.remove();
+      }
+    }
+
+    // Position visible rows
+    const kids = this.virtualizer.querySelectorAll('[data-idx]');
+    for (const kid of kids) {
+      const idx = parseInt(kid.dataset.idx);
+      kid.style.position = 'absolute';
+      kid.style.top = (idx * this.rowHeight) + 'px';
+      kid.style.left = '0';
+      kid.style.right = '0';
+      kid.style.height = this.rowHeight + 'px';
+    }
+
+    this.rendered = items;
+  }
+
+  _createRow(item, idx) {
+    const el = document.createElement('div');
+    const time = new Date(item.timestamp).toLocaleTimeString();
+    const full = new Date(item.timestamp).toLocaleString();
+    const msg = this._esc(item.message);
+    const src = item.source || 'system';
+    const isExpanded = this.expanded.has(item.id);
+    el.className = 'log-entry' + (isExpanded ? ' log-entry-expanded' : '');
+    el.dataset.type = item.type;
+    el.dataset.id = item.id || '';
+    el.title = full;
+    el.innerHTML = `
+      <span class="log-time">[${time}]</span>
+      <span class="log-source">${this._esc(src)}</span>
+      <span class="log-type ${item.type}">[${item.type}]</span>
+      <span class="log-msg">${msg}</span>
+      <button class="log-copy-btn" title="Copiar"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg></button>`;
+    return el;
+  }
+
+  _onScroll() {
+    if (this._scrollRaf) return;
+    this._scrollRaf = requestAnimationFrame(() => {
+      this._scrollRaf = null;
+      this.render();
+    });
+  }
+
+  _onClick(e) {
+    const entry = e.target.closest('.log-entry');
+    if (!entry) return;
+
+    // Copy button
+    if (e.target.closest('.log-copy-btn')) {
+      const msgEl = entry.querySelector('.log-msg');
+      if (msgEl) {
+        navigator.clipboard.writeText(msgEl.textContent).catch(() => {});
+        this._toast('Copiado!');
+      }
+      return;
+    }
+
+    // Expand/collapse
+    const id = entry.dataset.id;
+    if (id) {
+      if (this.expanded.has(id)) this.expanded.delete(id);
+      else this.expanded.add(id);
+      entry.classList.toggle('log-entry-expanded');
+    }
+  }
+
+  scrollToBottom() {
+    this.container.scrollTop = this.container.scrollHeight;
+  }
+
+  _esc(s) {
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  _toast(msg) {
+    let t = document.querySelector('.toast-msg');
+    if (!t) {
+      t = document.createElement('div');
+      t.className = 'toast-msg';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._hide);
+    t._hide = setTimeout(() => t.classList.remove('show'), 1500);
+  }
+}
+
+/* ─── Main Dashboard ─── */
+class Dashboard {
+  constructor() {
+    this.logManager = new LogManager();
+    this.notifications = new NotificationManager();
+    this.chart = new LogChart('logChart');
+    this.logRenderer = new LogRenderer('logsConsole', this.logManager);
+
+    this.uptimeInterval = null;
+    this.allLiveLogs = [];
+    this.liveConsole = document.getElementById('liveConsole');
+    this.paused = false;
+
     this.activeTokensBody = document.querySelector('#activeTokensTable tbody');
     this.usedTokensBody = document.querySelector('#usedTokensTable tbody');
 
-    this.bindEvents();
-    this.initUI();
+    this.bindSocket();
+    this.bindUI();
+    this.fetchStats();
+    this.fetchTokens();
+    this.logManager.onChange(() => this.updateUI());
   }
 
-  bindEvents() {
+  /* ─── Socket ─── */
+  bindSocket() {
     socket.on('status', (state) => this.onStatus(state));
-    socket.on('logs', (logs) => { this.allLogs = logs; this.renderLive(); this.renderLogs(); this.updateCounts(); });
-    socket.on('log', (entry) => { this.allLogs.push(entry); if (this.allLogs.length > 1000) this.allLogs.splice(0, this.allLogs.length - 1000); this.appendLive(entry); if (this.shouldShowLog(entry)) this.appendLogEntry(entry); this.updateCounts(); });
-    socket.on('logsCleared', () => { this.allLogs = []; this.console.innerHTML = '<div class="console-placeholder">Aguardando logs...</div>'; this.logsConsole.innerHTML = '<div class="console-placeholder">Nenhum log registrado.</div>'; this.updateCounts(); });
+    socket.on('logs', (logs) => {
+      this.logManager.addLogs(logs);
+      this.renderLive(logs);
+      this.updateCounts();
+    });
+    socket.on('log', (entry) => {
+      this.logManager.addLog(entry);
+      if (!this.paused) this.appendLive(entry);
+      this.chart.push(new Date(entry.timestamp).getTime());
+      this.updateCounts();
+
+      // Notify on ERROR
+      if (entry.type === 'ERROR') {
+        this.notifications.error('Erro detectado', entry.message.substring(0, 120));
+      }
+    });
+    socket.on('logsCleared', () => {
+      this.logManager.clear();
+      this.allLiveLogs = [];
+      this.liveConsole.innerHTML = '<div class="console-placeholder">Aguardando logs...</div>';
+      this.updateCounts();
+    });
     socket.on('tokens', (data) => this.renderTokens(data));
     socket.on('qr', (qrUrl) => this.onQR(qrUrl));
+    socket.on('connect', () => this.updateConnectionStatus(true));
+    socket.on('disconnect', () => this.updateConnectionStatus(false));
   }
 
-  initUI() {
+  updateConnectionStatus(connected) {
+    const el = document.querySelector('.panel-logs .panel-header h3');
+    if (!el) return;
+    if (connected) {
+      el.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Logs ao Vivo <span style="color:var(--green);font-size:10px">●</span>';
+    } else {
+      el.innerHTML = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Logs ao Vivo <span style="color:var(--red);font-size:10px">●</span>';
+    }
+  }
+
+  /* ─── UI Events ─── */
+  bindUI() {
+    // Tabs
     document.querySelectorAll('.nav-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -34,36 +416,87 @@ class Dashboard {
         btn.classList.add('active');
         const tab = document.getElementById('tab-' + btn.dataset.tab);
         if (tab) tab.classList.add('active');
+        if (btn.dataset.tab === 'logs') this.logRenderer.render();
       });
     });
 
+    // Restart
     document.getElementById('restartBtn').addEventListener('click', async () => {
       if (!confirm('Tem certeza que deseja reiniciar o bot?')) return;
       try { await fetch('/api/bot/restart', { method: 'POST' }); } catch {}
     });
 
-    document.getElementById('clearLogsBtn').addEventListener('click', async () => {
-      try { await fetch('/api/logs', { method: 'DELETE' }); } catch {}
-    });
+    // Live Export (sidebar)
+    document.getElementById('exportLogsBtn').addEventListener('click', () => this.exportLogs());
 
-    document.getElementById('logSearch').addEventListener('input', (e) => {
-      this.searchQuery = e.target.value.toLowerCase();
-      this.renderLogs();
-    });
-
-    document.getElementById('autoScroll').addEventListener('change', (e) => {
-      this.autoScroll = e.target.checked;
-    });
-
+    // Filter buttons
     document.querySelectorAll('.filter-btn').forEach(btn => {
       btn.addEventListener('click', () => {
         document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
         btn.classList.add('active');
-        this.currentFilter = btn.dataset.filter;
-        this.renderLogs();
+        this.logManager.filterType = btn.dataset.filter;
+        this.logRenderer.render();
       });
     });
 
+    // Search
+    document.getElementById('logSearch').addEventListener('input', (e) => {
+      this.logManager.searchQuery = e.target.value.toLowerCase();
+      this.logRenderer.render();
+    });
+
+    // Source search
+    document.getElementById('sourceSearch').addEventListener('input', (e) => {
+      this.logManager.sourceQuery = e.target.value.toLowerCase();
+      this.logRenderer.render();
+    });
+
+    // Auto scroll
+    document.getElementById('autoScroll').addEventListener('change', (e) => {
+      this._autoScroll = e.target.checked;
+    });
+    this._autoScroll = true;
+
+    // Pause
+    document.getElementById('pauseLogs').addEventListener('change', (e) => {
+      this.paused = e.target.checked;
+      const badge = document.getElementById('liveLogCount');
+      if (this.paused) {
+        badge.textContent = '⏸';
+        badge.style.color = 'var(--yellow)';
+      } else {
+        this._flushLiveBuffer();
+        this.updateCounts();
+      }
+    });
+
+    // Clear
+    document.getElementById('clearLogsBtn').addEventListener('click', async () => {
+      try { await fetch('/api/logs', { method: 'DELETE' }); } catch {}
+    });
+
+    // Export dropdown
+    const exportBtn = document.getElementById('exportBtn');
+    const dropdown = document.getElementById('exportDropdown');
+    if (exportBtn) {
+      exportBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        dropdown.classList.toggle('show');
+      });
+      document.addEventListener('click', () => dropdown.classList.remove('show'), { once: false });
+      document.addEventListener('click', (e) => {
+        if (!e.target.closest('.export-group')) dropdown.classList.remove('show');
+      });
+      dropdown.querySelectorAll('button').forEach(btn => {
+        btn.addEventListener('click', () => {
+          const format = btn.dataset.format;
+          this.exportLogs(format);
+          dropdown.classList.remove('show');
+        });
+      });
+    }
+
+    // Token creation
     document.getElementById('createTokenBtn').addEventListener('click', async () => {
       const singleUse = document.getElementById('singleUse').checked;
       const expiresOpt = document.getElementById('expiresOpt').value;
@@ -84,6 +517,7 @@ class Dashboard {
     document.getElementById('copyTokenBtn').addEventListener('click', () => {
       const text = document.getElementById('tokenDisplay').textContent;
       navigator.clipboard.writeText(text).catch(() => {});
+      this._toast('Token copiado!');
     });
 
     document.getElementById('closeTokenModal').addEventListener('click', () => {
@@ -92,19 +526,93 @@ class Dashboard {
     document.getElementById('tokenModal').addEventListener('click', (e) => {
       if (e.target === e.currentTarget) document.getElementById('tokenModal').classList.remove('show');
     });
+
+    document.getElementById('tokenSearch').addEventListener('input', (e) => {
+      this._tokenSearch = e.target.value.toLowerCase();
+      this.renderTokens(this._lastTokenData);
+    });
+    this._tokenSearch = '';
   }
 
+  /* ─── Stats ─── */
+  async fetchStats() {
+    try {
+      const res = await fetch('/api/stats');
+      const data = await res.json();
+      if (data.phone) document.getElementById('cardPhone').textContent = data.phone;
+      const subtitle = document.getElementById('subtitleStatus');
+      if (data.server) {
+        const plat = data.server.platform === 'win32' ? 'Windows' : 'Linux';
+        subtitle.textContent = `v${data.server.version} · ${plat} · Node ${data.server.nodeVersion}`;
+      }
+    } catch {}
+  }
+
+  /* ─── Live Console ─── */
+  renderLive(logs) {
+    this.allLiveLogs = logs;
+    if (!logs.length) {
+      this.liveConsole.innerHTML = '<div class="console-placeholder">Aguardando logs...</div>';
+      return;
+    }
+    const html = logs.slice(-100).map(e => this._formatLiveEntry(e)).join('');
+    this.liveConsole.innerHTML = html;
+    if (this._autoScroll) this.liveConsole.scrollTop = this.liveConsole.scrollHeight;
+  }
+
+  appendLive(entry) {
+    if (this.paused) {
+      this._liveBuffer = this._liveBuffer || [];
+      this._liveBuffer.push(entry);
+      return;
+    }
+    this.allLiveLogs.push(entry);
+    if (this.allLiveLogs.length > 500) this.allLiveLogs.splice(0, this.allLiveLogs.length - 500);
+    const ph = this.liveConsole.querySelector('.console-placeholder');
+    if (ph) ph.remove();
+    // Remove oldest if over limit
+    const maxLive = 100;
+    while (this.liveConsole.children.length > maxLive) {
+      this.liveConsole.removeChild(this.liveConsole.firstChild);
+    }
+    this.liveConsole.insertAdjacentHTML('beforeend', this._formatLiveEntry(entry));
+    if (this._autoScroll) this.liveConsole.scrollTop = this.liveConsole.scrollHeight;
+  }
+
+  _flushLiveBuffer() {
+    const buf = this._liveBuffer || [];
+    this._liveBuffer = [];
+    for (const entry of buf) {
+      this.appendLive(entry);
+    }
+  }
+
+  _formatLiveEntry(log) {
+    const time = new Date(log.timestamp).toLocaleTimeString();
+    const msg = this._esc(log.message);
+    const src = log.source || 'system';
+    return `<div class="log-entry" title="${new Date(log.timestamp).toLocaleString()}" data-type="${log.type}">
+      <span class="log-time">[${time}]</span>
+      <span class="log-source">${this._esc(src)}</span>
+      <span class="log-type ${log.type}">[${log.type}]</span>
+      <span class="log-msg">${msg}</span>
+    </div>`;
+  }
+
+  /* ─── Status ─── */
   onStatus(state) {
     const dot = document.querySelector('.status-dot');
     const statusText = document.getElementById('statusText');
     const cardStatus = document.getElementById('cardStatus');
     const uptimeEl = document.getElementById('cardUptime');
     const uptimeSub = document.getElementById('statusUptime');
+    const badge = document.getElementById('badge-status');
 
     if (state.status === 'online') {
       dot.className = 'status-dot online';
       statusText.textContent = 'Online';
       if (cardStatus) cardStatus.textContent = 'Online';
+      if (badge) { badge.style.color = 'var(--green)'; badge.textContent = '●'; }
       if (this.uptimeInterval) clearInterval(this.uptimeInterval);
       this.uptimeInterval = setInterval(() => {
         if (state.connectedAt) {
@@ -121,57 +629,14 @@ class Dashboard {
       dot.className = 'status-dot offline';
       statusText.textContent = 'Offline';
       if (cardStatus) cardStatus.textContent = 'Offline';
+      if (badge) { badge.style.color = 'var(--red)'; badge.textContent = '●'; }
       if (uptimeEl) uptimeEl.textContent = '—';
       if (uptimeSub) uptimeSub.textContent = '';
       if (this.uptimeInterval) { clearInterval(this.uptimeInterval); this.uptimeInterval = null; }
     }
   }
 
-  shouldShowLog(entry) {
-    if (this.searchQuery && !entry.message.toLowerCase().includes(this.searchQuery)) return false;
-    if (this.currentFilter !== 'all' && entry.type !== this.currentFilter) return false;
-    return true;
-  }
-
-  renderLive() {
-    if (!this.allLogs.length) { this.console.innerHTML = '<div class="console-placeholder">Aguardando logs...</div>'; return; }
-    this.console.innerHTML = this.allLogs.map(e => this.formatEntry(e)).join('');
-    if (this.autoScroll) this.console.scrollTop = this.console.scrollHeight;
-  }
-
-  appendLive(entry) {
-    const ph = this.console.querySelector('.console-placeholder');
-    if (ph) ph.remove();
-    this.console.insertAdjacentHTML('beforeend', this.formatEntry(entry));
-    if (this.autoScroll) this.console.scrollTop = this.console.scrollHeight;
-  }
-
-  renderLogs() {
-    const filtered = this.allLogs.filter(e => this.shouldShowLog(e));
-    if (!filtered.length) { this.logsConsole.innerHTML = '<div class="console-placeholder">Nenhum log corresponde aos filtros.</div>'; return; }
-    this.logsConsole.innerHTML = filtered.map(e => this.formatEntry(e)).join('');
-    if (this.autoScroll) this.logsConsole.scrollTop = this.logsConsole.scrollHeight;
-  }
-
-  appendLogEntry(entry) {
-    const ph = this.logsConsole.querySelector('.console-placeholder');
-    if (ph) ph.remove();
-    this.logsConsole.insertAdjacentHTML('beforeend', this.formatEntry(entry));
-    if (this.autoScroll) this.logsConsole.scrollTop = this.logsConsole.scrollHeight;
-  }
-
-  formatEntry(log) {
-    const time = new Date(log.timestamp).toLocaleTimeString();
-    const msg = this.escapeHtml(log.message);
-    return `<div class="log-entry"><span class="log-time">[${time}]</span><span class="log-type ${log.type}">[${log.type}]</span><span class="log-msg">${msg}</span></div>`;
-  }
-
-  escapeHtml(str) {
-    const d = document.createElement('div');
-    d.textContent = str;
-    return d.innerHTML;
-  }
-
+  /* ─── QR ─── */
   onQR(qrUrl) {
     const img = document.getElementById('qrImage');
     const status = document.getElementById('qrStatus');
@@ -190,37 +655,111 @@ class Dashboard {
     }
   }
 
+  /* ─── Counts & Stats ─── */
   updateCounts() {
-    document.getElementById('cardLogs').textContent = this.allLogs.length;
+    const stats = this.logManager.getStats();
+    document.getElementById('cardLogs').textContent = stats.total;
+    document.getElementById('badge-logs').textContent = stats.total > 99 ? '99+' : stats.total;
+
+    document.getElementById('statTotal').textContent = stats.total;
+    document.getElementById('statSuccess').textContent = stats.SUCCESS;
+    document.getElementById('statInfo').textContent = stats.INFO;
+    document.getElementById('statWarning').textContent = stats.WARNING;
+    document.getElementById('statError').textContent = stats.ERROR;
+
+    document.getElementById('count-all').textContent = stats.total;
+    document.getElementById('count-SUCCESS').textContent = stats.SUCCESS;
+    document.getElementById('count-INFO').textContent = stats.INFO;
+    document.getElementById('count-WARNING').textContent = stats.WARNING;
+    document.getElementById('count-ERROR').textContent = stats.ERROR;
+
+    const badge = document.getElementById('liveLogCount');
+    if (!this.paused) { badge.textContent = stats.total; badge.style.color = ''; }
   }
 
+  updateUI() {
+    this.updateCounts();
+  }
+
+  /* ─── Export ─── */
+  exportLogs(format) {
+    const logs = this.logManager.allLogs;
+    if (!logs.length) { this._toast('Nenhum log para exportar'); return; }
+    format = format || 'txt';
+    const date = new Date().toISOString().slice(0, 10);
+    let content, mime, ext;
+    switch (format) {
+      case 'json':
+        content = LogExporter.toJSON(logs);
+        mime = 'application/json';
+        ext = 'json';
+        break;
+      case 'csv':
+        content = LogExporter.toCSV(logs);
+        mime = 'text/csv';
+        ext = 'csv';
+        break;
+      default:
+        content = LogExporter.toTXT(logs);
+        mime = 'text/plain';
+        ext = 'txt';
+    }
+    LogExporter.download(content, `novabot-logs-${date}.${ext}`, mime);
+    this._toast(`Exportado como .${ext}`);
+  }
+
+  /* ─── Tokens ─── */
   async fetchTokens() {
     try {
       const res = await fetch('/api/tokens');
-      this.renderTokens(await res.json());
+      const data = await res.json();
+      this._lastTokenData = data;
+      this.renderTokens(data);
     } catch {}
   }
 
   renderTokens(data) {
-    if (data.active.length === 0) {
-      this.activeTokensBody.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum token ativo.</td></tr>';
+    if (!data) return;
+    this._lastTokenData = data;
+    const search = this._tokenSearch || '';
+    const activeFiltered = data.active.filter(t => !search || t.raw.toLowerCase().includes(search));
+    const revokedFiltered = data.revoked.filter(t => !search || t.raw.toLowerCase().includes(search));
+    const usedFiltered = data.used.filter(t => !search || t.raw.toLowerCase().includes(search));
+
+    document.getElementById('badge-tokens').textContent = data.active.length;
+
+    const activeBody = this.activeTokensBody;
+    if (activeFiltered.length === 0) {
+      activeBody.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum token ativo.</td></tr>';
     } else {
-      this.activeTokensBody.innerHTML = data.active.map(t => {
+      activeBody.innerHTML = activeFiltered.map(t => {
         const expires = t.expiresAt ? new Date(t.expiresAt).toLocaleString() : '—';
-        return `<tr><td><code>${this.escapeHtml(t.raw)}</code></td><td>${new Date(t.createdAt).toLocaleString()}</td><td>${expires}</td><td>${t.singleUse ? 'Sim' : 'Não'}</td><td><button class="revoke-btn" data-id="${t.id}">Revogar</button></td></tr>`;
+        return `<tr><td><code>${this._esc(t.raw)}</code></td><td>${new Date(t.createdAt).toLocaleString()}</td><td>${expires}</td><td>${t.singleUse ? 'Sim' : 'Não'}</td><td><button class="revoke-btn" data-id="${t.id}">Revogar</button></td></tr>`;
       }).join('');
-      this.activeTokensBody.querySelectorAll('.revoke-btn').forEach(btn => {
+      activeBody.querySelectorAll('.revoke-btn').forEach(btn => {
         btn.addEventListener('click', () => this.revokeToken(btn.dataset.id));
       });
     }
-    if (data.used.length === 0) {
-      this.usedTokensBody.innerHTML = '<tr class="empty-row"><td colspan="3">Nenhum token utilizado.</td></tr>';
+
+    const revokedBody = document.querySelector('#revokedTokensTable tbody');
+    if (revokedBody) {
+      if (revokedFiltered.length === 0) {
+        revokedBody.innerHTML = '<tr class="empty-row"><td colspan="3">Nenhum token revogado.</td></tr>';
+      } else {
+        revokedBody.innerHTML = revokedFiltered.map(t =>
+          `<tr><td><code>${this._esc(t.raw)}</code></td><td>${new Date(t.createdAt).toLocaleString()}</td><td>${t.revokedAt ? new Date(t.revokedAt).toLocaleString() : '—'}</td></tr>`
+        ).join('');
+      }
+    }
+
+    const usedBody = this.usedTokensBody;
+    if (usedFiltered.length === 0) {
+      usedBody.innerHTML = '<tr class="empty-row"><td colspan="3">Nenhum token utilizado.</td></tr>';
     } else {
-      this.usedTokensBody.innerHTML = data.used.map(t =>
-        `<tr><td><code>${this.escapeHtml(t.raw)}</code></td><td>${this.escapeHtml(t.usedBy || '—')}</td><td>${t.usedAt ? new Date(t.usedAt).toLocaleString() : '—'}</td></tr>`
+      usedBody.innerHTML = usedFiltered.map(t =>
+        `<tr><td><code>${this._esc(t.raw)}</code></td><td>${this._esc(t.usedBy || '—')}</td><td>${t.usedAt ? new Date(t.usedAt).toLocaleString() : '—'}</td></tr>`
       ).join('');
     }
-    document.getElementById('cardTokens').textContent = data.active.length;
   }
 
   async revokeToken(id) {
@@ -230,6 +769,27 @@ class Dashboard {
       const d = await res.json();
       if (d.ok) this.fetchTokens();
     } catch {}
+  }
+
+  /* ─── Utils ─── */
+  _esc(s) {
+    if (typeof s !== 'string') return '';
+    const d = document.createElement('div');
+    d.textContent = s;
+    return d.innerHTML;
+  }
+
+  _toast(msg) {
+    let t = document.querySelector('.toast-msg');
+    if (!t) {
+      t = document.createElement('div');
+      t.className = 'toast-msg';
+      document.body.appendChild(t);
+    }
+    t.textContent = msg;
+    t.classList.add('show');
+    clearTimeout(t._hide);
+    t._hide = setTimeout(() => t.classList.remove('show'), 2000);
   }
 }
 

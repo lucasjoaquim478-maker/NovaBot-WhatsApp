@@ -20,14 +20,17 @@
       <button class="nav-btn active" data-tab="dashboard">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="9"/><rect x="14" y="3" width="7" height="5"/><rect x="14" y="12" width="7" height="9"/><rect x="3" y="16" width="7" height="5"/></svg>
         Dashboard
+        <span class="nav-badge" id="badge-status">●</span>
       </button>
       <button class="nav-btn" data-tab="logs">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
         Logs
+        <span class="nav-badge" id="badge-logs">0</span>
       </button>
       <button class="nav-btn" data-tab="tokens">
         <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
         Tokens
+        <span class="nav-badge" id="badge-tokens">0</span>
       </button>
     </nav>
     <div class="sidebar-footer">
@@ -38,10 +41,16 @@
           <span id="statusUptime" class="status-uptime"></span>
         </div>
       </div>
-      <button id="restartBtn" class="btn btn-danger">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
-        Reiniciar Bot
-      </button>
+      <div class="sidebar-actions">
+        <button id="restartBtn" class="btn btn-danger btn-sm" title="Reiniciar Bot">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          Reiniciar
+        </button>
+        <button id="exportLogsBtn" class="btn btn-sm" title="Exportar Logs">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          Exportar
+        </button>
+      </div>
     </div>
   </aside>
 
@@ -49,7 +58,7 @@
     <section id="tab-dashboard" class="tab-content active">
       <div class="tab-header">
         <h2>Dashboard</h2>
-        <span class="tab-subtitle">Visão geral do bot</span>
+        <span class="tab-subtitle" id="subtitleStatus">Visão geral do bot</span>
       </div>
       <div class="cards" id="dashboardCards">
         <div class="card card-status">
@@ -66,17 +75,17 @@
             <div class="card-value" id="cardUptime">—</div>
           </div>
         </div>
-        <div class="card card-tokens">
-          <div class="card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+        <div class="card card-phone">
+          <div class="card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"/></svg></div>
           <div class="card-body">
-            <div class="card-label">Tokens Ativos</div>
-            <div class="card-value" id="cardTokens">0</div>
+            <div class="card-label">Número</div>
+            <div class="card-value card-value-sm" id="cardPhone">—</div>
           </div>
         </div>
         <div class="card card-logs">
           <div class="card-icon"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg></div>
           <div class="card-body">
-            <div class="card-label">Total Logs</div>
+            <div class="card-label">Eventos</div>
             <div class="card-value" id="cardLogs">0</div>
           </div>
         </div>
@@ -84,7 +93,8 @@
       <div class="dashboard-grid">
         <div class="panel panel-logs">
           <div class="panel-header">
-            <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Logs em Tempo Real</h3>
+            <h3><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg> Logs ao Vivo</h3>
+            <span class="panel-badge" id="liveLogCount">0</span>
           </div>
           <div class="console" id="liveConsole">
             <div class="console-placeholder">Aguardando logs...</div>
@@ -99,40 +109,80 @@
             <img id="qrImage" class="qr-image" style="display:none" alt="QR Code">
             <div class="qr-status-text" id="qrStatus">Aguardando QR code...</div>
           </div>
+          <div class="qr-info" id="qrInfo">
+            <p>Abra o WhatsApp → ⋮ → <strong>Aparelhos conectados</strong> → escaneie</p>
+          </div>
         </div>
       </div>
     </section>
 
     <section id="tab-logs" class="tab-content">
       <div class="tab-header">
-        <h2>Logs do Sistema</h2>
-        <span class="tab-subtitle">Histórico completo de eventos</span>
+        <h2>Central de Logs</h2>
+        <span class="tab-subtitle">Monitoramento completo em tempo real</span>
       </div>
+
+      <div class="log-stats-bar">
+        <div class="log-stat" data-stat="total"><span class="log-stat-icon">📋</span><span class="log-stat-label">Total</span><span class="log-stat-value" id="statTotal">0</span></div>
+        <div class="log-stat" data-stat="success"><span class="log-stat-icon log-stat-success">✓</span><span class="log-stat-label">Sucesso</span><span class="log-stat-value" id="statSuccess">0</span></div>
+        <div class="log-stat" data-stat="info"><span class="log-stat-icon log-stat-info">ℹ</span><span class="log-stat-label">Info</span><span class="log-stat-value" id="statInfo">0</span></div>
+        <div class="log-stat" data-stat="warning"><span class="log-stat-icon log-stat-warning">⚠</span><span class="log-stat-label">Avisos</span><span class="log-stat-value" id="statWarning">0</span></div>
+        <div class="log-stat" data-stat="error"><span class="log-stat-icon log-stat-error">✕</span><span class="log-stat-label">Erros</span><span class="log-stat-value" id="statError">0</span></div>
+      </div>
+
+      <div class="log-chart-container">
+        <canvas id="logChart" height="80"></canvas>
+      </div>
+
       <div class="logs-toolbar">
-        <div class="log-filters">
-          <button class="filter-btn active" data-filter="all">Todos</button>
-          <button class="filter-btn" data-filter="SUCCESS">SUCCESS</button>
-          <button class="filter-btn" data-filter="INFO">INFO</button>
-          <button class="filter-btn" data-filter="WARNING">WARNING</button>
-          <button class="filter-btn" data-filter="ERROR">ERROR</button>
+        <div class="log-filters" id="logFilters">
+          <button class="filter-btn active" data-filter="all">Todos <span class="filter-count" id="count-all">0</span></button>
+          <button class="filter-btn filter-success" data-filter="SUCCESS">✓ Success <span class="filter-count" id="count-SUCCESS">0</span></button>
+          <button class="filter-btn filter-info" data-filter="INFO">ℹ Info <span class="filter-count" id="count-INFO">0</span></button>
+          <button class="filter-btn filter-warning" data-filter="WARNING">⚠ Warning <span class="filter-count" id="count-WARNING">0</span></button>
+          <button class="filter-btn filter-error" data-filter="ERROR">✕ Error <span class="filter-count" id="count-ERROR">0</span></button>
         </div>
         <div class="log-actions">
           <div class="search-box">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
-            <input type="text" id="logSearch" placeholder="Buscar nos logs..." spellcheck="false">
+            <input type="text" id="logSearch" placeholder="Buscar..." spellcheck="false">
           </div>
+          <div class="search-box search-source">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <input type="text" id="sourceSearch" placeholder="Origem..." spellcheck="false">
+          </div>
+          <label class="toggle-label" title="Pausar logs ao vivo">
+            <input type="checkbox" id="pauseLogs">
+            <span class="toggle-track"><span class="toggle-thumb"></span></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="4" width="4" height="16"/><rect x="14" y="4" width="4" height="16"/></svg>
+          </label>
           <label class="auto-scroll-label">
             <input type="checkbox" id="autoScroll" checked>
-            <span>Auto-scroll</span>
+            <span>Auto</span>
           </label>
-          <button id="clearLogsBtn" class="btn btn-sm">
+          <button id="clearLogsBtn" class="btn btn-sm" title="Limpar logs">
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/></svg>
-            Limpar
           </button>
+          <div class="export-group">
+            <button class="btn btn-sm" id="exportBtn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar
+            </button>
+            <div class="export-dropdown" id="exportDropdown">
+              <button data-format="txt">.txt</button>
+              <button data-format="json">.json</button>
+              <button data-format="csv">.csv</button>
+            </div>
+          </div>
         </div>
       </div>
+
       <div class="console" id="logsConsole">
-        <div class="console-placeholder">Nenhum log registrado.</div>
+        <div class="console-placeholder" id="logsPlaceholder">Nenhum log registrado.</div>
+        <div class="log-virtualizer" id="logVirtualizer"></div>
+        <div class="log-load-more" id="logLoadMore" style="display:none">
+          <button class="btn btn-sm">Carregar mais</button>
+        </div>
       </div>
     </section>
 
@@ -149,7 +199,7 @@
             Uso único
           </label>
           <label class="select-label">
-            Expirar em:
+            Expirar:
             <select id="expiresOpt">
               <option value="">Nunca</option>
               <option value="3600000">1 hora</option>
@@ -164,12 +214,11 @@
           Criar Token
         </button>
       </div>
-
       <div class="token-modal-overlay" id="tokenModal">
         <div class="token-modal">
           <div class="token-modal-icon"><svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="var(--green)" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg></div>
           <h3>Token Criado!</h3>
-          <p class="token-msg">Copie o token abaixo. Ele será mostrado apenas uma vez.</p>
+          <p class="token-msg">Copie o token. Ele será mostrado apenas uma vez.</p>
           <div class="token-display" id="tokenDisplay"></div>
           <div class="token-modal-actions">
             <button class="btn btn-primary" id="copyTokenBtn">
@@ -180,15 +229,24 @@
           </div>
         </div>
       </div>
-
+      <div class="token-search">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        <input type="text" id="tokenSearch" placeholder="Buscar tokens..." spellcheck="false">
+      </div>
       <h3 class="section-title">Tokens Ativos</h3>
       <div class="table-container">
         <table id="activeTokensTable">
-          <thead><tr><th>Token</th><th>Criado em</th><th>Expira</th><th>Uso único</th><th>Ação</th></tr></thead>
+          <thead><tr><th>Token</th><th>Criado</th><th>Expira</th><th>Uso único</th><th>Ação</th></tr></thead>
           <tbody></tbody>
         </table>
       </div>
-
+      <h3 class="section-title">Revogados</h3>
+      <div class="table-container">
+        <table id="revokedTokensTable">
+          <thead><tr><th>Token</th><th>Criado</th><th>Revogado em</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
       <h3 class="section-title">Histórico</h3>
       <div class="table-container">
         <table id="usedTokensTable">
@@ -199,6 +257,8 @@
     </section>
   </main>
 </div>
+
+<div id="notificationArea" class="notification-area"></div>
 
 <script src="/socket.io/socket.io.js"></script>
 <script src="script.js"></script>
