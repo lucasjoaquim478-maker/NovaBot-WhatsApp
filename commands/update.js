@@ -323,9 +323,17 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           await sock.sendMessage(jid, { text: `✅ warp-plus baixado (${(fs.statSync(warpBin).size / 1024 / 1024).toFixed(1)} MB)` });
         }
         await sock.sendMessage(jid, { text: '🔄 Iniciando WARP SOCKS5 na porta 40000...' });
-        const proc = spawn(warpBin, ['--bind', '127.0.0.1:40000'], { stdio: 'ignore', detached: true });
+        let warpOut = '';
+        const proc = spawn(warpBin, ['--bind', 'socks5://127.0.0.1:40000'], { stdio: ['ignore', 'pipe', 'pipe'], detached: true });
+        proc.stdout.on('data', (d) => { warpOut += d.toString(); });
+        proc.stderr.on('data', (d) => { warpOut += d.toString(); });
         proc.unref();
-        await new Promise((r) => setTimeout(r, 3000));
+        await new Promise((r) => setTimeout(r, 5000));
+        // Check if process is still running
+        const isRunning = (() => { try { return proc.exitCode === null; } catch { return false; } })();
+        if (!isRunning) {
+          return await sock.sendMessage(jid, { text: `❌ warp-plus morreu ao iniciar:\n${warpOut.slice(0, 300)}` });
+        }
         const cfgPath = path.join(__dirname, '..', 'config.json');
         if (fs.existsSync(cfgPath)) {
           const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
@@ -333,7 +341,7 @@ async function handleUpdate(sock, { jid, sender, args, commandName, msg }) {
           fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
         }
         await sock.sendMessage(jid, {
-          text: `✅ *WARP ativado!* (warp-plus rodando em background)\n\n🔗 SOCKS5: socks5://127.0.0.1:40000\n\nTeste com *!play*`
+          text: `✅ *WARP ativado!*\n\n🔗 SOCKS5: socks5://127.0.0.1:40000\n📋 Log:\n${warpOut.slice(0, 200) || '(sem output)'}\n\nTeste com *!play*`
         });
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ Erro WARP: ${e.message}` });
