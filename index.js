@@ -37,6 +37,10 @@ try { require('puppeteer'); } catch {
 const { handleLink, linkCommands } = require('./commands/linkvertise');
 const { handleCultura, culturaCommands } = require('./commands/cultura');
 const { startAutoCheck, performUpdate } = require('./lib/updater');
+const Logger = require('./lib/logger');
+const monitor = require('./server/botMonitor');
+const tokenManager = require('./server/tokenManager');
+const webServer = require('./server/index');
 const fs = require('fs');
 const path = require('path');
 const os = require('os');
@@ -97,7 +101,9 @@ function registerCommands() {
     { cmds: cidadeCommands, handler: handleCidade },
     { cmds: linkCommands, handler: handleLink },
     { cmds: culturaCommands, handler: handleCultura },
-    { cmds: ['confirma'], handler: handleConfirma }
+    { cmds: ['confirma'], handler: handleConfirma },
+    { cmds: ['create token'], handler: handleCreateToken },
+    { cmds: ['token'], handler: handleToken }
   ];
 
   for (const reg of registrations) {
@@ -147,6 +153,55 @@ async function handleConfirma(sock, ctx) {
   await performUpdate(sock, ctx.jid);
 }
 
+async function handleCreateToken(sock, ctx) {
+  if (!await isOwner(ctx.sender, sock)) {
+    return await sock.sendMessage(ctx.jid, { text: '❌ Apenas o dono pode usar este comando.' });
+  }
+  if (ctx.args[0] !== 'token') {
+    return await sock.sendMessage(ctx.jid, { text: `❌ Use ${ctx.prefix}create token` });
+  }
+  const singleUse = ctx.args.includes('--single-use') || ctx.args.includes('-s');
+  const token = tokenManager.generate({ singleUse });
+  monitor.info(`Token criado por ${ctx.sender.split('@')[0]}`);
+  const msg = `🔑 *Token gerado!*\n\n` +
+    `\`${token.raw}\`\n\n` +
+    `📝 Uso único: ${singleUse ? '✅ Sim' : '❌ Não'}\n` +
+    `⚠️ Guarde-o em local seguro!`;
+  await sock.sendMessage(ctx.jid, { text: msg });
+}
+
+async function handleToken(sock, ctx) {
+  const input = ctx.args.join(' ');
+  if (!input) {
+    return await sock.sendMessage(ctx.jid, { text: `❌ Use ${ctx.prefix}token <código>` });
+  }
+  const result = tokenManager.validate(input);
+  if (!result) {
+    monitor.warn(`Token inválido tentado por ${ctx.sender.split('@')[0]}`);
+    return await sock.sendMessage(ctx.jid, { text: '❌ Token inválido ou revogado.' });
+  }
+  if (result.error) {
+    monitor.warn(`Token expirado por ${ctx.sender.split('@')[0]}: ${result.error}`);
+    return await sock.sendMessage(ctx.jid, { text: `❌ ${result.error}.` });
+  }
+  tokenManager.use(input, ctx.sender);
+  if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
+  global.resolvedOwnerJids.add(ctx.sender);
+  try {
+    const ownersFile = path.join(__dirname, 'database', 'owners.json');
+    let owners = [];
+    try { if (fs.existsSync(ownersFile)) owners = JSON.parse(fs.readFileSync(ownersFile, 'utf-8')); } catch {}
+    if (!owners.includes(ctx.sender)) {
+      owners.push(ctx.sender);
+      fs.writeFileSync(ownersFile, JSON.stringify(owners, null, 2));
+    }
+  } catch {}
+  monitor.info(`Token validado! ${ctx.sender.split('@')[0]} agora é admin`);
+  await sock.sendMessage(ctx.jid, {
+    text: `✅ *Token válido!*\n\nAgora você tem acesso administrativo ao bot.\nUse ${ctx.prefix}help para ver os comandos.`
+  });
+}
+
 function setupEvents(sock) {
   sock.ev.removeAllListeners('messages.upsert');
   sock.ev.removeAllListeners('groups.update');
@@ -177,6 +232,18 @@ async function main() {
   console.log('');
 
   registerCommands();
+
+  Logger.onLog = (level, msg) => {
+    const map = { error: 'ERROR', warn: 'WARNING', info: 'INFO', debug: 'INFO' };
+    monitor.addLog(map[level] || 'INFO', msg);
+  };
+
+  try {
+    await webServer.start(config.webPort || 3000);
+    logger.info(`[WEB] Painel em http://localhost:${config.webPort || 3000}`);
+  } catch (e) {
+    logger.warn(`[WEB] Erro ao iniciar servidor: ${e.message}`);
+  }
 
   // Load persisted owners
   try {
@@ -231,6 +298,10 @@ async function main() {
   await start(setupEvents, {
     onConnected: async (s) => {
       displayPanel(s);
+      monitor.setOnline(s.user);
+      s.ev.on('connection.update', (update) => {
+        if (update.qr) monitor.info('QR Code gerado — escaneie para conectar');
+      });
       global.resolvedOwnerJids = new Set();
       const ownerPhones = config.ownerNumbers || [config.ownerNumber].filter(Boolean);
       for (const num of ownerPhones) {
@@ -248,6 +319,9 @@ async function main() {
       if (jid) {
         s.sendMessage(jid, { text: `🤖 *${config.botName || 'NovaBot'} online!*\n\nUse ${config.prefix}help para ver os comandos.` }).catch(() => {});
       }
+    },
+    onDisconnected: (code, loggedOut, reason) => {
+      monitor.setOffline(loggedOut ? 'Sessão encerrada' : reason);
     }
   });
 }

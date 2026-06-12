@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NovaBot - Painel</title>
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div id="app">
+  <aside id="sidebar">
+    <div class="sidebar-header">
+      <h1>NovaBot</h1>
+      <span class="subtitle">Painel de Controle</span>
+    </div>
+    <nav>
+      <button class="nav-btn active" data-tab="dashboard">📊 Dashboard</button>
+      <button class="nav-btn" data-tab="logs">📜 Logs</button>
+      <button class="nav-btn" data-tab="tokens">🔑 Tokens</button>
+    </nav>
+    <div class="sidebar-footer">
+      <div class="status-indicator" id="statusIndicator">
+        <span class="status-dot offline"></span>
+        <span id="statusText">Offline</span>
+      </div>
+      <button id="restartBtn" class="btn danger">🔄 Reiniciar Bot</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <section id="tab-dashboard" class="tab-content active">
+      <h2>Dashboard</h2>
+      <div class="cards">
+        <div class="card">
+          <div class="card-label">Status</div>
+          <div class="card-value" id="cardStatus">Offline</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Conectado desde</div>
+          <div class="card-value" id="cardConnected">—</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Tokens ativos</div>
+          <div class="card-value" id="cardTokens">0</div>
+        </div>
+        <div class="card">
+          <div class="card-label">Logs</div>
+          <div class="card-value" id="cardLogs">0</div>
+        </div>
+      </div>
+      <div class="panel">
+        <h3>Logs em tempo real</h3>
+        <div class="console" id="console">
+          <div class="console-placeholder">Aguardando logs...</div>
+        </div>
+      </div>
+    </section>
+
+    <section id="tab-logs" class="tab-content">
+      <div class="panel-header">
+        <h2>Logs do Sistema</h2>
+        <button id="clearLogsBtn" class="btn">🗑️ Limpar Logs</button>
+      </div>
+      <div class="log-filters">
+        <button class="filter-btn active" data-filter="all">Todos</button>
+        <button class="filter-btn" data-filter="INFO">INFO</button>
+        <button class="filter-btn" data-filter="WARNING">WARNING</button>
+        <button class="filter-btn" data-filter="ERROR">ERROR</button>
+      </div>
+      <div class="console" id="logsConsole">
+        <div class="console-placeholder">Nenhum log registrado.</div>
+      </div>
+    </section>
+
+    <section id="tab-tokens" class="tab-content">
+      <div class="panel-header">
+        <h2>Tokens de Acesso</h2>
+        <button id="createTokenBtn" class="btn primary">➕ Criar Token</button>
+      </div>
+      <div class="token-modal-overlay" id="tokenModal">
+        <div class="token-modal">
+          <h3>✅ Token Criado!</h3>
+          <p class="token-msg">Guarde-o em local seguro. Ele será mostrado apenas uma vez.</p>
+          <div class="token-display" id="tokenDisplay"></div>
+          <button class="btn primary" id="copyTokenBtn">📋 Copiar</button>
+          <button class="btn" id="closeTokenModal">Fechar</button>
+        </div>
+      </div>
+      <div class="token-options">
+        <label><input type="checkbox" id="singleUse"> Uso único</label>
+        <label>Expirar em: <select id="expiresOpt">
+          <option value="">Nunca</option>
+          <option value="3600000">1 hora</option>
+          <option value="86400000">24 horas</option>
+          <option value="604800000">7 dias</option>
+          <option value="2592000000">30 dias</option>
+        </select></label>
+      </div>
+      <h3>Tokens Ativos</h3>
+      <div class="table-wrapper">
+        <table id="activeTokensTable">
+          <thead><tr><th>Token</th><th>Criado em</th><th>Expira em</th><th>Uso único</th><th>Ações</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+      <h3>Histórico de Tokens Usados</h3>
+      <div class="table-wrapper">
+        <table id="usedTokensTable">
+          <thead><tr><th>Token</th><th>Usado por</th><th>Usado em</th></tr></thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </section>
+  </main>
+</div>
+
+<script src="/socket.io/socket.io.js"></script>
+<script src="script.js"></script>
+</body>
+</html>
