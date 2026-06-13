@@ -1,5 +1,6 @@
 const fs = require('fs');
 const path = require('path');
+const crypto = require('crypto');
 const cfgPath = path.join(__dirname, 'config.json');
 const cfgExamplePath = path.join(__dirname, 'config.example.json');
 if (!fs.existsSync(cfgPath) && fs.existsSync(cfgExamplePath)) {
@@ -111,7 +112,9 @@ function registerCommands() {
     { cmds: linkCommands, handler: handleLink },
     { cmds: culturaCommands, handler: handleCultura },
     { cmds: ['confirma'], handler: handleConfirma },
-    { cmds: ['create token'], handler: handleCreateToken },
+    { cmds: ['gentoken'], handler: handleCreateToken },
+    { cmds: ['revoketoken', 'deletetoken'], handler: handleRevokeToken },
+    { cmds: ['tokens', 'listtokens'], handler: handleListTokens },
     { cmds: ['token'], handler: handleToken }
   ];
 
@@ -175,17 +178,28 @@ async function handleCreateToken(sock, ctx) {
   if (!await isOwner(ctx.sender, sock)) {
     return await sock.sendMessage(ctx.jid, { text: '❌ Apenas o dono pode usar este comando.' });
   }
-  if (ctx.args[0] !== 'token') {
-    return await sock.sendMessage(ctx.jid, { text: `❌ Use ${ctx.prefix}create token` });
+  const label = ctx.args[0];
+  if (!label || label === 'token') {
+    return await sock.sendMessage(ctx.jid, {
+      text: `❌ Use: ${ctx.prefix}gentoken <nome>\nEx: ${ctx.prefix}gentoken lucas`
+    });
   }
-  const singleUse = ctx.args.includes('--single-use') || ctx.args.includes('-s');
-  const token = tokenManager.generate({ singleUse });
-  logService.add('info', `Token criado por ${ctx.sender.split('@')[0]}`);
-  const msg = `🔑 *Token gerado!*\n\n` +
-    `\`${token.raw}\`\n\n` +
-    `📝 Uso único: ${singleUse ? '✅ Sim' : '❌ Não'}\n` +
-    `⚠️ Guarde-o em local seguro!`;
-  await sock.sendMessage(ctx.jid, { text: msg });
+  const crypto = require('crypto');
+  const raw = crypto.randomBytes(24).toString('hex');
+  const cfgPath = path.join(__dirname, 'config.json');
+  let cfg = {};
+  try { cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8')); } catch {}
+  if (!cfg.tokens) cfg.tokens = [];
+  cfg.tokens.push({ label, token: raw, createdBy: ctx.sender.split('@')[0], createdAt: new Date().toISOString() });
+  fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+  logService.add('info', `Token "${label}" criado por ${ctx.sender.split('@')[0]}`);
+  await sock.sendMessage(ctx.jid, {
+    text: `🔑 *Token "${label}" gerado!*\n\n` +
+          `\`${raw}\`\n\n` +
+          `📌 Envie !token ${raw} para se tornar dono\n` +
+          `❌ !revoketoken ${label} para revogar\n` +
+          `📋 !tokens para listar todos`
+  });
 }
 
 async function handleToken(sock, ctx) {
@@ -200,6 +214,19 @@ async function handleToken(sock, ctx) {
     return await grantOwner(sock, ctx);
   }
 
+  // Check config.json stored tokens
+  const cfgPath = path.join(__dirname, 'config.json');
+  try {
+    const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+    if (cfg.tokens) {
+      const match = cfg.tokens.find(t => t.token === input);
+      if (match) {
+        return await grantOwner(sock, ctx);
+      }
+    }
+  } catch {}
+
+  // Check tokenManager (legacy generated tokens)
   const result = tokenManager.validate(input);
   if (!result) {
     logService.add('warn', `Token inválido tentado por ${ctx.sender.split('@')[0]}`);
@@ -211,6 +238,53 @@ async function handleToken(sock, ctx) {
   }
   tokenManager.use(input, ctx.sender);
   return await grantOwner(sock, ctx);
+}
+
+async function handleRevokeToken(sock, ctx) {
+  if (!await isOwner(ctx.sender, sock)) {
+    return await sock.sendMessage(ctx.jid, { text: '❌ Apenas o dono pode usar este comando.' });
+  }
+  const label = ctx.args.join(' ');
+  if (!label) {
+    return await sock.sendMessage(ctx.jid, { text: `❌ Use: ${ctx.prefix}revoketoken <nome>` });
+  }
+  const cfgPath = path.join(__dirname, 'config.json');
+  try {
+    const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+    if (!cfg.tokens) cfg.tokens = [];
+    const idx = cfg.tokens.findIndex(t => t.label === label);
+    if (idx === -1) {
+      return await sock.sendMessage(ctx.jid, { text: `❌ Token "${label}" não encontrado.` });
+    }
+    cfg.tokens.splice(idx, 1);
+    fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+    await sock.sendMessage(ctx.jid, { text: `✅ Token "${label}" revogado com sucesso.` });
+  } catch (e) {
+    await sock.sendMessage(ctx.jid, { text: `❌ Erro: ${e.message}` });
+  }
+}
+
+async function handleListTokens(sock, ctx) {
+  if (!await isOwner(ctx.sender, sock)) {
+    return await sock.sendMessage(ctx.jid, { text: '❌ Apenas o dono pode usar este comando.' });
+  }
+  const cfgPath = path.join(__dirname, 'config.json');
+  let lines = ['📋 *Tokens cadastrados:*\n'];
+  try {
+    const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+    if (cfg.tokens && cfg.tokens.length) {
+      for (const t of cfg.tokens) {
+        const preview = t.token.slice(0, 8) + '...' + t.token.slice(-4);
+        lines.push(`▸ *${t.label}*: \`${preview}\` (criado ${t.createdAt?.slice(0, 10) || '?'})`);
+      }
+    } else {
+      lines.push('Nenhum token cadastrado.');
+    }
+    if (process.env.MASTER_OWNER_TOKEN) {
+      lines.push(`\n🔑 *MASTER_OWNER_TOKEN*: configurado (env var)`);
+    }
+  } catch {}
+  await sock.sendMessage(ctx.jid, { text: lines.join('\n') });
 }
 
 async function grantOwner(sock, ctx) {
