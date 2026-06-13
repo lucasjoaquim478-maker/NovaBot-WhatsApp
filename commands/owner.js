@@ -21,6 +21,18 @@ function savePersistedOwner(jid) {
     owners.push(jid);
     fs.writeFileSync(OWNERS_FILE, JSON.stringify(owners, null, 2));
   }
+  // Also save to config.json for extra persistence
+  try {
+    const cfgPath = path.join(ROOT, 'config.json');
+    if (fs.existsSync(cfgPath)) {
+      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+      const phone = jid.split('@')[0];
+      if (!cfg.ownerNumbers.some(n => n.startsWith(phone))) {
+        cfg.ownerNumbers.push(phone + '@s.whatsapp.net');
+        fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+      }
+    }
+  } catch {}
 }
 
 async function handleOwner(sock, { msg, jid, sender, args, commandName }) {

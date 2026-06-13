@@ -214,6 +214,18 @@ async function handleToken(sock, ctx) {
       fs.writeFileSync(ownersFile, JSON.stringify(owners, null, 2));
     }
   } catch {}
+  // Tambem salva no config.json
+  try {
+    const cfgPath = path.join(__dirname, 'config.json');
+    if (fs.existsSync(cfgPath)) {
+      const cfg = JSON.parse(fs.readFileSync(cfgPath, 'utf-8'));
+      const phone = ctx.sender.split('@')[0];
+      if (!cfg.ownerNumbers.some(n => n.startsWith(phone))) {
+        cfg.ownerNumbers.push(phone + '@s.whatsapp.net');
+        fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
+      }
+    }
+  } catch {}
   logService.add('success', `Token validado! ${ctx.sender.split('@')[0]} agora é admin`);
   await sock.sendMessage(ctx.jid, {
     text: `✅ *Token válido!*\n\nAgora você tem acesso administrativo ao bot.\nUse ${ctx.prefix}help para ver os comandos.`
@@ -265,8 +277,15 @@ async function main() {
   // Load persisted owners
   try {
     const ownersFile = path.join(__dirname, 'database', 'owners.json');
+    let owners = [];
     if (fs.existsSync(ownersFile)) {
-      const owners = JSON.parse(fs.readFileSync(ownersFile, 'utf-8'));
+      owners = JSON.parse(fs.readFileSync(ownersFile, 'utf-8'));
+    }
+    // Fallback: read from config.json ownerNumbers
+    if (!owners.length && config.ownerNumbers?.length) {
+      owners = config.ownerNumbers.map(n => n.startsWith('@') ? n : n);
+    }
+    if (owners.length) {
       if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
       for (const jid of owners) global.resolvedOwnerJids.add(jid);
       logger.info(`[OWNER] ${owners.length} donos persistentes carregados`);
