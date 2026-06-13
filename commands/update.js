@@ -7,12 +7,22 @@ const path = require('path');
 const os = require('os');
 
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
-const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy'];
+const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy', 'meuownerb64'];
 
 async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
     await sock.sendMessage(jid, {
       text: `📱 *Seu JID:* ${sender}\n👤 *Nome:* ${msg.pushName || 'N/A'}\n🔍 *No config:* ${config.ownerNumbers.some(n => sender.startsWith(n.split('@')[0])) ? 'SIM' : 'NAO'}\n👑 *isOwner:* ${await isOwner(sender, sock) ? 'SIM' : 'NAO'}`
+    });
+    return;
+  }
+
+  if (commandName === 'meuownerb64') {
+    await sock.sendMessage(jid, {
+      text: `📋 *Seu JID:*\n${sender.split('@')[0]}\n\n` +
+            `💡 Cole este numero no painel PhanomCloud como variavel *BOT_OWNERS*:\n` +
+            `\`\`\`${sender.split('@')[0]}\`\`\`\n\n` +
+            `Use virgula pra multiplos donos, ex: 5511999999999,5588888888888`
     });
     return;
   }

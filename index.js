@@ -278,16 +278,31 @@ async function main() {
   try {
     const ownersFile = path.join(__dirname, 'database', 'owners.json');
     let owners = [];
-    if (fs.existsSync(ownersFile)) {
+
+    // Priority 1: env var BOT_OWNERS (persiste no painel PhanomCloud)
+    const envOwners = process.env.BOT_OWNERS;
+    if (envOwners) {
+      owners = envOwners.split(',').map(s => s.trim()).filter(Boolean);
+      logger.info(`[OWNER] ${owners.length} donos carregados de BOT_OWNERS env`);
+    }
+
+    // Priority 2: database/owners.json
+    if (!owners.length && fs.existsSync(ownersFile)) {
       owners = JSON.parse(fs.readFileSync(ownersFile, 'utf-8'));
     }
-    // Fallback: read from config.json ownerNumbers
+
+    // Priority 3: config.json ownerNumbers
     if (!owners.length && config.ownerNumbers?.length) {
       owners = config.ownerNumbers.map(n => n.startsWith('@') ? n : n);
     }
+
     if (owners.length) {
       if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
-      for (const jid of owners) global.resolvedOwnerJids.add(jid);
+      for (const jid of owners) {
+        const clean = jid.includes('@') ? jid : jid + '@s.whatsapp.net';
+        global.resolvedOwnerJids.add(clean);
+        global.resolvedOwnerJids.add(jid.split('@')[0]);
+      }
       logger.info(`[OWNER] ${owners.length} donos persistentes carregados`);
     }
   } catch (e) {
