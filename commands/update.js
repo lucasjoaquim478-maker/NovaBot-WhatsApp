@@ -9,7 +9,7 @@ const os = require('os');
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
 const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy'];
 
-async function handleUpdate(sock, { jid, sender, text, args, commandName, msg }) {
+async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName, msg }) {
   if (commandName === 'meunúmero') {
     await sock.sendMessage(jid, {
       text: `📱 *Seu JID:* ${sender}\n👤 *Nome:* ${msg.pushName || 'N/A'}\n🔍 *No config:* ${config.ownerNumbers.some(n => sender.startsWith(n.split('@')[0])) ? 'SIM' : 'NAO'}\n👑 *isOwner:* ${await isOwner(sender, sock) ? 'SIM' : 'NAO'}`
