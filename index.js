@@ -193,6 +193,13 @@ async function handleToken(sock, ctx) {
   if (!input) {
     return await sock.sendMessage(ctx.jid, { text: `❌ Use ${ctx.prefix}token <código>` });
   }
+
+  // Check MASTER_OWNER_TOKEN env var first (persiste no PhanomCloud)
+  const masterToken = process.env.MASTER_OWNER_TOKEN;
+  if (masterToken && input === masterToken) {
+    return await grantOwner(sock, ctx);
+  }
+
   const result = tokenManager.validate(input);
   if (!result) {
     logService.add('warn', `Token inválido tentado por ${ctx.sender.split('@')[0]}`);
@@ -203,6 +210,10 @@ async function handleToken(sock, ctx) {
     return await sock.sendMessage(ctx.jid, { text: `❌ ${result.error}.` });
   }
   tokenManager.use(input, ctx.sender);
+  return await grantOwner(sock, ctx);
+}
+
+async function grantOwner(sock, ctx) {
   if (!global.resolvedOwnerJids) global.resolvedOwnerJids = new Set();
   global.resolvedOwnerJids.add(ctx.sender);
   try {
@@ -214,7 +225,6 @@ async function handleToken(sock, ctx) {
       fs.writeFileSync(ownersFile, JSON.stringify(owners, null, 2));
     }
   } catch {}
-  // Tambem salva no config.json
   try {
     const cfgPath = path.join(__dirname, 'config.json');
     if (fs.existsSync(cfgPath)) {
@@ -226,7 +236,7 @@ async function handleToken(sock, ctx) {
       }
     }
   } catch {}
-  logService.add('success', `Token validado! ${ctx.sender.split('@')[0]} agora é admin`);
+  logService.add('success', `${ctx.sender.split('@')[0]} agora é admin`);
   await sock.sendMessage(ctx.jid, {
     text: `✅ *Token válido!*\n\nAgora você tem acesso administrativo ao bot.\nUse ${ctx.prefix}help para ver os comandos.`
   });
