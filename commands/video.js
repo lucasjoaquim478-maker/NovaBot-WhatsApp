@@ -28,7 +28,7 @@ async function downloadVideo(url) {
     try {
       const args = [
         ...ytDlpArgs(attempt),
-        '-f', 'best[height<=720]/best',
+        '-f', 'best[height<=1080]/best',
         '--max-filesize', '50M',
         '--merge-output-format', 'mp4',
         '--ffmpeg-location', FFMPEG,
