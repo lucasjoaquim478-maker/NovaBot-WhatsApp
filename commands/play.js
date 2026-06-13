@@ -36,11 +36,11 @@ async function downloadAudio(url) {
       const args = [
         ...ytDlpArgs(attempt),
         '-f', 'bestaudio',
-        '--max-filesize', '50M',
+        '--max-filesize', '40M',
         '--ffmpeg-location', FFMPEG,
         '--extract-audio',
         '--audio-format', 'mp3',
-        '--audio-quality', '128K',
+        '--audio-quality', '64K',
         '--output', `${outFile}.%(ext)s`,
         url
       ];
@@ -112,13 +112,19 @@ async function handlePlay(sock, { msg, jid, sender, args }) {
       });
     }
 
+    if (result.data.length > 45 * 1024 * 1024) {
+      return await sock.sendMessage(jid, { text: `❌ Audio muito grande (${(result.data.length / 1024 / 1024).toFixed(1)}MB). Limite: 45MB.\n📹 ${video.url}` });
+    }
+
     try {
       await sock.sendMessage(jid, {
         audio: result.data,
         mimetype: 'audio/mpeg',
         ptt: false
       }, { quoted: msg });
-    } catch {
+    } catch (sendErr) {
+      const logService = require('../server/services/logService');
+      logService.add('error', `Envio audio falhou: ${sendErr.message}`);
       await sock.sendMessage(jid, {
         text: `🎵 *${video.title}*\n\n📹 ${video.url}`
       });
