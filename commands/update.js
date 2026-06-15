@@ -7,89 +7,167 @@ const path = require('path');
 const os = require('os');
 
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
-const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy', 'meuownerb64'];
+const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versÃ£o', 'versao', 'rollback', 'meunÃºmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy', 'meuownerb64'];
+
+function progressBar(pct, width = 12) {
+  const filled = Math.round((pct / 100) * width);
+  return 'â–ˆ'.repeat(filled) + 'â–‘'.repeat(width - filled);
+}
+
+function formatBytes(bytes) {
+  if (!bytes) return '0 B';
+  const sizes = ['B', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(1024));
+  return (bytes / Math.pow(1024, i)).toFixed(1) + ' ' + sizes[i];
+}
 
 async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName, msg }) {
-  if (commandName === 'meunúmero') {
+  if (commandName === 'meunÃºmero') {
     await sock.sendMessage(jid, {
-      text: `📱 *Seu JID:* ${sender}\n👤 *Nome:* ${msg.pushName || 'N/A'}\n🔍 *No config:* ${config.ownerNumbers.some(n => sender.startsWith(n.split('@')[0])) ? 'SIM' : 'NAO'}\n👑 *isOwner:* ${await isOwner(sender, sock) ? 'SIM' : 'NAO'}`
+      text: `â•­â”€â”€â”€ *ã€Œ INFORMACOES DO USUARIO ã€* â”€â”€â”€â•®\n` +
+            `â”‚ ðŸ‘¤ *Nome:* ${msg.pushName || 'N/A'}\n` +
+            `â”‚ ðŸ“± *JID:* ${sender}\n` +
+            `â”‚ ðŸ” *Configurado:* ${config.ownerNumbers.some(n => sender.startsWith(n.split('@')[0])) ? 'âœ… SIM' : 'âŒ NAO'}\n` +
+            `â”‚ ðŸ‘‘ *Dono:* ${await isOwner(sender, sock) ? 'âœ… SIM' : 'âŒ NAO'}\n` +
+            `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
     });
     return;
   }
 
   if (commandName === 'meuownerb64') {
     await sock.sendMessage(jid, {
-      text: `📋 *Seu JID:*\n${sender.split('@')[0]}\n\n` +
-            `💡 Cole este numero no painel PhanomCloud como variavel *BOT_OWNERS*:\n` +
-            `\`\`\`${sender.split('@')[0]}\`\`\`\n\n` +
-            `Use virgula pra multiplos donos, ex: 5511999999999,5588888888888`
+      text: `â•­â”€â”€â”€ *ã€Œ DADOS DO DONO ã€* â”€â”€â”€â•®\n` +
+            `â”‚ ðŸ“± *Seu nÃºmero:* ${sender.split('@')[0]}\n` +
+            `â”‚\n` +
+            `â”‚ Cole no painel como *BOT_OWNERS*:\n` +
+            `â”‚ \`${sender.split('@')[0]}\`\n` +
+            `â”‚\n` +
+            `â”‚ Multiplos: separados por virgula\n` +
+            `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
     });
     return;
   }
 
   const owner = await isOwner(sender, sock);
   if (!owner) {
-    await sock.sendMessage(jid, { text: '❌ Apenas o dono do bot pode usar este comando.' });
+    await sock.sendMessage(jid, { text: 'âŒ *Acesso negado.* Apenas o dono do bot pode usar este comando.' });
     return;
   }
 
   if (!config.githubRepo) {
-    await sock.sendMessage(jid, { text: '❌ Repositório GitHub não configurado (githubRepo no config.json).' });
+    await sock.sendMessage(jid, { text: 'âŒ *Repositorio nao configurado.* Defina *githubRepo* no config.json' });
     return;
   }
 
   switch (commandName) {
-    case 'versão': {
+    case 'versÃ£o': {
       const local = updater.getCurrentVersion();
       const latest = updater.getLatestVersion();
-      let txt = `📦 *Versão atual:* v${local}\n`;
-      if (latest !== local) txt += `🎯 *Última disponível:* v${latest}\n`;
-      else txt += `✅ *Última versão disponível:* v${latest}\n`;
-      const changelog = await updater.getChangelog();
-      if (changelog) txt += `\n📋 *Changelog:*\n${changelog.slice(0, 1500)}`;
+      const state = updater.getState();
+      const hasUpdate = state.latestVersion !== local;
+
+      let txt = `â•­â”€â”€â”€ *ã€Œ STATUS DO SISTEMA ã€* â”€â”€â”€â•®\n`;
+      txt += `â”‚ ðŸ“¦ *Versao local:* v${local}\n`;
+      txt += `â”‚ ðŸŽ¯ *Ultima disponivel:* v${latest}\n`;
+      txt += `â”‚ ðŸ”„ *Estado:* ${state.state === 'idle' ? 'âœ… Ocioso' : 'âš¡ ' + state.state}\n`;
+      txt += `â”‚ ${hasUpdate ? 'ðŸ“¢ *Nova versao disponivel!*' : 'âœ… *Sistema atualizado*'}\n`;
+      txt += `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯\n`;
+
+      if (hasUpdate) {
+        const changelog = await updater.getChangelog();
+        if (changelog) {
+          const lines = changelog.split('\n').slice(0, 8).join('\n');
+          txt += `\nðŸ“‹ *Changelog (v${latest}):*\n\`\`\`${lines}\`\`\`\n`;
+        }
+        txt += `\nðŸ’¡ Use \`!update\` para atualizar`;
+      }
       await sock.sendMessage(jid, { text: txt });
       break;
     }
 
     case 'update': {
-      const force = args[0]?.toLowerCase() === 'force';
-      if (force) {
-        await sock.sendMessage(jid, { text: '⚡ Atualizando... Acompanhe o progresso no painel web.' });
+      const doForce = args[0]?.toLowerCase() === 'force';
+
+      if (doForce) {
+        await sock.sendMessage(jid, {
+          text: `â•­â”€â”€â”€ *ã€Œ ATUALIZACAO INICIADA ã€* â”€â”€â”€â•®\n` +
+                `â”‚ ðŸ“¦ v${updater.getCurrentVersion()} â†’ v${updater.getLatestVersion()}\n` +
+                `â”‚ â³ Baixando arquivos...\n` +
+                `â”‚ ðŸ“Š Acompanhe pelo painel web\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+        });
+
+        sock.sendPresenceUpdate('recording', jid);
+
         try {
           const result = await updater.performUpdate();
+          const pct = progressBar(100);
           await sock.sendMessage(jid, {
-            text: `✅ *Atualização concluída!*\n\n📦 v${updater.getCurrentVersion()} → v${result.targetVer}\n📁 ${result.filesSuccess} atualizados\n❌ ${result.filesFailed} falhas\n\n🔄 Reiniciando...`
+            text: `â•­â”€â”€â”€ *ã€Œ ATUALIZACAO CONCLUIDA ã€* â”€â”€â”€â•®\n` +
+                  `â”‚ ${pct} 100%\n` +
+                  `â”‚ ðŸ“¦ *v${result.targetVer}*\n` +
+                  `â”‚ âœ… *${result.filesSuccess} arquivos* atualizados\n` +
+                  `${result.filesFailed > 0 ? `â”‚ âš ï¸ *${result.filesFailed} falhas*\n` : ''}` +
+                  `â”‚ ðŸ”„ *Reiniciando em 3 segundos...*\n` +
+                  `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
           });
           setTimeout(() => safeRestart(), 3000);
         } catch (e) {
-          await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+          await sock.sendMessage(jid, {
+            text: `â•­â”€â”€â”€ *ã€Œ ERRO NA ATUALIZACAO ã€* â”€â”€â”€â•®\n` +
+                  `â”‚ âŒ ${e.message.slice(0, 100)}\n` +
+                  `â”‚ ðŸ”„ Backup restaurado automaticamente\n` +
+                  `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+          });
         }
         return;
       }
+
       const result = await updater.checkForUpdates();
       if (!result || result.error) {
-        await sock.sendMessage(jid, { text: `❌ ${result?.error || 'Erro ao verificar'}` });
-        return;
-      }
-      if (result.current) {
-        await sock.sendMessage(jid, { text: `✅ Você já está na versão mais recente: v${updater.getCurrentVersion()}` });
-        return;
-      }
-      if (result.hasUpdate) {
         await sock.sendMessage(jid, {
-          text: `🔄 *Nova versão disponível!*\n\n` +
-                `📦 Atual: v${updater.getCurrentVersion()}\n` +
-                `🎯 Nova: v${result.version}\n` +
-                `📝 Changelog: ${result.html_url || 'N/A'}\n\n` +
-                `Deseja atualizar? Use \`!update force\` para confirmar.`
+          text: `â•­â”€â”€â”€ *ã€Œ ERRO NA VERIFICACAO ã€* â”€â”€â”€â•®\n` +
+                `â”‚ âŒ ${result?.error || 'Falha ao contactar GitHub'}\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
+        return;
+      }
+
+      if (result.current) {
+        await sock.sendMessage(jid, {
+          text: `â•­â”€â”€â”€ *ã€Œ SISTEMA ATUALIZADO ã€* â”€â”€â”€â•®\n` +
+                `â”‚ âœ… v${updater.getCurrentVersion()}\n` +
+                `â”‚ ðŸ“Œ Voce ja esta na versao mais recente\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+        });
+        return;
+      }
+
+      if (result.hasUpdate) {
+        const changelog = await updater.getChangelog();
+        let txt = `â•­â”€â”€â”€ *ã€Œ NOVA VERSAO DISPONIVEL ã€* â”€â”€â”€â•®\n`;
+        txt += `â”‚ ðŸ“¦ *Atual:* v${updater.getCurrentVersion()}\n`;
+        txt += `â”‚ ðŸŽ¯ *Nova:* v${result.version}\n`;
+        txt += `â”‚ ðŸ“… *Publicada:* ${new Date(result.published_at).toLocaleDateString('pt-BR')}\n`;
+        txt += `â”‚\n`;
+        if (changelog) {
+          const lines = changelog.split('\n').slice(0, 5).join('\nâ”‚ ');
+          txt += `â”‚ ðŸ“‹ *Novidades:*\nâ”‚ ${lines}\nâ”‚\n`;
+        }
+        txt += `â”‚ ðŸ’¡ Confirme com: \`!update force\`\n`;
+        txt += `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`;
+        await sock.sendMessage(jid, { text: txt });
       }
       break;
     }
 
     case 'updateytdlp':
     case 'upgrade': {
-      await sock.sendMessage(jid, { text: '⚡ Atualizando yt-dlp para última versão nightly...' });
+      await sock.sendMessage(jid, {
+        text: `â•­â”€â”€â”€ *ã€Œ ATUALIZANDO YT-DLP ã€* â”€â”€â”€â•®\n` +
+              `â”‚ â³ Baixando ultima versao nightly...\n` +
+              `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+      });
       try {
         const { execFile } = require('child_process');
         const ytDlpPath = path.join(__dirname, '..', 'bin', 'yt-dlp');
@@ -100,25 +178,46 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
           });
           child.on('error', reject);
         });
+        const clean = result.split('\n').filter(l => l.trim()).slice(0, 3).join('\n');
         await sock.sendMessage(jid, {
-          text: `✅ *yt-dlp atualizado!*\n\n${result.slice(0, 500)}\n\n🔄 Reiniciando...`
+          text: `â•­â”€â”€â”€ *ã€Œ YT-DLP ATUALIZADO ã€* â”€â”€â”€â•®\n` +
+                `â”‚ âœ… ${clean || 'Sucesso!'}\n` +
+                `â”‚ ðŸ”„ Reiniciando em 3 segundos...\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
         setTimeout(() => safeRestart(), 3000);
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro ao atualizar yt-dlp: ${e.message}` });
+        await sock.sendMessage(jid, {
+          text: `â•­â”€â”€â”€ *ã€Œ ERRO NO YT-DLP ã€* â”€â”€â”€â•®\n` +
+                `â”‚ âŒ ${e.message.slice(0, 150)}\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+        });
       }
       break;
     }
 
     case 'rollback': {
+      await sock.sendMessage(jid, {
+        text: `â•­â”€â”€â”€ *ã€Œ RESTAURANDO BACKUP ã€* â”€â”€â”€â•®\n` +
+              `â”‚ â³ Restaurando ultimo backup...\n` +
+              `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+      });
       try {
         const result = await updater.rollback();
         await sock.sendMessage(jid, {
-          text: `✅ *Rollback concluído!*\n\n💾 Backup: ${result.backup}\n📁 ${result.files} arquivos restaurados\n\n🔄 Reiniciando em 3 segundos...`
+          text: `â•­â”€â”€â”€ *ã€Œ BACKUP RESTAURADO ã€* â”€â”€â”€â•®\n` +
+                `â”‚ ðŸ’¾ *Backup:* ${result.backup}\n` +
+                `â”‚ ðŸ“ *${result.files} arquivos* restaurados\n` +
+                `â”‚ ðŸ”„ Reiniciando em 3 segundos...\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
         setTimeout(() => safeRestart(), 3000);
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+        await sock.sendMessage(jid, {
+          text: `â•­â”€â”€â”€ *ã€Œ ERRO NO ROLLBACK ã€* â”€â”€â”€â•®\n` +
+                `â”‚ âŒ ${e.message.slice(0, 150)}\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+        });
       }
       break;
     }
@@ -134,13 +233,13 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
       const envSet = !!process.env.YOUTUBE_COOKIES_B64;
       const loginfo = cookieExists ? fs.readFileSync(COOKIE_PATH, 'utf-8').includes('LOGIN_INFO') : false;
       await sock.sendMessage(jid, {
-        text: `📋 *Diagnostico de Cookies*\n\n` +
-              `📁 *cookies.txt:* ${cookieExists ? 'EXISTE' : 'NAO EXISTE'} (${cookieSize} bytes)\n` +
-              `🔑 *LOGIN_INFO:* ${loginfo ? 'PRESENTE' : 'AUSENTE'}\n` +
-              `⚙️ *cookiesPath config:* ${cfgObj.cookiesPath || '(vazio)'}\n` +
-              `💾 *cookieBase64 config:* ${hasB64 ? 'PRESENTE' : 'AUSENTE'}\n` +
-              `🌍 *YOUTUBE_COOKIES_B64 env:* ${envSet ? 'SETADA' : 'NAO SETADA'}\n` +
-              `📂 *ROOT:* ${p}`
+        text: `â•­â”€â”€â”€ *ã€Œ DIAGNOSTICO DE COOKIES ã€* â”€â”€â”€â•®\n` +
+              `â”‚ ðŸ“ *Arquivo:* ${cookieExists ? 'âœ… EXISTE' : 'âŒ AUSENTE'}\n` +
+              `â”‚ ðŸ“ *Tamanho:* ${formatBytes(cookieSize)}\n` +
+              `â”‚ ðŸ”‘ *LOGIN_INFO:* ${loginfo ? 'âœ… PRESENTE' : 'âŒ AUSENTE'}\n` +
+              `â”‚ âš™ï¸ *cookieBase64 cfg:* ${hasB64 ? 'âœ… PRESENTE' : 'âŒ AUSENTE'}\n` +
+              `â”‚ ðŸŒ *Env var:* ${envSet ? 'âœ… CONFIGURADA' : 'âŒ AUSENTE'}\n` +
+              `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
       });
       break;
     }
@@ -148,12 +247,20 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
     case 'addcookie': {
       if (!args.length) {
         return await sock.sendMessage(jid, {
-          text: `📋 *Configurar cookies do YouTube*\n\n1. Instale "Get cookies.txt LOCALLY" no Chrome\n2. Acesse youtube.com, faca login\n3. Clique na extensao > Exportar\n4. Copie TODO o conteudo\n5. Envie: *addcookie* + o conteudo dos cookies`
+          text: `â•­â”€â”€â”€ *ã€Œ CONFIGURAR COOKIES ã€* â”€â”€â”€â•®\n` +
+                `â”‚ ðŸ“‹ *Como usar:*\n` +
+                `â”‚ 1. Instale "Get cookies.txt"\n` +
+                `â”‚ 2. Faca login no YouTube\n` +
+                `â”‚ 3. Exporte os cookies\n` +
+                `â”‚ 4. Envie: *addcookie* + conteudo\n` +
+                `â”‚\n` +
+                `â”‚ ðŸ“Ž Ou envie o arquivo com *!cookie*\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
       }
       const input = text.slice(prefix.length + commandName.length).trim();
       if (input.length < 50) {
-        return await sock.sendMessage(jid, { text: '❌ Conteudo muito curto. Copie todo o conteudo do cookies.txt' });
+        return await sock.sendMessage(jid, { text: 'âŒ *Conteudo muito curto.* Copie todo o cookies.txt' });
       }
       try {
         const b64 = Buffer.from(input, 'utf-8').toString('base64');
@@ -166,11 +273,14 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
           fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
         }
         await sock.sendMessage(jid, {
-          text: `✅ Cookies salvos! Reinicie com *!reiniciar*\n\n` +
-                `💡 *Para o cookie sobreviver a qualquer restart:* use *!cookieb64* + o conteudo, e cole o base64 gerado no painel PhanomCloud como *YOUTUBE_COOKIES_B64*`
+          text: `â•­â”€â”€â”€ *ã€Œ COOKIES SALVOS ã€* â”€â”€â”€â•®\n` +
+                `â”‚ âœ… Cookies exportados\n` +
+                `â”‚ ðŸ“ ${formatBytes(Buffer.byteLength(input, 'utf-8'))}\n` +
+                `â”‚ ðŸ”„ Reinicie com *!reiniciar*\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro ao salvar: ${e.message}` });
+        await sock.sendMessage(jid, { text: `âŒ *Erro:* ${e.message}` });
       }
       break;
     }
@@ -184,9 +294,9 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
           delete cfg.cookieBase64;
           fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
         }
-        await sock.sendMessage(jid, { text: '✅ Cookies removidos' });
+        await sock.sendMessage(jid, { text: 'âœ… *Cookies removidos com sucesso*' });
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+        await sock.sendMessage(jid, { text: `âŒ *Erro:* ${e.message}` });
       }
       break;
     }
@@ -194,20 +304,36 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
     case 'cookieb64': {
       if (!args.length) {
         return await sock.sendMessage(jid, {
-          text: `📋 *Gerar base64 dos cookies*\n\nEnvie: *cookieb64* + o conteudo do cookies.txt\n\nO base64 gerado voce cola no painel PhanomCloud como a variavel *YOUTUBE_COOKIES_B64*`
+          text: `â•­â”€â”€â”€ *ã€Œ GERAR BASE64 ã€* â”€â”€â”€â•®\n` +
+                `â”‚ Envie: *cookieb64* + conteudo\n` +
+                `â”‚ do cookies.txt\n` +
+                `â”‚\n` +
+                `â”‚ Cole o resultado no painel como\n` +
+                `â”‚ *YOUTUBE_COOKIES_B64*\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
       }
       const input = text.slice(prefix.length + commandName.length).trim();
       if (input.length < 50) {
-        return await sock.sendMessage(jid, { text: '❌ Conteudo muito curto. Cole todo o conteudo do cookies.txt' });
+        return await sock.sendMessage(jid, { text: 'âŒ *Conteudo muito curto*' });
       }
       const b64 = Buffer.from(input, 'utf-8').toString('base64');
+      const chunks = [];
+      for (let i = 0; i < b64.length; i += 2000) {
+        chunks.push(b64.slice(i, i + 2000));
+      }
       await sock.sendMessage(jid, {
-        text: `✅ *Base64 gerado!*\n\n` +
-              `Copie o valor abaixo e cole no painel PhanomCloud:\n` +
-              `*Variavel:* YOUTUBE_COOKIES_B64\n\n` +
-              `\`\`\`${b64}\`\`\``
+        text: `â•­â”€â”€â”€ *ã€Œ BASE64 GERADO ã€* â”€â”€â”€â•®\n` +
+              `â”‚ ðŸ“ ${formatBytes(Buffer.byteLength(input, 'utf-8'))}\n` +
+              `â”‚ Cole no painel como:\n` +
+              `â”‚ *YOUTUBE_COOKIES_B64*\n` +
+              `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯\n\n` +
+              `\`${chunks[0]}\`${chunks.length > 1 ? `\n*(+${chunks.length - 1} partes, veja no console)*` : ''}`
       });
+      if (chunks.length > 1) {
+        console.log('[COOKIE B64] Conteudo completo:');
+        console.log(b64);
+      }
       break;
     }
 
@@ -215,7 +341,12 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
       const docMsg = msg.message?.documentMessage;
       if (!docMsg) {
         return await sock.sendMessage(jid, {
-          text: `📋 *Enviar cookies como arquivo*\n\n1. Exporte os cookies do YouTube com extensao "Get cookies.txt LOCALLY"\n2. Envie o arquivo *cookies.txt* com a legenda *!cookie*\n\nO bot vai salvar o arquivo automaticamente.`
+          text: `â•­â”€â”€â”€ *ã€Œ ENVIAR COOKIES ã€* â”€â”€â”€â•®\n` +
+                `â”‚ Envie o arquivo cookies.txt\n` +
+                `â”‚ com a legenda *!cookie*\n` +
+                `â”‚\n` +
+                `â”‚ O bot salva automaticamente\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
       }
       try {
@@ -236,30 +367,38 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
         const size = buffer.length;
         const hasLogin = buffer.toString('utf-8').includes('LOGIN_INFO');
         await sock.sendMessage(jid, {
-          text: `✅ *Cookies salvos do arquivo!*\n\n📁 Tamanho: ${size} bytes\n🔑 LOGIN_INFO: ${hasLogin ? 'PRESENTE' : 'AUSENTE'}\n\n🔄 Reinicie com *!reiniciar* para aplicar`
+          text: `â•­â”€â”€â”€ *ã€Œ COOKIES SALVOS ã€* â”€â”€â”€â•®\n` +
+                `â”‚ ðŸ“ ${formatBytes(size)}\n` +
+                `â”‚ ðŸ”‘ LOGIN_INFO: ${hasLogin ? 'âœ… SIM' : 'âŒ NAO'}\n` +
+                `â”‚ ðŸ”„ Reinicie com *!reiniciar*\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro ao processar arquivo: ${e.message}` });
+        await sock.sendMessage(jid, { text: `âŒ *Erro:* ${e.message}` });
       }
       break;
     }
 
     case 'warp': {
       try {
-        await sock.sendMessage(jid, { text: '🔄 Baixando Cloudflare WARP (warp-plus)...' });
+        await sock.sendMessage(jid, {
+          text: `â•­â”€â”€â”€ *ã€Œ CLOUDFLARE WARP ã€* â”€â”€â”€â•®\n` +
+                `â”‚ â³ Baixando warp-plus...\n` +
+                `â”‚ ðŸ“¡ Porta SOCKS5: 40000\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+        });
         const { execFile, spawn } = require('child_process');
         const https = require('https');
         const warpDir = path.join(__dirname, '..', 'bin');
         if (!fs.existsSync(warpDir)) fs.mkdirSync(warpDir, { recursive: true });
         const warpBin = path.join(warpDir, 'warp-plus');
         if (!fs.existsSync(warpBin)) {
-          await sock.sendMessage(jid, { text: '⬇️ Baixando warp-plus...' });
+          await sock.sendMessage(jid, { text: 'â¬‡ï¸ *Baixando binario...*' });
           const tmpDir = path.join(warpDir, '.warp-dl');
           if (!fs.existsSync(tmpDir)) fs.mkdirSync(tmpDir, { recursive: true });
           const tarball = path.join(tmpDir, 'warp.tar.gz');
           await new Promise((resolve, reject) => {
             const timeout = setTimeout(() => reject(new Error('Download timeout (60s)')), 60000);
-            // First, find the actual asset URL from GitHub API
             https.get('https://api.github.com/repos/bepass-org/warp-plus/releases/latest', { headers: { 'User-Agent': 'NovaBot' } }, (res) => {
               let body = '';
               res.on('data', (c) => body += c);
@@ -290,13 +429,12 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
                       f.on('finish', () => { clearTimeout(timeout); f.close(resolve); });
                     }).on('error', (e) => { clearTimeout(timeout); try { f.close(); fs.unlinkSync(dest); } catch {} reject(e); });
                   };
-                  dl(assetUrl, tarball); // tarball might be a zip now
+                  dl(assetUrl, tarball);
                 } catch (e) { clearTimeout(timeout); reject(e); }
               });
             }).on('error', (e) => { clearTimeout(timeout); reject(e); });
           });
           if (!fs.existsSync(tarball)) throw new Error('Download falhou');
-          // Try tar.gz first, then zip, then raw binary
           const isZip = (() => { try { const buf = Buffer.alloc(2); const fd = fs.openSync(tarball, 'r'); fs.readSync(fd, buf, 0, 2, 0); fs.closeSync(fd); return buf[0] === 0x50 && buf[1] === 0x4b; } catch { return false; } })();
           const isGz = (() => { try { const buf = Buffer.alloc(2); const fd = fs.openSync(tarball, 'r'); fs.readSync(fd, buf, 0, 2, 0); fs.closeSync(fd); return buf[0] === 0x1f && buf[1] === 0x8b; } catch { return false; } })();
           if (isGz) {
@@ -308,7 +446,6 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
               execFile('unzip', ['-o', tarball, '-d', tmpDir], { timeout: 15000 }, (err) => err ? reject(err) : resolve());
             });
           } else {
-            // Maybe it's a raw binary already (not compressed)
             const destName = path.join(tmpDir, 'warp-plus');
             fs.copyFileSync(tarball, destName);
             fs.chmodSync(destName, 0o755);
@@ -331,9 +468,9 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
           }
           try { fs.rmSync(tmpDir, { recursive: true, force: true }); } catch {}
           if (!fs.existsSync(warpBin)) throw new Error('Nao encontrou binario extraido');
-          await sock.sendMessage(jid, { text: `✅ warp-plus baixado (${(fs.statSync(warpBin).size / 1024 / 1024).toFixed(1)} MB)` });
+          await sock.sendMessage(jid, { text: `âœ… *warp-plus baixado* (${(fs.statSync(warpBin).size / 1024 / 1024).toFixed(1)} MB)` });
         }
-        await sock.sendMessage(jid, { text: '🔄 Iniciando WARP SOCKS5 na porta 40000 (60s para registrar)...' });
+        await sock.sendMessage(jid, { text: 'ðŸ”„ *Iniciando WARP SOCKS5* na porta 40000...' });
         let warpOut = '';
         const proc = spawn(warpBin, ['--bind', '127.0.0.1:40000'], { stdio: ['ignore', 'pipe', 'pipe'], detached: true });
         proc.stdout.on('data', (d) => { warpOut += d.toString(); });
@@ -346,11 +483,11 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
         }
         const isRunning = (() => { try { return proc.exitCode === null; } catch { return false; } })();
         if (!isRunning) {
-          return await sock.sendMessage(jid, { text: `❌ warp-plus morreu:\n${warpOut.slice(0, 500)}` });
+          return await sock.sendMessage(jid, { text: `âŒ *warp-plus parou:*\n\`\`\`${warpOut.slice(0, 400)}\`\`\`` });
         }
         if (warpOut.includes('failed to register')) {
-          const warpDir = path.join(os.homedir(), '.cache', 'warp-plus');
-          try { fs.rmSync(warpDir, { recursive: true, force: true }); } catch {}
+          const wd = path.join(os.homedir(), '.cache', 'warp-plus');
+          try { fs.rmSync(wd, { recursive: true, force: true }); } catch {}
         }
         const cfgPath = path.join(__dirname, '..', 'config.json');
         if (fs.existsSync(cfgPath)) {
@@ -359,10 +496,16 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
           fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
         }
         await sock.sendMessage(jid, {
-          text: `✅ *WARP ativado!*\n\n🔗 SOCKS5: socks5://127.0.0.1:40000\n📋 Log:\n\`\`\`${(warpOut || '(vazio)').slice(0, 500)}\`\`\`\n\nTeste com *!play*`
+          text: `â•­â”€â”€â”€ *ã€Œ WARP ATIVADO ã€* â”€â”€â”€â•®\n` +
+                `â”‚ ðŸ”— *SOCKS5:*\n` +
+                `â”‚ socks5://127.0.0.1:40000\n` +
+                `â”‚ ðŸ“‹ ${(warpOut || '(vazio)').slice(0, 200)}\n` +
+                `â”‚\n` +
+                `â”‚ âœ… Teste com *!play*\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro WARP: ${e.message}` });
+        await sock.sendMessage(jid, { text: `âŒ *Erro WARP:* ${e.message}` });
       }
       break;
     }
@@ -371,7 +514,15 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
       const proxyUrl = args.join(' ').trim();
       if (!proxyUrl) {
         return await sock.sendMessage(jid, {
-          text: `📋 *Configurar proxy para YouTube*\n\nEnvie: *setproxy* <url>\n\nExemplos:\n• HTTP: http://user:pass@host:port\n• SOCKS5: socks5://host:1080\n\nPara remover: *delproxy*`
+          text: `â•­â”€â”€â”€ *ã€Œ CONFIGURAR PROXY ã€* â”€â”€â”€â•®\n` +
+                `â”‚ Envie: *setproxy* <url>\n` +
+                `â”‚\n` +
+                `â”‚ Exemplos:\n` +
+                `â”‚ HTTP: http://user:pass@host:port\n` +
+                `â”‚ SOCKS5: socks5://host:1080\n` +
+                `â”‚\n` +
+                `â”‚ Para remover: *delproxy*\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
         });
       }
       try {
@@ -381,9 +532,14 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
           cfg.youtubeProxy = proxyUrl;
           fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
         }
-        await sock.sendMessage(jid, { text: `✅ Proxy configurado: ${proxyUrl}\n\n🔄 Reinicie com *!reiniciar* para aplicar` });
+        await sock.sendMessage(jid, {
+          text: `â•­â”€â”€â”€ *ã€Œ PROXY CONFIGURADO ã€* â”€â”€â”€â•®\n` +
+                `â”‚ ðŸ”— ${proxyUrl}\n` +
+                `â”‚ ðŸ”„ Reinicie com *!reiniciar*\n` +
+                `â•°â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â•¯`
+        });
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+        await sock.sendMessage(jid, { text: `âŒ *Erro:* ${e.message}` });
       }
       break;
     }
@@ -396,9 +552,9 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
           delete cfg.youtubeProxy;
           fs.writeFileSync(cfgPath, JSON.stringify(cfg, null, 2));
         }
-        await sock.sendMessage(jid, { text: '✅ Proxy removido' });
+        await sock.sendMessage(jid, { text: 'âœ… *Proxy removido com sucesso*' });
       } catch (e) {
-        await sock.sendMessage(jid, { text: `❌ Erro: ${e.message}` });
+        await sock.sendMessage(jid, { text: `âŒ *Erro:* ${e.message}` });
       }
       break;
     }
