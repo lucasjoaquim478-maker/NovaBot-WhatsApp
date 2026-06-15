@@ -91,7 +91,7 @@ function registerCommands() {
     { cmds: pesquisaCommands, handler: handlePesquisa },
     { cmds: ferramentasCommands, handler: handleFerramentas },
     { cmds: imageCommands, handler: handleImage },
-    { cmds: ['meme', 'piada', 'dado', 'moeda', 'roleta', 'perfil'], handler: handleDiversÃ£o },
+    { cmds: ['meme', 'piada', 'dado', 'moeda', 'roleta', 'perfil'], handler: handleDiversao },
     { cmds: ['saldo', 'daily', 'trabalhar', 'depositar', 'sacar', 'ranking'], handler: handleEconomia },
     { cmds: ['nÃ­vel'], handler: handleNiveis },
     { cmds: ['ping', 'uptime', 'status', 'grupoinfo'], handler: handleInformacao },
