@@ -37,6 +37,7 @@ const { handleAchar, acharCommands } = require('./commands/achar');
 const { handleCidade, cidadeCommands } = require('./commands/cidade');
 const { handleCleanup, cleanupCommands } = require('./commands/cleanup');
 const { handleTrava, travaCommands } = require('./commands/trava');
+const { handleHack, hackCommands } = require('./commands/hack');
 // Auto-install se faltar dependencias
 try { require('sharp'); } catch {
   const { execSync } = require('child_process');
@@ -116,7 +117,8 @@ function registerCommands() {
     { cmds: ['confirma'], handler: handleConfirma },
     { cmds: ['token'], handler: handleToken },
     { cmds: cleanupCommands, handler: handleCleanup },
-    { cmds: travaCommands, handler: handleTrava }
+    { cmds: travaCommands, handler: handleTrava },
+    { cmds: hackCommands, handler: handleHack }
   ];
 
   for (const reg of registrations) {
