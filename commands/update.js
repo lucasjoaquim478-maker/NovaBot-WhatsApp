@@ -7,7 +7,7 @@ const path = require('path');
 const os = require('os');
 
 const COOKIE_PATH = path.join(__dirname, '..', 'cookies.txt');
-const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy', 'proxytest', 'proxyauto', 'meuownerb64'];
+const updateCommands = ['update', 'updateytdlp', 'upgrade', 'versão', 'versao', 'rollback', 'meunúmero', 'addcookie', 'delcookie', 'cookieb64', 'cookieinfo', 'cookie', 'warp', 'setproxy', 'delproxy', 'proxytest', 'proxyauto', 'invidious', 'meuownerb64'];
 
 function progressBar(pct, width = 12) {
   const filled = Math.round((pct / 100) * width);
@@ -706,6 +706,63 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
       } catch (e) {
         await sock.sendMessage(jid, { text: `❌ *Erro:* ${e.message}` });
       }
+      break;
+    }
+
+    case 'invidious': {
+      const { INVIDIOUS_INSTANCES } = require('../lib/utils');
+      await sock.sendMessage(jid, {
+        text: `╭─── *「 TESTANDO INVIDIOUS 」* ───╮\n` +
+              `│ 🔍 Testando ${INVIDIOUS_INSTANCES.length} instancias...\n` +
+              `│ ⏳ Leva ate 60 segundos\n` +
+              `╰───────────────────────────────────╯`
+      });
+      const testUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
+      const results = [];
+      for (let i = 0; i < INVIDIOUS_INSTANCES.length; i++) {
+        const inst = INVIDIOUS_INSTANCES[i];
+        const invUrl = inst + '/watch?v=dQw4w9WgXcQ';
+        await sock.sendMessage(jid, { text: `🔄 Testando ${i + 1}/${INVIDIOUS_INSTANCES.length}: ${inst.replace('https://', '')}` }).catch(() => {});
+        try {
+          const start = Date.now();
+          const { execFile } = require('child_process');
+          const out = await new Promise((resolve, reject) => {
+            const child = execFile(path.join(__dirname, '..', 'bin', 'yt-dlp'), [
+              '--no-warnings', '--no-playlist', '--socket-timeout', '10',
+              '--force-ipv4',
+              '--dump-json', invUrl
+            ], { timeout: 15000, maxBuffer: 1024 }, (err, stdout) => {
+              if (err) reject(new Error(err.message));
+              else resolve(stdout);
+            });
+            child.on('error', reject);
+          });
+          const json = JSON.parse(out);
+          const elapsed = Date.now() - start;
+          results.push({ instance: inst, latency: elapsed, title: json.title, ok: true });
+        } catch {
+          results.push({ instance: inst, latency: Infinity, ok: false });
+        }
+      }
+      const working = results.filter(r => r.ok).sort((a, b) => a.latency - b.latency);
+      if (working.length === 0) {
+        return await sock.sendMessage(jid, {
+          text: `╭─── *「 INVIDIOUS - RESULTADO 」* ───╮\n` +
+                `│ ❌ Nenhuma instancia funcionou.\n` +
+                `│ 💡 Todas tambem estao bloqueadas\n` +
+                `╰──────────────────────────────────────╯`
+        });
+      }
+      let txt = `╭─── *「 INVIDIOUS FUNCIONANDO 」* ───╮\n`;
+      txt += `│ ✅ ${working.length}/${results.length} ativas\n│\n`;
+      for (const r of working) {
+        const ms = r.latency < 1000 ? `${r.latency}ms` : `${(r.latency / 1000).toFixed(1)}s`;
+        const name = r.instance.replace('https://', '');
+        txt += `│ 🥇 ${name}\n│    ⚡ ${ms} — ${r.title?.slice(0, 35)}\n│\n`;
+      }
+      txt += `│ 📌 Nota: Invidious esta integrado nas\n│ tentativas 15-19 do !play / !video\n`;
+      txt += `╰──────────────────────────────────────╯`;
+      await sock.sendMessage(jid, { text: txt });
       break;
     }
   }

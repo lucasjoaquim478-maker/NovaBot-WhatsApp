@@ -2,7 +2,7 @@ const yts = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { formatDuration, formatNumber, convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts } = require('../lib/utils');
+const { formatDuration, formatNumber, convertToMp4, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts, ytDlpIsVideoUrl } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -33,7 +33,7 @@ async function downloadVideo(url) {
         '--merge-output-format', 'mp4',
         '--ffmpeg-location', FFMPEG,
         '--output', `${outFile}.%(ext)s`,
-        url
+        ytDlpIsVideoUrl(url, attempt)
       ];
       await runYtDlp(args);
       let videoFile = null;

@@ -3,7 +3,7 @@ const ytSearch = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts } = require('../lib/utils');
+const { getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts, ytDlpIsVideoUrl } = require('../lib/utils');
 
 const YT_DLP = getYtDlpPath();
 const FFMPEG = getFfmpegPath();
@@ -408,7 +408,7 @@ async function fetchAnthemAudio(cityName) {
           '--extract-audio',
           '--audio-format', 'mp3',
           '--output', `${outFile}.%(ext)s`,
-          video.url
+          ytDlpIsVideoUrl(video.url, attempt)
         ];
         await new Promise((resolve, reject) => {
           execFile(YT_DLP, args, { timeout: 60000, maxBuffer: 50 * 1024 * 1024 }, (err) => {

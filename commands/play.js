@@ -2,7 +2,7 @@ const yts = require('yt-search');
 const { execFile } = require('child_process');
 const fs = require('fs');
 const path = require('path');
-const { formatDuration, formatNumber, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts } = require('../lib/utils');
+const { formatDuration, formatNumber, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts, ytDlpIsVideoUrl } = require('../lib/utils');
 
 const searchCache = new Map();
 const CACHE_TTL = 3600000;
@@ -42,7 +42,7 @@ async function downloadAudio(url) {
         '--audio-format', 'mp3',
         '--audio-quality', '64K',
         '--output', `${outFile}.%(ext)s`,
-        url
+        ytDlpIsVideoUrl(url, attempt)
       ];
       await runYtDlp(args);
       const mp3File = `${outFile}.mp3`;
@@ -52,7 +52,7 @@ async function downloadAudio(url) {
       return { success: true, data };
     } catch (e) {
       lastError = e;
-      console.log('[PLAY] Tentativa ' + attempt + ' falhou: ' + (e.message || '').slice(0, 150));
+      console.log('[PLAY] Tentativa ' + attempt + ' falhou: ' + (e.message || '').slice(0, 150) + ' | URL: ' + ytDlpIsVideoUrl(url, attempt));
     }
   }
   try { fs.unlinkSync(`${outFile}.mp3`); } catch {}
