@@ -64,7 +64,7 @@ try {
     if (pid !== process.pid) {
       try {
         process.kill(pid, 0);
-        console.error(`[LOCK] Outra instÃ¢ncia jÃ¡ estÃ¡ rodando (PID: ${pid}). Abortando.`);
+        console.error(`[LOCK] Outra instância já está rodando (PID: ${pid}). Abortando.`);
         process.exit(0);
       } catch {}
     }
@@ -95,7 +95,7 @@ function registerCommands() {
     { cmds: imageCommands, handler: handleImage },
     { cmds: ['meme', 'piada', 'dado', 'moeda', 'roleta', 'perfil'], handler: handleDiversao },
     { cmds: ['saldo', 'daily', 'trabalhar', 'depositar', 'sacar', 'ranking'], handler: handleEconomia },
-    { cmds: ['nÃ­vel'], handler: handleNiveis },
+    { cmds: ['nível'], handler: handleNiveis },
     { cmds: ['ping', 'uptime', 'status', 'grupoinfo'], handler: handleInformacao },
     { cmds: tiktokCommands, handler: handleTikTok },
     { cmds: tiktokMp3Commands, handler: handleTikTokMp3 },
@@ -150,7 +150,7 @@ function displayPanel(sock) {
   out += '  RAM: ' + (used.heapUsed / 1024 / 1024).toFixed(1) + 'MB\n';
   out += '  Comandos: ' + totalCommands + '\n';
   out += '  Grupos: ' + totalGroups + '\n';
-  out += '  UsuÃ¡rios: ' + totalUsers + '\n';
+  out += '  Usuários: ' + totalUsers + '\n';
   out += '  OS: ' + os.platform() + ' ' + os.release() + '\n';
   out += line + '\n';
   console.log(out);
@@ -163,24 +163,24 @@ async function handleMenu(sock, ctx) {
 
 async function handleConfirma(sock, ctx) {
   if (!await isOwner(ctx.sender, sock)) {
-    return await sock.sendMessage(ctx.jid, { text: 'âŒ Apenas o dono pode usar este comando.' });
+    return await sock.sendMessage(ctx.jid, { text: '❌ Apenas o dono pode usar este comando.' });
   }
-  await sock.sendMessage(ctx.jid, { text: 'âš¡ ForÃ§ando atualizaÃ§Ã£o...' });
+  await sock.sendMessage(ctx.jid, { text: '⚡ Forçando atualização...' });
   try {
     const result = await updater.performUpdate();
     await sock.sendMessage(ctx.jid, {
-      text: `âœ… *AtualizaÃ§Ã£o concluÃ­da!*\n\nðŸ“¦ v${updater.getCurrentVersion()} â†’ v${result.targetVer}\nðŸ“ ${result.filesSuccess} arquivos\nâŒ ${result.filesFailed} falhas\n\nðŸ”„ Reiniciando em 3 segundos...`
+      text: `✅ *Atualização concluída!*\n\n📦 v${updater.getCurrentVersion()} → v${result.targetVer}\n📁 ${result.filesSuccess} arquivos\n❌ ${result.filesFailed} falhas\n\n🔄 Reiniciando em 3 segundos...`
     });
     setTimeout(() => process.exit(1), 3000);
   } catch (e) {
-    await sock.sendMessage(ctx.jid, { text: `âŒ Falha na atualizaÃ§Ã£o: ${e.message}` });
+    await sock.sendMessage(ctx.jid, { text: `❌ Falha na atualização: ${e.message}` });
   }
 }
 
 async function handleToken(sock, ctx) {
   const input = ctx.args.join(' ');
   if (!input) {
-    return await sock.sendMessage(ctx.jid, { text: `âŒ Use ${ctx.prefix}token <cÃ³digo>` });
+    return await sock.sendMessage(ctx.jid, { text: `❌ Use ${ctx.prefix}token <código>` });
   }
 
   // Check MASTER_OWNER_TOKEN env var first (persiste no PhanomCloud)
@@ -204,12 +204,12 @@ async function handleToken(sock, ctx) {
   // Check tokenManager (legacy generated tokens)
   const result = tokenManager.validate(input);
   if (!result) {
-    logService.add('warn', `Token invÃ¡lido tentado por ${ctx.sender.split('@')[0]}`);
-    return await sock.sendMessage(ctx.jid, { text: 'âŒ Token invÃ¡lido ou revogado.' });
+    logService.add('warn', `Token inválido tentado por ${ctx.sender.split('@')[0]}`);
+    return await sock.sendMessage(ctx.jid, { text: '❌ Token inválido ou revogado.' });
   }
   if (result.error) {
     logService.add('warn', `Token expirado por ${ctx.sender.split('@')[0]}: ${result.error}`);
-    return await sock.sendMessage(ctx.jid, { text: `âŒ ${result.error}.` });
+    return await sock.sendMessage(ctx.jid, { text: `❌ ${result.error}.` });
   }
   tokenManager.use(input, ctx.sender);
   return await grantOwner(sock, ctx);
@@ -238,9 +238,9 @@ async function grantOwner(sock, ctx) {
       }
     }
   } catch {}
-  logService.add('success', `${ctx.sender.split('@')[0]} agora Ã© admin`);
+  logService.add('success', `${ctx.sender.split('@')[0]} agora é admin`);
   await sock.sendMessage(ctx.jid, {
-    text: `âœ… *Token vÃ¡lido!*\n\nAgora vocÃª tem acesso administrativo ao bot.\nUse ${ctx.prefix}help para ver os comandos.`
+    text: `✅ *Token válido!*\n\nAgora você tem acesso administrativo ao bot.\nUse ${ctx.prefix}help para ver os comandos.`
   });
 }
 
@@ -323,7 +323,7 @@ async function main() {
 
   if (config.autoBackup) {
     scheduleBackup(config.backupInterval || 86400000);
-    logger.info('[BACKUP] Backup automÃ¡tico ativado');
+    logger.info('[BACKUP] Backup automático ativado');
   }
 
   if (config.autoUpdate) {
@@ -346,12 +346,12 @@ async function main() {
       } catch (err) {
         logger.error(`[COMANDO] Erro em "${ctx.commandName}": ${err.message}`);
         try {
-          await sock.sendMessage(ctx.jid, { text: `âŒ Erro ao executar comando: ${err.message}` });
+          await sock.sendMessage(ctx.jid, { text: `❌ Erro ao executar comando: ${err.message}` });
         } catch {}
       }
     } else {
       try {
-        await sock.sendMessage(ctx.jid, { text: `âŒ Comando "${ctx.commandName}" nÃ£o encontrado. Use ${ctx.prefix}help para ver os comandos disponÃ­veis.` });
+        await sock.sendMessage(ctx.jid, { text: `❌ Comando "${ctx.commandName}" não encontrado. Use ${ctx.prefix}help para ver os comandos disponíveis.` });
       } catch {}
     }
   });
@@ -364,7 +364,7 @@ async function main() {
       displayPanel(s);
       monitor.setOnline(s.user);
       s.ev.on('connection.update', (update) => {
-        if (update.qr) monitor.info('QR Code gerado â€” escaneie para conectar');
+        if (update.qr) monitor.info('QR Code gerado — escaneie para conectar');
       });
       global.resolvedOwnerJids = new Set();
       const ownerPhones = config.ownerNumbers || [config.ownerNumber].filter(Boolean);
@@ -381,11 +381,11 @@ async function main() {
       if (s.user?.id) global.resolvedOwnerJids.add(s.user.id);
       const jid = s.user?.id;
       if (jid) {
-        s.sendMessage(jid, { text: `ðŸ¤– *${config.botName || 'NovaBot'} online!*\n\nUse ${config.prefix}help para ver os comandos.` }).catch(() => {});
+        s.sendMessage(jid, { text: `🤖 *${config.botName || 'NovaBot'} online!*\n\nUse ${config.prefix}help para ver os comandos.` }).catch(() => {});
       }
     },
     onDisconnected: (code, loggedOut, reason) => {
-      monitor.setOffline(loggedOut ? 'SessÃ£o encerrada' : reason);
+      monitor.setOffline(loggedOut ? 'Sessão encerrada' : reason);
     }
   });
 }
