@@ -21,6 +21,16 @@ function saveCfg(cfg) {
   fs.writeFileSync(p, JSON.stringify(cfg, null, 2));
 }
 
+function getGithubConfig() {
+  const cfg = loadCfg();
+  return {
+    clientId: process.env.GITHUB_CLIENT_ID || cfg.githubClientId || '',
+    clientSecret: process.env.GITHUB_CLIENT_SECRET || cfg.githubClientSecret || '',
+    ownerUsername: process.env.GITHUB_OWNER_USERNAME || cfg.githubOwnerUsername || '',
+    ownerId: process.env.GITHUB_OWNER_ID ? parseInt(process.env.GITHUB_OWNER_ID) : (cfg.githubOwnerId || null)
+  };
+}
+
 function asyncWrap(fn) {
   return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
 }
@@ -28,16 +38,15 @@ function asyncWrap(fn) {
 /* ─── GitHub Auth Routes (public) ─── */
 
 router.get('/auth/config', (req, res) => {
-  const cfg = loadCfg();
-  const configured = !!(cfg.githubClientId && cfg.githubClientSecret);
-  res.json({ configured, githubClientId: configured ? cfg.githubClientId : null });
+  const gh = getGithubConfig();
+  res.json({ configured: !!(gh.clientId && gh.clientSecret), githubClientId: gh.clientId || null });
 });
 
 router.get('/auth/github', (req, res) => {
-  const cfg = loadCfg();
-  if (!cfg.githubClientId) return res.redirect('/?error=github_not_configured');
+  const gh = getGithubConfig();
+  if (!gh.clientId) return res.redirect('/?error=github_not_configured');
   const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/github/callback`;
-  const url = `https://github.com/login/oauth/authorize?client_id=${cfg.githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user`;
+  const url = `https://github.com/login/oauth/authorize?client_id=${gh.clientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user`;
   res.redirect(url);
 });
 
@@ -46,8 +55,8 @@ router.get('/auth/github/callback', asyncWrap(async (req, res) => {
   if (error === 'access_denied') return res.redirect('/');
   if (!code) return res.status(400).send('Código de autorização não fornecido');
 
-  const cfg = loadCfg();
-  if (!cfg.githubClientId || !cfg.githubClientSecret) {
+  const gh = getGithubConfig();
+  if (!gh.clientId || !gh.clientSecret) {
     return res.status(400).send('GitHub OAuth não configurado');
   }
 
@@ -55,8 +64,8 @@ router.get('/auth/github/callback', asyncWrap(async (req, res) => {
     method: 'POST',
     headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
     body: JSON.stringify({
-      client_id: cfg.githubClientId,
-      client_secret: cfg.githubClientSecret,
+      client_id: gh.clientId,
+      client_secret: gh.clientSecret,
       code
     })
   });
@@ -70,11 +79,11 @@ router.get('/auth/github/callback', asyncWrap(async (req, res) => {
   });
   const user = await userRes.json();
 
-  if (cfg.githubOwnerId && user.id !== cfg.githubOwnerId) {
-    return res.send(htmlError(`Acesso negado. Usuário <strong>${user.login}</strong> não autorizado. Proprietário configurado: <strong>${cfg.githubOwnerUsername || cfg.githubOwnerId}</strong>`));
+  if (gh.ownerId && user.id !== gh.ownerId) {
+    return res.send(htmlError(`Acesso negado. Usuário <strong>${user.login}</strong> não autorizado. Proprietário configurado: <strong>${gh.ownerUsername || gh.ownerId}</strong>`));
   }
-  if (cfg.githubOwnerUsername && user.login !== cfg.githubOwnerUsername) {
-    return res.send(htmlError(`Acesso negado. Usuário <strong>${user.login}</strong> não autorizado. Proprietário configurado: <strong>${cfg.githubOwnerUsername}</strong>`));
+  if (gh.ownerUsername && user.login !== gh.ownerUsername) {
+    return res.send(htmlError(`Acesso negado. Usuário <strong>${user.login}</strong> não autorizado. Proprietário configurado: <strong>${gh.ownerUsername}</strong>`));
   }
 
   req.session.githubUser = {
@@ -84,6 +93,7 @@ router.get('/auth/github/callback', asyncWrap(async (req, res) => {
     name: user.name || user.login
   };
 
+  const cfg = loadCfg();
   if (!cfg.githubOwnerId && !cfg.githubOwnerUsername) {
     cfg.githubOwnerId = user.id;
     cfg.githubOwnerUsername = user.login;
@@ -106,8 +116,8 @@ router.post('/auth/logout', (req, res) => {
 
 /* ─── Auth Middleware ─── */
 router.use((req, res, next) => {
-  const cfg = loadCfg();
-  if (!cfg.githubClientId || !cfg.githubClientSecret) return next();
+  const gh = getGithubConfig();
+  if (!gh.clientId || !gh.clientSecret) return next();
   if (req.session && req.session.githubUser) return next();
   res.status(401).json({ error: 'Autenticação necessária. Faça login com GitHub.' });
 });
