@@ -3,20 +3,42 @@ const http = require('http');
 const { Server } = require('socket.io');
 const path = require('path');
 const QRCode = require('qrcode');
+const session = require('express-session');
+const crypto = require('crypto');
 const monitor = require('./botMonitor');
 const logService = require('./services/logService');
 const routes = require('./routes');
 const updater = require('../lib/updater');
 
 const app = express();
+app.set('trust proxy', 1);
 const server = http.createServer(app);
 const io = new Server(server, {
-  cors: { origin: '*' },
+  cors: { origin: '*', credentials: true },
   pingInterval: 10000,
   pingTimeout: 5000
 });
 
+let sessionSecret;
+try {
+  const cfg = require('../config.json');
+  sessionSecret = cfg.sessionSecret || crypto.randomBytes(32).toString('hex');
+} catch { sessionSecret = crypto.randomBytes(32).toString('hex'); }
+
+const sessionMiddleware = session({
+  secret: sessionSecret,
+  resave: false,
+  saveUninitialized: false,
+  cookie: { httpOnly: true, sameSite: 'lax', secure: false, maxAge: 86400000 }
+});
+
 app.use(express.json({ limit: '100kb' }));
+app.use(sessionMiddleware);
+
+io.use((socket, next) => {
+  sessionMiddleware(socket.request, {}, next);
+});
+
 app.use(express.static(path.join(__dirname, '..', 'public')));
 app.use('/api', routes);
 
