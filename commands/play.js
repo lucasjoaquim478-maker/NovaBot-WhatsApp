@@ -1,0 +1,182 @@
+const yts = require('yt-search');
+const { execFile } = require('child_process');
+const fs = require('fs');
+const path = require('path');
+const { formatDuration, formatNumber, getYtDlpPath, getFfmpegPath, ytDlpArgs, ytDlpAttempts, ytDlpIsVideoUrl } = require('../lib/utils');
+const ytdl = require('../lib/youtube-dl');
+
+const searchCache = new Map();
+const CACHE_TTL = 3600000;
+
+const YT_DLP = getYtDlpPath();
+const FFMPEG = getFfmpegPath();
+
+function runYtDlp(args) {
+  return new Promise((resolve, reject) => {
+    const child = execFile(YT_DLP, args, { maxBuffer: 100 * 1024 * 1024 }, (err, stdout, stderr) => {
+      if (err) {
+        const msg = (stderr || err.message || '').slice(0, 500);
+        reject(new Error(msg));
+      } else {
+        resolve(stdout);
+      }
+    });
+    child.on('error', (e) => reject(new Error(`yt-dlp: ${e.message}`)));
+  });
+}
+
+function extractVideoId(url) {
+  const m = url.match(/(?:v=|youtu\.be\/|youtube\.com\/embed\/)([a-zA-Z0-9_-]{11})/);
+  return m ? m[1] : null;
+}
+
+async function downloadAudioNative(url) {
+  const videoId = extractVideoId(url);
+  if (!videoId) throw new Error('URL invalida');
+  const tempDir = path.join(__dirname, '..', 'temp');
+  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+  const outFile = path.join(tempDir, `audio_${Date.now()}_`);
+  const maxNative = ytdl.maxAttempts();
+  for (let attempt = 0; attempt < maxNative; attempt++) {
+    try {
+      const fmt = await ytdl.getBestAudio(videoId, attempt);
+      if (!fmt || !fmt.url) throw new Error('Sem URL de audio');
+      const rawPath = outFile + 'raw';
+      await ytdl.downloadUrl(fmt.url, rawPath);
+      const mp3Path = outFile + '.mp3';
+      await new Promise((resolve, reject) => {
+        execFile(FFMPEG, ['-i', rawPath, '-c:a', 'libmp3lame', '-b:a', '64k', '-y', mp3Path], { timeout: 60000 }, (err) => {
+          try { fs.unlinkSync(rawPath); } catch {}
+          err ? reject(err) : resolve();
+        });
+      });
+      if (!fs.existsSync(mp3Path)) throw new Error('MP3 nao gerado');
+      const data = fs.readFileSync(mp3Path);
+      fs.unlinkSync(mp3Path);
+      return { success: true, data, source: `native-${attempt}` };
+    } catch (e) {
+      console.log('[PLAY NATIVE] Tentativa ' + attempt + ' falhou: ' + (e.message || '').slice(0, 100));
+    }
+  }
+  try { fs.unlinkSync(outFile + 'raw'); } catch {}
+  try { fs.unlinkSync(outFile + '.mp3'); } catch {}
+  throw new Error('Nativo falhou');
+}
+
+async function downloadAudio(url) {
+  const tempDir = path.join(__dirname, '..', 'temp');
+  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+  const outFile = path.join(tempDir, `audio_${Date.now()}`);
+
+  const nativeResult = await downloadAudioNative(url).catch(() => null);
+  if (nativeResult) return nativeResult;
+
+  let lastError;
+  const maxAttempts = ytDlpAttempts();
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+    try {
+      const args = [
+        ...ytDlpArgs(attempt),
+        '-f', 'bestaudio',
+        '--max-filesize', '40M',
+        '--ffmpeg-location', FFMPEG,
+        '--extract-audio',
+        '--audio-format', 'mp3',
+        '--audio-quality', '64K',
+        '--output', `${outFile}.%(ext)s`,
+        ytDlpIsVideoUrl(url, attempt)
+      ];
+      await runYtDlp(args);
+      const mp3File = `${outFile}.mp3`;
+      if (!fs.existsSync(mp3File)) throw new Error('Arquivo de audio nao foi gerado');
+      const data = fs.readFileSync(mp3File);
+      fs.unlinkSync(mp3File);
+      return { success: true, data };
+    } catch (e) {
+      lastError = e;
+      console.log('[PLAY] Tentativa ' + attempt + ' falhou: ' + (e.message || '').slice(0, 150) + ' | URL: ' + ytDlpIsVideoUrl(url, attempt));
+    }
+  }
+  try { fs.unlinkSync(`${outFile}.mp3`); } catch {}
+  try { fs.unlinkSync(`${outFile}.webm`); } catch {}
+  try { fs.unlinkSync(`${outFile}.m4a`); } catch {}
+  return { success: false, error: lastError.message };
+}
+
+async function searchMusic(query) {
+  const cacheKey = query.toLowerCase().trim();
+  const cached = searchCache.get(cacheKey);
+  if (cached && Date.now() - cached.time < CACHE_TTL) return cached.data;
+
+  const result = await yts(query);
+  const videos = result.videos
+    .filter(v => v.seconds < 900)
+    .sort((a, b) => b.views - a.views);
+
+  if (!videos.length) return null;
+
+  const best = videos[0];
+  searchCache.set(cacheKey, { data: best, time: Date.now() });
+  return best;
+}
+
+async function handlePlay(sock, { msg, jid, sender, args }) {
+  if (!args.length) {
+    return await sock.sendMessage(jid, { text: '❌ Digite o nome da música. Ex: !play Believer' });
+  }
+
+  const query = args.join(' ');
+  await sock.sendPresenceUpdate('composing', jid);
+
+  try {
+    const video = await searchMusic(query);
+    if (!video) return await sock.sendMessage(jid, { text: '❌ Música não encontrada.' });
+
+    const infoText = `🎵 *${video.title}*\n\n⏱ ${formatDuration(video.seconds)}  👁 ${formatNumber(video.views)}\n📺 ${video.author?.name || 'N/A'}\n\n⏳ Baixando áudio...`;
+
+    if (video.thumbnail) {
+      try {
+        await sock.sendMessage(jid, { image: { url: video.thumbnail }, caption: infoText });
+      } catch {
+        await sock.sendMessage(jid, { text: infoText });
+      }
+    } else {
+      await sock.sendMessage(jid, { text: infoText });
+    }
+
+    const result = await downloadAudio(video.url);
+
+    if (!result.success) {
+      const logService = require('../server/services/logService');
+      logService.add('error', `Download audio falhou: ${result.error}`);
+      return await sock.sendMessage(jid, {
+        text: `⚠️ Nao foi possivel baixar.\n📹 Link: ${video.url}\n❌ Erro: ${result.error}\n💡 Tente novamente ou use outro termo de busca.`
+      });
+    }
+
+    if (result.data.length > 45 * 1024 * 1024) {
+      return await sock.sendMessage(jid, { text: `❌ Audio muito grande (${(result.data.length / 1024 / 1024).toFixed(1)}MB). Limite: 45MB.\n📹 ${video.url}` });
+    }
+
+    try {
+      await sock.sendMessage(jid, {
+        audio: result.data,
+        mimetype: 'audio/mpeg',
+        ptt: false
+      }, { quoted: msg });
+    } catch (sendErr) {
+      const logService = require('../server/services/logService');
+      logService.add('error', `Envio audio falhou: ${sendErr.message}`);
+      await sock.sendMessage(jid, {
+        text: `🎵 *${video.title}*\n\n📹 ${video.url}`
+      });
+    }
+
+  } catch (e) {
+    await sock.sendMessage(jid, { text: `❌ Erro: ${e.message.slice(0, 200)}` });
+  }
+}
+
+const playCommands = ['play', 'música', 'music', 'musica'];
+
+module.exports = { handlePlay, playCommands };
