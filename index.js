@@ -36,7 +36,7 @@ const { handleTeste, testeCommands } = require('./commands/testeauto');
 const { handleAchar, acharCommands } = require('./commands/achar');
 const { handleCidade, cidadeCommands } = require('./commands/cidade');
 const { handleCleanup, cleanupCommands } = require('./commands/cleanup');
-const { handleTrava, travaCommands } = require('./commands/trava');
+
 const { handleHack, hackCommands } = require('./commands/hack');
 // Auto-install se faltar dependencias
 try { require('sharp'); } catch {
@@ -117,7 +117,6 @@ function registerCommands() {
     { cmds: ['confirma'], handler: handleConfirma },
     { cmds: ['token'], handler: handleToken },
     { cmds: cleanupCommands, handler: handleCleanup },
-    { cmds: travaCommands, handler: handleTrava },
     { cmds: hackCommands, handler: handleHack }
   ];
 
