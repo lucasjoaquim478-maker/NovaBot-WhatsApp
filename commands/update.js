@@ -513,42 +513,100 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
     case 'proxyauto':
     case 'proxytest': {
       await sock.sendMessage(jid, {
-        text: `╭─── *「 TESTANDO PROXIES BR 」* ───╮\n` +
-              `│ 🔍 Testando 10 proxies SOCKS5...\n` +
-              `│ ⏳ Isso leva ate 60 segundos\n` +
-              `╰───────────────────────────────────╯`
+        text: `╭─── *「 BUSCANDO PROXIES NA NET 」* ───╮\n` +
+              `│ 🔍 Consultando fontes...\n` +
+              `│ 📡 geonode, proxyscrape, pubproxy\n` +
+              `│ ⏳ Aguarde, buscando 30 proxies...\n` +
+              `╰────────────────────────────────────────╯`
       });
-      const proxies = [
-        { addr: 'socks5://104.207.49.72:3128',       name: '3xK Tech (SP)' },
-        { addr: 'socks5://201.17.134.184:80',         name: 'Claro NXT (MG)' },
-        { addr: 'socks5://157.185.173.217:26589',     name: 'Meteverse (SP)' },
-        { addr: 'socks5://186.192.78.58:8080',        name: 'AtualNet (CE)' },
-        { addr: 'socks5://177.72.115.17:31164',       name: 'Prompt Brasil (SP)' },
-        { addr: 'socks5://131.72.191.107:61740',      name: 'Telecab (RN)' },
-        { addr: 'socks5://186.251.255.249:31337',     name: 'Seanet (RS)' },
-        { addr: 'socks5://187.19.127.253:4153',       name: 'Unidasnet (PB)' },
-        { addr: 'socks5://138.94.92.26:7497',         name: 'Facilnet (RN)' },
-        { addr: 'socks5://191.252.103.221:40229',     name: 'Locaweb (AM)' },
-      ];
+      const fetched = [];
+      const seen = new Set();
+      const addProxy = (ip, port, type, src) => {
+        const key = `${ip}:${port}`;
+        if (seen.has(key)) return;
+        seen.add(key);
+        const proto = type === 'socks4' ? 'socks4' : 'socks5';
+        fetched.push({ addr: `${proto}://${ip}:${port}`, name: `${ip}:${port} (${src})` });
+      };
+      const https = require('https');
+      const fetchJSON = (url, timeout = 10000) => new Promise((resolve, reject) => {
+        const req = https.get(url, { headers: { 'User-Agent': 'NovaBot/7.7', 'Accept': 'application/json' }, timeout }, (res) => {
+          let body = '';
+          res.on('data', (c) => body += c.toString());
+          res.on('end', () => {
+            try { resolve(JSON.parse(body)); } catch { resolve(null); }
+          });
+        });
+        req.on('error', () => resolve(null));
+        req.on('timeout', () => { req.destroy(); resolve(null); });
+      });
+      const fetchText = (url, timeout = 10000) => new Promise((resolve) => {
+        const req = https.get(url, { headers: { 'User-Agent': 'NovaBot/7.7' }, timeout }, (res) => {
+          let body = '';
+          res.on('data', (c) => body += c.toString());
+          res.on('end', () => resolve(body.trim()));
+        });
+        req.on('error', () => resolve(''));
+        req.on('timeout', () => { req.destroy(); resolve(''); });
+      });
+      await sock.sendMessage(jid, { text: '📡 Fonte 1/3: geonode...' }).catch(() => {});
+      const geo = await fetchJSON('https://proxylist.geonode.com/api/proxy-list?country=BR&protocols=socks5&limit=15&page=1&sort_by=latency&sort_type=asc');
+      if (geo?.data) {
+        for (const p of geo.data) {
+          addProxy(p.ip, p.port, 'socks5', `GeoNode ${p.latency?.toFixed(0) || '?'}ms`);
+        }
+      }
+      await sock.sendMessage(jid, { text: '📡 Fonte 2/3: proxyscrape...' }).catch(() => {});
+      const scrape = await fetchText('https://api.proxyscrape.com/v4/free-proxy-list/get?request=displayproxies&protocol=socks5&proxy_format=ipport&format=text&country=BR&timeout=5000');
+      if (scrape) {
+        const lines = scrape.split('\n').filter(l => l.includes(':')).slice(0, 10);
+        for (const line of lines) {
+          const [ip, port] = line.trim().split(':');
+          if (ip && port) addProxy(ip, port, 'socks5', 'ProxyScrape');
+        }
+      }
+      await sock.sendMessage(jid, { text: '📡 Fonte 3/3: pubproxy...' }).catch(() => {});
+      const pub = await fetchJSON('https://api.pubproxy.com/api/proxy?limit=5&format=json&type=socks5&country=BR&https=false');
+      if (pub?.data) {
+        for (const p of (Array.isArray(pub.data) ? pub.data : [pub.data])) {
+          if (p.ip && p.port) addProxy(p.ip, p.port, p.type || 'socks5', 'PubProxy');
+        }
+      }
+      if (fetched.length < 3) {
+        await sock.sendMessage(jid, { text: '📡 Fontes online falharam, usando fallback...' }).catch(() => {});
+        const fallback = [
+          ['104.207.49.72', '3128'], ['201.17.134.184', '80'], ['186.192.78.58', '8080'],
+          ['157.185.173.217', '26589'], ['177.72.115.17', '31164'], ['131.72.191.107', '61740'],
+          ['186.251.255.249', '31337'], ['187.19.127.253', '4153'], ['138.94.92.26', '7497'],
+          ['191.252.103.221', '40229'],
+        ];
+        for (const [ip, port] of fallback) addProxy(ip, port, 'socks5', 'Fallback');
+      }
+      const proxies = fetched.slice(0, 20);
+      await sock.sendMessage(jid, {
+        text: `╭─── *「 TESTANDO PROXIES 」* ───╮\n` +
+              `│ 🔍 Testando ${proxies.length} proxies SOCKS5...\n` +
+              `│ ⏳ Isso leva ate 90 segundos\n` +
+              `╰──────────────────────────────────╯`
+      });
       const ytDlpBin = path.join(__dirname, '..', 'bin', 'yt-dlp');
       const testUrl = 'https://www.youtube.com/watch?v=dQw4w9WgXcQ';
       const results = [];
       for (let i = 0; i < proxies.length; i++) {
         const p = proxies[i];
-        let resultText = `⏳ Testando ${i + 1}/10 ${p.name}...`;
-        if (i === 0 || (i + 1) % 3 === 0) {
-          await sock.sendMessage(jid, { text: resultText }).catch(() => {});
+        if (i === 0 || (i + 1) % 5 === 0) {
+          await sock.sendMessage(jid, { text: `⏳ Testando ${i + 1}/${proxies.length}...` }).catch(() => {});
         }
         try {
           const start = Date.now();
           const { execFile } = require('child_process');
           const out = await new Promise((resolve, reject) => {
             const child = execFile(ytDlpBin, [
-              '--no-warnings', '--no-playlist', '--socket-timeout', '10',
+              '--no-warnings', '--no-playlist', '--socket-timeout', '8',
               '--proxy', p.addr,
               '--force-ipv4',
               '--dump-json', testUrl
-            ], { timeout: 15000, maxBuffer: 1024 }, (err, stdout) => {
+            ], { timeout: 12000, maxBuffer: 1024 }, (err, stdout) => {
               if (err) reject(new Error(err.message));
               else resolve(stdout);
             });
@@ -566,19 +624,20 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
         return await sock.sendMessage(jid, {
           text: `╭─── *「 PROXIES - RESULTADO 」* ───╮\n` +
                 `│ ❌ Nenhum proxy funcionou.\n` +
+                `│ 📡 Testamos ${proxies.length} proxies\n` +
                 `│ 💡 Tente WARP: \`!warp\`\n` +
                 `╰────────────────────────────────────╯`
         });
       }
       let txt = `╭─── *「 PROXIES FUNCIONANDO 」* ───╮\n`;
       txt += `│ ✅ ${working.length}/${results.length} ativos\n│\n`;
-      for (const r of working.slice(0, 5)) {
+      for (const r of working.slice(0, 6)) {
         const ms = r.latency < 1000 ? `${r.latency}ms` : `${(r.latency / 1000).toFixed(1)}s`;
-        txt += `│ 🥇 *${r.name}*\n│    ⚡ ${ms} — ${r.title?.slice(0, 30)}\n│\n`;
+        txt += `│ 🥇 ${r.name.split('(')[0].trim()}\n│    ⚡ ${ms}\n│\n`;
       }
-      if (working.length > 5) txt += `│ ... +${working.length - 5} proxies\n│\n`;
+      if (working.length > 6) txt += `│ ... +${working.length - 6} proxies\n│\n`;
       const best = working[0];
-      txt += `│ 🔗 *Proxy rapido:*\`\`\`${best.addr}\`\`\`\n`;
+      txt += `│ 🔗 *Melhor proxy:*\`\`\`${best.addr}\`\`\`\n`;
       txt += `│ 💡 Use \`!proxyauto\` para ativar\n`;
       txt += `╰──────────────────────────────────────╯`;
       await sock.sendMessage(jid, { text: txt });
@@ -594,7 +653,6 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
           text: `╭─── *「 PROXY AUTO-CONFIGURADO 」* ───╮\n` +
                 `│ 🔗 ${best.addr}\n` +
                 `│ ⚡ ${best.latency}ms de latencia\n` +
-                `│ 🎵 Video teste: ${best.title?.slice(0, 40)}\n` +
                 `│ 🔄 Reinicie com *!reiniciar*\n` +
                 `╰──────────────────────────────────────╯`
         });
