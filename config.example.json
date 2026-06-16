@@ -34,5 +34,10 @@
   "checkInterval": 3600000,
   "webPort": 3000,
   "cookiesPath": "cookies.txt",
-  "logLevel": "info"
+  "logLevel": "info",
+  "githubClientId": "",
+  "githubClientSecret": "",
+  "githubOwnerId": null,
+  "githubOwnerUsername": "",
+  "sessionSecret": ""
 }

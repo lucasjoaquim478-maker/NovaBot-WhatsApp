@@ -70,6 +70,11 @@ nav { flex: 1; display: flex; flex-direction: column; gap: 2px; }
 #badge-status { background: none; font-size: 12px; padding: 0; color: var(--red); }
 
 .sidebar-footer { margin-top: auto; display: flex; flex-direction: column; gap: 12px; padding-top: 16px; border-top: 1px solid var(--border); }
+.sidebar-user { display: flex; align-items: center; gap: 8px; padding: 6px 8px; border-radius: var(--radius-sm); background: var(--bg-tertiary); }
+.github-avatar { width: 20px; height: 20px; border-radius: 50%; flex-shrink: 0; }
+.github-login { font-size: 12px; font-weight: 600; color: var(--text-primary); flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.btn-logout { background: none; border: none; color: var(--text-muted); cursor: pointer; padding: 2px; display: flex; border-radius: 4px; transition: all var(--transition); }
+.btn-logout:hover { color: var(--red); background: var(--red-bg); }
 .sidebar-actions { display: flex; gap: 6px; }
 .sidebar-actions .btn { flex: 1; justify-content: center; font-size: 11px; padding: 6px 8px; }
 .status-indicator { display: flex; align-items: center; gap: 10px; padding: 4px 8px; border-radius: var(--radius-sm); background: var(--bg-tertiary); }
@@ -450,3 +455,13 @@ td code { font-family: var(--font); font-size: 12px; color: var(--accent); }
   .update-grid { grid-template-columns: 1fr; }
   .update-info-value { font-size: 18px; }
 }
+
+/* ───── Login Screen ───── */
+.login-screen { display: flex; align-items: center; justify-content: center; height: 100vh; width: 100%; background: var(--bg-primary); }
+.login-card { background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 16px; padding: 48px 40px; max-width: 400px; width: 90%; text-align: center; }
+.login-header { margin-bottom: 32px; }
+.login-header h1 { font-size: 28px; font-weight: 700; color: var(--accent); margin-top: 12px; margin-bottom: 4px; }
+.login-header p { font-size: 14px; color: var(--text-secondary); }
+.btn-github { display: inline-flex; align-items: center; gap: 10px; background: #24292e; border: none; color: #fff; padding: 12px 28px; border-radius: 8px; font-size: 15px; font-weight: 600; cursor: pointer; transition: all var(--transition); }
+.btn-github:hover { background: #2c3137; transform: translateY(-1px); box-shadow: 0 4px 16px rgba(0,0,0,0.3); }
+.login-error { margin-top: 16px; font-size: 12px; color: var(--red); line-height: 1.5; }

@@ -1,14 +1,119 @@
-﻿const { Router } = require('express');
+const { Router } = require('express');
 const tokenService = require('../services/tokenService');
 const logService = require('../services/logService');
 const monitor = require('../botMonitor');
 const updater = require('../../lib/updater');
 const { safeRestart } = require('../../lib/restart');
+const fs = require('fs');
+const path = require('path');
+const crypto = require('crypto');
+const fetch = require('node-fetch');
 
 const router = Router();
 
+function loadCfg() {
+  const p = path.join(__dirname, '..', '..', 'config.json');
+  try { return JSON.parse(fs.readFileSync(p, 'utf-8')); } catch { return {}; }
+}
+
+function saveCfg(cfg) {
+  const p = path.join(__dirname, '..', '..', 'config.json');
+  fs.writeFileSync(p, JSON.stringify(cfg, null, 2));
+}
+
 function asyncWrap(fn) {
   return (req, res, next) => Promise.resolve(fn(req, res, next)).catch(next);
+}
+
+/* ─── GitHub Auth Routes (public) ─── */
+
+router.get('/auth/config', (req, res) => {
+  const cfg = loadCfg();
+  const configured = !!(cfg.githubClientId && cfg.githubClientSecret);
+  res.json({ configured, githubClientId: configured ? cfg.githubClientId : null });
+});
+
+router.get('/auth/github', (req, res) => {
+  const cfg = loadCfg();
+  if (!cfg.githubClientId) return res.redirect('/?error=github_not_configured');
+  const redirectUri = `${req.protocol}://${req.get('host')}/api/auth/github/callback`;
+  const url = `https://github.com/login/oauth/authorize?client_id=${cfg.githubClientId}&redirect_uri=${encodeURIComponent(redirectUri)}&scope=read:user`;
+  res.redirect(url);
+});
+
+router.get('/auth/github/callback', asyncWrap(async (req, res) => {
+  const { code, error } = req.query;
+  if (error === 'access_denied') return res.redirect('/');
+  if (!code) return res.status(400).send('Código de autorização não fornecido');
+
+  const cfg = loadCfg();
+  if (!cfg.githubClientId || !cfg.githubClientSecret) {
+    return res.status(400).send('GitHub OAuth não configurado');
+  }
+
+  const tokenRes = await fetch('https://github.com/login/oauth/access_token', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
+    body: JSON.stringify({
+      client_id: cfg.githubClientId,
+      client_secret: cfg.githubClientSecret,
+      code
+    })
+  });
+  const tokenData = await tokenRes.json();
+  if (!tokenData.access_token) {
+    return res.status(400).send('Falha na autenticação com GitHub');
+  }
+
+  const userRes = await fetch('https://api.github.com/user', {
+    headers: { Authorization: `Bearer ${tokenData.access_token}` }
+  });
+  const user = await userRes.json();
+
+  if (cfg.githubOwnerId && user.id !== cfg.githubOwnerId) {
+    return res.send(htmlError(`Acesso negado. Usuário <strong>${user.login}</strong> não autorizado. Proprietário configurado: <strong>${cfg.githubOwnerUsername || cfg.githubOwnerId}</strong>`));
+  }
+  if (cfg.githubOwnerUsername && user.login !== cfg.githubOwnerUsername) {
+    return res.send(htmlError(`Acesso negado. Usuário <strong>${user.login}</strong> não autorizado. Proprietário configurado: <strong>${cfg.githubOwnerUsername}</strong>`));
+  }
+
+  req.session.githubUser = {
+    id: user.id,
+    login: user.login,
+    avatar_url: user.avatar_url,
+    name: user.name || user.login
+  };
+
+  if (!cfg.githubOwnerId && !cfg.githubOwnerUsername) {
+    cfg.githubOwnerId = user.id;
+    cfg.githubOwnerUsername = user.login;
+    saveCfg(cfg);
+    logService.add('info', `GitHub owner configurado: ${user.login} (ID: ${user.id})`);
+  }
+
+  logService.add('info', `GitHub login: ${user.login}`);
+  res.redirect('/');
+}));
+
+router.get('/auth/session', (req, res) => {
+  res.json({ user: req.session.githubUser || null });
+});
+
+router.post('/auth/logout', (req, res) => {
+  if (req.session) req.session.destroy();
+  res.json({ ok: true });
+});
+
+/* ─── Auth Middleware ─── */
+router.use((req, res, next) => {
+  const cfg = loadCfg();
+  if (!cfg.githubClientId || !cfg.githubClientSecret) return next();
+  if (req.session && req.session.githubUser) return next();
+  res.status(401).json({ error: 'Autenticação necessária. Faça login com GitHub.' });
+});
+
+function htmlError(msg) {
+  return `<!DOCTYPE html><html lang="pt-BR"><head><meta charset="UTF-8"><title>Erro</title><style>body{font-family:sans-serif;background:#0d1117;color:#e6edf3;display:flex;align-items:center;justify-content:center;height:100vh;margin:0}div{text-align:center;max-width:480px;padding:32px}h2{color:#f85149;margin-bottom:12px}p{color:#8b949e;line-height:1.6}a{color:#58a6ff}</style></head><body><div><h2>Acesso Negado</h2><p>${msg}</p><br><a href="/">Voltar</a></div></body></html>`;
 }
 
 router.get('/status', (req, res) => {
@@ -52,21 +157,51 @@ router.delete('/logs', (req, res) => {
 });
 
 router.get('/tokens', (req, res) => {
-  res.json(tokenService.list());
+  const data = tokenService.list();
+  const cfg = loadCfg();
+  const cfgTokens = (cfg.tokens || []).map(t => ({
+    id: t.label,
+    raw: t.token.slice(0, 8) + '...' + t.token.slice(-4),
+    label: t.label,
+    createdBy: t.createdBy,
+    createdAt: t.createdAt,
+    revocable: true
+  }));
+  res.json({
+    active: [...(data.active || []), ...cfgTokens],
+    used: data.used || [],
+    revoked: data.revoked || [],
+    logs: data.logs || [],
+    masterTokenSet: !!process.env.MASTER_OWNER_TOKEN
+  });
 });
 
 router.post('/tokens', asyncWrap(async (req, res) => {
-  const token = tokenService.generate({
-    expiresAt: req.body.expiresAt || null,
-    singleUse: req.body.singleUse || false
-  });
-  logService.add('info', `Token gerado: ${token.raw.substring(0, 10)}...`);
-  res.json({ token: token.raw, id: token.id });
+  const label = req.body.label || 'token-' + Date.now().toString(36);
+  const raw = crypto.randomBytes(24).toString('hex');
+  const cfg = loadCfg();
+  if (!cfg.tokens) cfg.tokens = [];
+  cfg.tokens.push({ label, token: raw, createdBy: 'painel', createdAt: new Date().toISOString() });
+  saveCfg(cfg);
+  logService.add('info', `Token "${label}" gerado pelo painel`);
+  res.json({ token: raw, id: label, label });
 }));
 
 router.post('/tokens/:id/revoke', asyncWrap(async (req, res) => {
+  const label = req.params.id;
+  const cfg = loadCfg();
+  if (cfg.tokens) {
+    const idx = cfg.tokens.findIndex(t => t.label === label);
+    if (idx !== -1) {
+      cfg.tokens.splice(idx, 1);
+      saveCfg(cfg);
+      logService.add('warn', `Token "${label}" revogado pelo painel`);
+      return res.json({ ok: true });
+    }
+  }
+  // Fallback: revoke via tokenService
   const ok = tokenService.revoke(req.params.id);
-  if (ok) logService.add('warn', `Token ${req.params.id.substring(0, 8)} revogado`);
+  if (ok) logService.add('warn', `Token ${req.params.id.substring(0, 8)} revogado pelo painel`);
   res.json({ ok });
 }));
 

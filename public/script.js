@@ -520,14 +520,12 @@ class Dashboard {
 
     // Token creation
     document.getElementById('createTokenBtn').addEventListener('click', async () => {
-      const singleUse = document.getElementById('singleUse').checked;
-      const expiresOpt = document.getElementById('expiresOpt').value;
-      const expiresAt = expiresOpt ? new Date(Date.now() + parseInt(expiresOpt)).toISOString() : null;
+      const label = document.getElementById('tokenLabel').value.trim() || ('token-' + Date.now().toString(36));
       try {
         const res = await fetch('/api/tokens', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ singleUse, expiresAt })
+          body: JSON.stringify({ label })
         });
         const data = await res.json();
         document.getElementById('tokenDisplay').textContent = data.token;
@@ -756,23 +754,42 @@ class Dashboard {
     if (!data) return;
     this._lastTokenData = data;
     const search = this._tokenSearch || '';
-    const activeFiltered = data.active.filter(t => !search || t.raw.toLowerCase().includes(search));
+    const activeFiltered = data.active.filter(t => !search || t.raw.toLowerCase().includes(search) || (t.label || '').toLowerCase().includes(search));
     const revokedFiltered = data.revoked.filter(t => !search || t.raw.toLowerCase().includes(search));
     const usedFiltered = data.used.filter(t => !search || t.raw.toLowerCase().includes(search));
 
     document.getElementById('badge-tokens').textContent = data.active.length;
 
+    // Master token indicator
+    let masterHtml = '';
+    if (data.masterTokenSet) {
+      masterHtml = '<div class="master-token-badge" style="background:#1a3a1a;color:#4caf50;padding:8px 12px;border-radius:6px;margin-bottom:12px;font-size:13px">🔑 MASTER_OWNER_TOKEN configurado na env var</div>';
+    }
+
     const activeBody = this.activeTokensBody;
     if (activeFiltered.length === 0) {
-      activeBody.innerHTML = '<tr class="empty-row"><td colspan="5">Nenhum token ativo.</td></tr>';
+      activeBody.innerHTML = '<tr class="empty-row"><td colspan="6">Nenhum token ativo.</td></tr>';
     } else {
       activeBody.innerHTML = activeFiltered.map(t => {
+        const label = t.label || '—';
         const expires = t.expiresAt ? new Date(t.expiresAt).toLocaleString() : '—';
-        return `<tr><td><code>${this._esc(t.raw)}</code></td><td>${new Date(t.createdAt).toLocaleString()}</td><td>${expires}</td><td>${t.singleUse ? 'Sim' : 'Não'}</td><td><button class="revoke-btn" data-id="${t.id}">Revogar</button></td></tr>`;
+        const singleUse = t.singleUse ? 'Sim' : (t.singleUse === false ? 'Não' : (t.revocable !== undefined ? '—' : 'Não'));
+        return `<tr><td><code>${this._esc(t.raw)}</code></td><td>${this._esc(label)}</td><td>${new Date(t.createdAt).toLocaleString()}</td><td>${expires}</td><td>${singleUse}</td><td><button class="revoke-btn" data-id="${t.id}">Revogar</button></td></tr>`;
       }).join('');
       activeBody.querySelectorAll('.revoke-btn').forEach(btn => {
         btn.addEventListener('click', () => this.revokeToken(btn.dataset.id));
       });
+    }
+
+    // Insert master token badge before the table
+    const activeSection = document.querySelector('.section-title');
+    if (activeSection && masterHtml) {
+      let existing = activeSection.parentElement.querySelector('.master-token-badge');
+      if (!existing) {
+        const div = document.createElement('div');
+        div.innerHTML = masterHtml;
+        activeSection.parentElement.insertBefore(div.firstElementChild, activeSection.nextElementSibling);
+      }
     }
 
     const revokedBody = document.querySelector('#revokedTokensTable tbody');
@@ -988,4 +1005,54 @@ class Dashboard {
   }
 }
 
-document.addEventListener('DOMContentLoaded', () => { new Dashboard(); });
+/* ─── Auth Check ─── */
+async function checkAuth() {
+  try {
+    const configRes = await fetch('/api/auth/config');
+    const config = await configRes.json();
+
+    if (!config.configured) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      new Dashboard();
+      return;
+    }
+
+    const sessionRes = await fetch('/api/auth/session');
+    const session = await sessionRes.json();
+
+    if (session.user) {
+      document.getElementById('loginScreen').style.display = 'none';
+      document.getElementById('app').style.display = 'flex';
+      const u = document.getElementById('sidebarUser');
+      u.style.display = 'flex';
+      document.getElementById('githubUser').textContent = session.user.login;
+      if (session.user.avatar_url) document.getElementById('githubAvatar').src = session.user.avatar_url;
+      document.getElementById('logoutBtn').onclick = async () => {
+        try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+        window.location.reload();
+      };
+      new Dashboard();
+    } else {
+      showLogin();
+    }
+  } catch { showLogin(); }
+}
+
+function showLogin() {
+  document.getElementById('loginScreen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+  document.getElementById('githubLoginBtn').onclick = () => { window.location.href = '/api/auth/github'; };
+  document.getElementById('logoutBtn').onclick = async () => {
+    try { await fetch('/api/auth/logout', { method: 'POST' }); } catch {}
+    window.location.reload();
+  };
+  fetch('/api/auth/config').then(r => r.json()).then(data => {
+    if (!data.configured) {
+      document.getElementById('loginError').textContent =
+        'GitHub OAuth não configurado. Configure githubClientId e githubSecret no config.json.';
+    }
+  }).catch(() => {});
+}
+
+document.addEventListener('DOMContentLoaded', checkAuth);
