@@ -102,15 +102,16 @@ async function handleUpdate(sock, { jid, sender, text, prefix, args, commandName
         try {
           const result = await updater.performUpdate();
           const pct = progressBar(100);
-          await sock.sendMessage(jid, {
-            text: `╭─── *「 ATUALIZACAO CONCLUIDA 」* ───╮\n` +
-                  `│ ${pct} 100%\n` +
-                  `│ 📦 *v${result.targetVer}*\n` +
-                  `│ ✅ *${result.filesSuccess} arquivos* atualizados\n` +
-                  `${result.filesFailed > 0 ? `│ ⚠️ *${result.filesFailed} falhas*\n` : ''}` +
-                  `│ 🔄 *Reiniciando em 3 segundos...*\n` +
-                  `╰──────────────────────────────────────╯`
-          });
+          const updated = result.filesUpdated || 0;
+          const unchanged = result.filesTotal - updated;
+          let msg = `╭─── *「 ATUALIZACAO CONCLUIDA 」* ───╮\n`;
+          msg += `│ ${pct} 100%\n`;
+          msg += `│ 📦 *v${result.targetVer}*\n`;
+          msg += `│ ✅ *${updated} arquivos* atualizados\n`;
+          if (unchanged > 0) msg += `│ ℹ️ ${unchanged} arquivos ja estavam atualizados\n`;
+          msg += `│ 🔄 *Reiniciando em 3 segundos...*\n`;
+          msg += `╰──────────────────────────────────────╯`;
+          await sock.sendMessage(jid, { text: msg });
           setTimeout(() => safeRestart(), 3000);
         } catch (e) {
           await sock.sendMessage(jid, {
