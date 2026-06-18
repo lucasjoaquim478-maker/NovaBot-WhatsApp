@@ -32,19 +32,27 @@ async function searchMyinstants(query) {
   const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
   const html = await res.text();
   const results = [];
-  const instantRegex = /<div class="instant">([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
-  let match;
-  while ((match = instantRegex.exec(html)) !== null) {
-    const block = match[1];
-    const titleMatch = block.match(/<a class="instant-link"[^>]*>([\s\S]*?)<\/a>/);
-    const playMatch = block.match(/onclick="play\('([^']+)'/);
-    if (titleMatch && playMatch) {
-      const title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
-      const audioPath = playMatch[1];
-      results.push({ title, url: 'https://www.myinstants.com' + audioPath });
+  const playRegex = /onclick="play\('([^']+)'/g;
+  let pMatch;
+  const playMatches = [];
+  while ((pMatch = playRegex.exec(html)) !== null) {
+    playMatches.push({ url: 'https://www.myinstants.com' + pMatch[1], index: pMatch.index });
+  }
+  const titleRegex = /<a[^>]*class="instant-link[^"]*"[^>]*>([\s\S]*?)<\/a>/g;
+  let tMatch;
+  while ((tMatch = titleRegex.exec(html)) !== null) {
+    const title = tMatch[1].replace(/<[^>]+>/g, '').trim();
+    if (!title) continue;
+    const nearestPlay = playMatches.find(p => p.index > tMatch.index);
+    if (nearestPlay && nearestPlay.index - tMatch.index < 500) {
+      if (!results.some(r => r.url === nearestPlay.url)) {
+        results.push({ title, url: nearestPlay.url });
+      }
+    } else {
+      results.push({ title, url: '' });
     }
   }
-  return results;
+  return results.filter(r => r.url);
 }
 
 const myinstantsCache = new Map();
