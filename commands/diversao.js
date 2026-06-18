@@ -1,4 +1,8 @@
 const db = require('../database/index');
+const fetch = require('node-fetch');
+const https = require('https');
+const fs = require('fs');
+const path = require('path');
 
 const piadas = [
   'Por que o programador foi preso? Porque ele usou um codigo malicioso!',
@@ -23,14 +27,116 @@ const memes = [
 
 let memeIndex = 0;
 
+async function searchMyinstants(query) {
+  const url = `https://www.myinstants.com/pt/search/?name=${encodeURIComponent(query)}`;
+  const res = await fetch(url, { headers: { 'User-Agent': 'Mozilla/5.0' } });
+  const html = await res.text();
+  const results = [];
+  const instantRegex = /<div class="instant">([\s\S]*?)<\/div>\s*<\/div>\s*<\/div>/g;
+  let match;
+  while ((match = instantRegex.exec(html)) !== null) {
+    const block = match[1];
+    const titleMatch = block.match(/<a class="instant-link"[^>]*>([\s\S]*?)<\/a>/);
+    const playMatch = block.match(/onclick="play\('([^']+)'/);
+    if (titleMatch && playMatch) {
+      const title = titleMatch[1].replace(/<[^>]+>/g, '').trim();
+      const audioPath = playMatch[1];
+      results.push({ title, url: 'https://www.myinstants.com' + audioPath });
+    }
+  }
+  return results;
+}
+
+const myinstantsCache = new Map();
+
+async function handleMeme(sock, { msg, jid, sender, args }) {
+  if (!args.length) {
+    const url = memes[memeIndex % memes.length];
+    memeIndex++;
+    return await sock.sendMessage(jid, { image: { url }, caption: '😂 Meme para você!' }, { quoted: msg });
+  }
+
+  const query = args.join(' ');
+  await sock.sendMessage(jid, { text: `🔍 Buscando memes: *${query}*...` });
+
+  try {
+    const results = await searchMyinstants(query);
+    if (!results.length) return await sock.sendMessage(jid, { text: '❌ Nenhum meme encontrado.' });
+
+    const key = sender + ':' + Date.now();
+    myinstantsCache.set(key, { results, time: Date.now() });
+
+    let txt = `╭─── *「 MEMES ENCONTRADOS 」* ───╮\n`;
+    txt += `│ 🔍 "${query}"\n│\n`;
+    const maxResults = Math.min(results.length, 10);
+    for (let i = 0; i < maxResults; i++) {
+      const r = results[i];
+      const num = (i + 1).toString().padStart(2, '0');
+      txt += `│ ${num}. ${r.title.slice(0, 40)}\n│\n`;
+    }
+    if (results.length > maxResults) txt += `│ ... +${results.length - maxResults} resultados\n│\n`;
+    txt += `│ 💡 Responda com *!memesel <n>*\n`;
+    txt += `╰──────────────────────────────────╯\n`;
+    txt += `\`\`\`Código: ${key}\`\`\``;
+    await sock.sendMessage(jid, { text: txt });
+  } catch (e) {
+    await sock.sendMessage(jid, { text: `❌ Erro na busca: ${e.message.slice(0, 200)}` });
+  }
+}
+
+async function downloadMyinstantsAudio(url, destPath) {
+  return new Promise((resolve, reject) => {
+    https.get(url, { timeout: 30000, headers: { 'User-Agent': 'Mozilla/5.0' } }, (res) => {
+      if (res.statusCode >= 300 && res.statusCode < 400 && res.headers.location) {
+        return downloadMyinstantsAudio(res.headers.location, destPath).then(resolve).catch(reject);
+      }
+      if (res.statusCode !== 200) return reject(new Error('HTTP ' + res.statusCode));
+      const file = fs.createWriteStream(destPath);
+      res.pipe(file);
+      file.on('finish', () => file.close(resolve));
+    }).on('error', reject);
+  });
+}
+
+async function handleMemeSel(sock, { msg, jid, sender, args }) {
+  if (!args.length) return await sock.sendMessage(jid, { text: '❌ Use: !memesel <numero>' });
+
+  const num = parseInt(args[0]);
+  if (isNaN(num) || num < 1) return await sock.sendMessage(jid, { text: '❌ Número inválido.' });
+
+  let found = null;
+  for (const [key, data] of myinstantsCache) {
+    if (key.startsWith(sender) && Date.now() - data.time < 120000) {
+      if (num <= data.results.length) {
+        found = data.results[num - 1];
+        myinstantsCache.delete(key);
+        break;
+      }
+    }
+  }
+  if (!found) return await sock.sendMessage(jid, { text: '❌ Resultado expirado. Busque novamente com !meme <termo>' });
+
+  const tempDir = path.join(__dirname, '..', 'temp');
+  if (!fs.existsSync(tempDir)) fs.mkdirSync(tempDir, { recursive: true });
+  const mp3Path = path.join(tempDir, `meme_${Date.now()}.mp3`);
+
+  await sock.sendMessage(jid, { text: `⬇️ Baixando: *${found.title}*...` });
+
+  try {
+    await downloadMyinstantsAudio(found.url, mp3Path);
+    const data = fs.readFileSync(mp3Path);
+    fs.unlinkSync(mp3Path);
+    await sock.sendMessage(jid, { audio: data, mimetype: 'audio/mpeg', ptt: false }, { quoted: msg });
+  } catch (e) {
+    try { fs.unlinkSync(mp3Path); } catch {}
+    await sock.sendMessage(jid, { text: `❌ Erro ao baixar: ${e.message.slice(0, 200)}` });
+  }
+}
+
 async function handleDiversao(sock, { msg, jid, sender, args, commandName }) {
   switch (commandName) {
-    case 'meme': {
-      const url = memes[memeIndex % memes.length];
-      memeIndex++;
-      await sock.sendMessage(jid, { image: { url }, caption: '😂 Meme para você!' }, { quoted: msg });
-      break;
-    }
+    case 'meme': return await handleMeme(sock, { msg, jid, sender, args });
+    case 'memesel': return await handleMemeSel(sock, { msg, jid, sender, args });
     case 'piada': {
       const piada = piadas[Math.floor(Math.random() * piadas.length)];
       await sock.sendMessage(jid, { text: `😂 *Piada:*\n\n${piada}` });
@@ -66,6 +172,6 @@ async function handleDiversao(sock, { msg, jid, sender, args, commandName }) {
   }
 }
 
-const diversaoCommands = ['meme', 'piada', 'dado', 'moeda', 'roleta', 'perfil'];
+const diversaoCommands = ['meme', 'piada', 'dado', 'moeda', 'roleta', 'perfil', 'memesel'];
 
 module.exports = { handleDiversao, diversaoCommands };
