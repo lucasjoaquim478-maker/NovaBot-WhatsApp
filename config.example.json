@@ -39,5 +39,6 @@
   "githubClientSecret": "",
   "githubOwnerId": null,
   "githubOwnerUsername": "",
+  "githubToken": "",
   "sessionSecret": ""
 }
