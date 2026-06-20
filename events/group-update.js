@@ -9,16 +9,18 @@ async function handleGroupUpdate(sock, updates) {
         const group = db.getGroup(jid);
 
         for (const p of update.participants) {
+          const pId = typeof p === 'string' ? p : p.id;
+          if (!pId) continue;
           const botJid = sock.user?.id;
-          const isBot = botJid && (p === botJid || p.split('@')[0] === botJid.split('@')[0]);
+          const isBot = botJid && (pId === botJid || pId.split('@')[0] === botJid.split('@')[0]);
 
           if (update.action === 'add' && group.welcome) {
             try {
               const metadata = await sock.groupMetadata(jid);
               const subject = metadata.subject || 'grupo';
               await sock.sendMessage(jid, {
-                text: `🎉 Bem-vindo(a) @${p.split('@')[0]} ao grupo ${subject}!`,
-                mentions: [p]
+                text: `🎉 Bem-vindo(a) @${pId.split('@')[0]} ao grupo ${subject}!`,
+                mentions: [pId]
               });
             } catch {}
           }
@@ -34,8 +36,8 @@ async function handleGroupUpdate(sock, updates) {
           if (update.action === 'remove' && group.goodbye) {
             try {
               await sock.sendMessage(jid, {
-                text: `👋 @${p.split('@')[0]} saiu do grupo.`,
-                mentions: [p]
+                text: `👋 @${pId.split('@')[0]} saiu do grupo.`,
+                mentions: [pId]
               });
             } catch {}
           }
